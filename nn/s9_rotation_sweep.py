@@ -117,7 +117,7 @@ def main(args, *, variant="original"):
               flush=True)
     print(f"[{ 'S9_2' if variant=='global_zscore' else 'S9'}] model={args.model} L={n_latent} T_dim={tdim} "
           f"axis_scope={args.axes} subsets={count} "
-          f"angles={list(ANGLES)} rotations={total} figures_45deg={count*3}",
+          f"angles={list(ANGLES)} rotations={total}+1_unswept figures={3*(count+1)}",
           flush=True)
 
     variance_folder = dest / "z_variance_diagnostics"
@@ -144,6 +144,52 @@ def main(args, *, variant="original"):
         latent_sha256=sha256(z_file),
         checkpoint_sha256=sha256(train_path(args)),
         dataset_sha256=sha256(dataset_path(args.model)))
+
+    # The unswept oracle is an independent first-class candidate. It does not
+    # belong to any angle/subset, even though every subset's 0-degree member
+    # is numerically identical. Keep an explicit index row and diagnostic set.
+    baseline_dir = folder / "baseline"
+    baseline_dir.mkdir(parents=True, exist_ok=False)
+    baseline_file = baseline_dir / "unswept.npz"
+    np.savez_compressed(
+        baseline_file,
+        R=r_star, R_star=r_star, delta_R=np.eye(n_latent),
+        axes=np.array([], dtype=np.int64),
+        axes_1based=np.array([], dtype=np.int64),
+        subset_size=np.array(0, dtype=np.int64),
+        angle_degrees=np.array(0, dtype=np.int64),
+        candidate_type=np.array("baseline_unswept"),
+        rotation_policy=np.array("none_original_S8_oracle"),
+        coordinate_convention=np.array(
+            "row U=((Z-mu_all)/sd_all)@R.T"
+            if variant=="global_zscore" else "row U=Z@R.T"),
+        global_z_mean=mu, global_z_std=sd, global_z_variance=sd**2,
+        z_coordinate_space=np.array(
+            "globally_z_scored_Z" if variant=="global_zscore" else "original_Z"),
+        source_s8_rotation_sha256=np.array(source_hashes["s8_rotation_sha256"]),
+        source_latent_sha256=np.array(source_hashes["latent_sha256"]))
+    baseline_figures = dest / "figures_baseline"
+    baseline_figures.mkdir(parents=True, exist_ok=False)
+    baseline_u_test = z[test] @ r_star.T
+    baseline_t_u_corr = corr(truth, baseline_u_test)
+    save_rz_axis_correlation(baseline_u_test, baseline_figures)
+    _matrix_csv(baseline_figures / "rz_vs_t_correlation.csv",
+                baseline_t_u_corr, names, rotated_axis_names)
+    _plot_matrix(baseline_t_u_corr, names, rotated_axis_names,
+                 f"{args.model} TEST: T vs RZ | UNSWEPT R* baseline",
+                 baseline_figures / "rz_vs_t_heatmap.png")
+    _plot_scatter_grid(
+        truth, baseline_u_test, names, rotated_axis_names, baseline_t_u_corr,
+        f"{args.model} TEST: T vs RZ | UNSWEPT R* baseline",
+        baseline_figures / "rz_vs_t_scatter.png",
+        max_points=args.max_test_scatter_points)
+    records.append(dict(
+        candidate_type="baseline_unswept",
+        subset_size=0,
+        axes_1based="",
+        angle_degrees="",
+        rotation_file=str(baseline_file.relative_to(dest)).replace("\\", "/"),
+        orthogonality_max_error=float(np.max(np.abs(r_star@r_star.T - np.eye(n_latent)))))
     for subset_index, axes in enumerate(axis_subsets(n_axes), 1):
         k = len(axes)
         subset_dir = folder / f"k{k:02d}"
@@ -174,6 +220,7 @@ def main(args, *, variant="original"):
                 source_s8_rotation_sha256=np.array(source_hashes["s8_rotation_sha256"]),
                 source_latent_sha256=np.array(source_hashes["latent_sha256"]))
             records.append(dict(
+                candidate_type="sweep",
                 subset_size=k,
                 axes_1based=",".join(str(a+1) for a in axes),
                 angle_degrees=angle,
@@ -219,7 +266,12 @@ def main(args, *, variant="original"):
         angle_degrees=list(ANGLES),
         subset_count=count,
         matrix_count=len(records),
-        figure_count=count * 3,
+        sweep_matrix_count=total,
+        baseline_matrix_count=1,
+        baseline_candidate=dict(rotation_file="rotations/baseline/unswept.npz",
+                                diagnostic_folder="figures_baseline",
+                                candidate_type="baseline_unswept"),
+        figure_count=(count+1) * 3,
         variance_diagnostics="z_variance_diagnostics/; original S5 posterior "
                              "mean Z variance, paired Pitman-Morgan tests "
                              "with Holm correction by subject split",
@@ -238,8 +290,9 @@ def main(args, *, variant="original"):
         matrix_filenames="rotations/kXX/axes_...__deg_XXX.npz",
         test_subject_count=len(test),
     ), dest/"summary.json")
-    print(f"[S9] saved {len(records)} orthogonal R matrices and "
-          f"{count} complete 45-degree T-vs-RZ figure sets in {dest}",flush=True)
+    print(f"[S9] saved {len(records)} orthogonal R matrices "
+          f"({total} sweep + 1 independent unswept baseline), "
+          f"{count} sweep 45-degree diagnostic sets + 1 baseline set in {dest}",flush=True)
 
 
 if __name__ == "__main__":
