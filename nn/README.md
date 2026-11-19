@@ -131,6 +131,14 @@ S9 writes **each rotation separately**, grouped by subset size:
 s9_rotation_sweep/
   rotation_index.csv
   summary.json
+  z_variance_diagnostics/
+    z_axis_variances.png
+    z_variances_all.csv
+    z_variances_train.csv
+    z_variances_validation.csv
+    z_variances_test.csv
+    paired_variance_tests_{all,train,validation,test}.csv
+    z_variance_equal_tests.json
   rotations/
     k02/axes_01_02__deg_000.npz
     k02/axes_01_02__deg_015.npz
@@ -142,6 +150,8 @@ s9_rotation_sweep/
       rz_vs_t_correlation.csv
       rz_vs_t_heatmap.png
       rz_vs_t_scatter.png
+      rz_axis_correlations.csv
+      rz_axis_correlations.png
     k03/axes_01_02_03/
       rz_vs_t_correlation.csv
       rz_vs_t_heatmap.png
@@ -165,6 +175,22 @@ grids. For T_dim=4: 11 subsets × 7 = 77 matrices, 11 heatmaps +
 11 scatter grids. With `--axes all` the count uses L instead and can be
 very large; for example L=16 requires 458,633 matrices and 65,519
 figure pairs, which can consume substantial time and storage.
+
+In addition, S9 tests whether the **original S5 posterior-mean Z axes have
+equal between-subject variances**. It saves per-axis sample variances (ddof=1)
+for ALL/TRAIN/VALIDATION/TEST, max/min variance ratios, bar chart, and
+pairwise **Pitman–Morgan tests** accounting for the paired observations
+(across dimensions of the same subjects) with Holm familywise correction.
+TRAIN is the primary inference split; other splits are descriptive replication.
+These tests assume bivariate normality for exact p-values; failure to reject
+is not proof of equal variance, and equal variance alone does not imply the
+joint Z distribution is isotropic Gaussian.
+
+Every 45° subset now **also** produces `rz_axis_correlations.csv` and
+`rz_axis_correlations.png` in the same `figures_45deg/kXX/axes_.../`
+directory. They show the complete L×L Pearson correlation matrix among
+all rotated Z axes on TEST subjects. This is a different diagnostic from
+the existing d×L T-vs-RZ heatmap.
 
 No existing S8 or S5 artifacts are modified. S9 refuses to overwrite a
 nonempty previous S9 directory.
@@ -201,11 +227,14 @@ outputs/nn/<MODEL>/<condition>_<config-hash>/repeat01/
     s8_supervised_rotation/pred_vs_t_correlation.csv/png
     s8_supervised_rotation/pred_vs_t_scatter.png
     s8_supervised_rotation/summary.json
+    s9_rotation_sweep/z_variance_diagnostics/z_variance_equal_tests.json
+    s9_rotation_sweep/z_variance_diagnostics/z_axis_variances.png
     s9_rotation_sweep/rotation_index.csv
     s9_rotation_sweep/summary.json
     s9_rotation_sweep/rotations/kXX/axes_...__deg_XXX.npz
     s9_rotation_sweep/figures_45deg/kXX/axes_.../rz_vs_t_heatmap.png
     s9_rotation_sweep/figures_45deg/kXX/axes_.../rz_vs_t_scatter.png
+    s9_rotation_sweep/figures_45deg/kXX/axes_.../rz_axis_correlations.png
 ```
 
 Training conditions include beta/lambda/context/L and a hash of all relevant

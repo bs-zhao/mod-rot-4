@@ -24,6 +24,8 @@ from modrot4_nn.s9_rotation import (
     ANGLES, axis_subsets, count_subsets, expected_rotation_count,
     rotate_from_oracle, rotation_id)
 from s8_supervised_rotation import _matrix_csv, _plot_matrix, _plot_scatter_grid
+from modrot4_nn.s9_diagnostics import (
+    save_z_variance_diagnostics, save_rz_axis_correlation)
 
 
 def configure_parser(parser):
@@ -90,13 +92,19 @@ def main(args):
               flush=True)
     print(f"[S9] model={args.model} L={n_latent} T_dim={tdim} "
           f"axis_scope={args.axes} subsets={count} "
-          f"angles={list(ANGLES)} rotations={total} figures_45deg={count*2}",
+          f"angles={list(ANGLES)} rotations={total} figures_45deg={count*3}",
           flush=True)
 
+    variance_folder = dest / "z_variance_diagnostics"
     folder = dest / "rotations"
     figure_folder = dest / "figures_45deg"
     folder.mkdir(parents=True, exist_ok=False)
     figure_folder.mkdir(parents=True, exist_ok=False)
+    variance_reports = save_z_variance_diagnostics(z, splits, variance_folder)
+    print("[S9] original Z variance: TRAIN max/min ratio="
+          f"{variance_reports['train']['max_min_variance_ratio']}; "
+          f"Holm-significant pairs="
+          f"{variance_reports['train']['significant_pair_count']}", flush=True)
     names = param_names(args.model)
     if len(names) != tdim:
         raise ValueError("T parameter labels do not match S1 data")
@@ -141,6 +149,7 @@ def main(args):
             if angle == 45:
                 picture_dir.mkdir(parents=True, exist_ok=True)
                 rz_test = z[test] @ r.T
+                save_rz_axis_correlation(rz_test, picture_dir)
                 corr_test = corr(truth, rz_test)
                 _matrix_csv(picture_dir / "rz_vs_t_correlation.csv",
                             corr_test, names, rotated_axis_names)
@@ -171,7 +180,14 @@ def main(args):
         angle_degrees=list(ANGLES),
         subset_count=count,
         matrix_count=len(records),
-        figure_count=count * 2,
+        figure_count=count * 3,
+        variance_diagnostics="z_variance_diagnostics/; original S5 posterior "
+                             "mean Z variance, paired Pitman-Morgan tests "
+                             "with Holm correction by subject split",
+        variance_train=variance_reports["train"],
+        rz_axis_correlation_policy="Each 45 deg subset additionally saves "
+                                   "TEST Pearson RZ-by-RZ all L axis matrix "
+                                   "and heatmap",
         figure_policy="At 45 deg, TEST-only Pearson T x all L RZ axes; "
                       "scatter plot may subsample points but not statistics",
         rotation_policy="For ascending selected axes a1..ak, left-multiply "
