@@ -118,6 +118,74 @@ class TestModels(unittest.TestCase):
                              "s2_precheck__oracle_subjects.npz").is_file())
             self.assertFalse((sandbox/"outputs"/"choice").exists())
 
+    def test_uniform_precheck_c1_c2_c3(self):
+        # All three classic generators must run the SAME S2 entrypoint.
+        with tempfile.TemporaryDirectory() as tmp:
+            sandbox = Path(tmp)
+            shutil.copytree(ROOT/"models", sandbox/"models",
+                            ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+            for model in ("C1", "C2", "C3"):
+                subprocess.run(
+                    [sys.executable, str(sandbox/"models"/"s1_generate.py"),
+                     "--model", model, "--subjects", "5"],
+                    check=True, cwd=sandbox, capture_output=True, text=True)
+                result = subprocess.run(
+                    [sys.executable, str(sandbox/"models"/"s2_precheck.py"),
+                     "--model", model],
+                    check=False, cwd=sandbox, capture_output=True, text=True)
+                self.assertNotEqual(result.returncode, 0)
+                report_file = (sandbox/"outputs"/"models"/"precheck"/model/
+                               "s2_precheck__report.json")
+                self.assertTrue(report_file.is_file(), result.stderr)
+                report = json.loads(report_file.read_text(encoding="utf-8"))
+                self.assertTrue(report["checks"]["structure"]["passed"])
+                self.assertTrue(report["checks"]["generator_fidelity"]["passed"])
+                self.assertFalse(report["checks"]["parameter_recovery"]["conclusive"])
+                self.assertEqual(report["checks"]["parameter_recovery"]["sample_size"],5)
+                self.assertTrue((report_file.parent/
+                                 "s2_precheck__oracle_subjects.npz").is_file())
+
+    def test_unified_cpt_estimators_on_real_saved_choice_rows(self):
+        # Unit-test common CR3/CR5 MLE logic with synthetic saved X/Y data.
+        # Does not replace bank-provenance end-to-end tests.
+        from unittest.mock import patch
+        from scipy.special import expit
+        from modrot4.unified_precheck import run_unified_precheck
+        from modlearn_rot.generators.dataset import GeneratedDataset, save_dataset
+        from s0_cr2_design_recovery import sample_prior, logits as cpt_logits
+        for model_id in ("CR3", "CR5"):
+            with self.subTest(model=model_id), tempfile.TemporaryDirectory() as temp:
+                root = Path(temp)
+                n, trials = 4, 500
+                x = sample_subject_x(n, seed=72)
+                theta4 = sample_prior(n, 4, np.random.default_rng(33))
+                theta = theta4 if model_id == "CR3" else theta4[:, 1:]
+                extended = theta4 if model_id == "CR3" else theta_as_cr3(theta)
+                prob = expit(cpt_logits(x, extended[:, None, :]))
+                choices = (np.random.default_rng(2026).random(prob.shape)
+                           < prob).astype(np.int64)
+                data = GeneratedDataset(
+                    parameters=theta,
+                    trial_counts=np.full(n, trials, dtype=np.int64),
+                    subject_index=np.repeat(np.arange(n), trials),
+                    trial_index=np.tile(np.arange(trials), n),
+                    x=x.reshape(-1, 6),
+                    y=choices.reshape(-1, 1),
+                    predictive_true=prob.reshape(-1, 1))
+                input_path = root/"saved_dataset.npz"
+                save_dataset(data, input_path)
+                output_path = root/"s2_precheck__report.json"
+                with patch("modrot4.unified_precheck.precheck_path", return_value=output_path):
+                    report = run_unified_precheck(
+                        model_id, data, seed=20261006,
+                        provenance={"unit_test": True}, data_path=input_path)
+                self.assertTrue(report["checks"]["generator_fidelity"]["passed"])
+                self.assertEqual(report["checks"]["parameter_recovery"]["sample_size"],n)
+                self.assertTrue(output_path.is_file())
+                recovered = np.load(root/"s2_precheck__oracle_subjects.npz")
+                self.assertEqual(recovered["theta_mle"].shape, theta.shape)
+                self.assertTrue(np.isfinite(recovered["theta_mle"]).all())
+
     def test_cli_default_8000(self):
         from modrot4.cli import parse_args
         for model in ("C1","C2","C3","CR3","CR4","CR5"):
