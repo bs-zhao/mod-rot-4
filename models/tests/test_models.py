@@ -328,7 +328,7 @@ class TestModels(unittest.TestCase):
             info5=cr5/"CR5_3P_design.json"
             bank3=out/"CR3"/"s0_design"/"CR3_4P_fixed500.npz"
             info3=out/"CR3"/"s0_design"/"CR3_4P_design.json"
-            source,_=make_candidates(720,np.random.default_rng(2026))
+            source,_=make_candidates(500,np.random.default_rng(2026))
             meta=dict(objective=0.1,swaps_accepted=1,family_counts={})
             with (patch("modrot4.fixed_bank.bank_path",
                         side_effect=lambda m: bank5 if m=="CR5" else bank3),
