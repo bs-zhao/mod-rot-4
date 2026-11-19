@@ -22,9 +22,11 @@ exists: individual MLE parameter recovery is part of S2 by default.
 | CR4 | 3 (lambda, gamma, tau), alpha fixed to 1 | 500 | Fresh 6D X for **every person and every trial**, independent amount U(5,200) and probability U(.05,.95) |
 | CR5 | 3 (lambda, gamma, tau), alpha fixed to 1 | 500 | Exact same frozen 500×6 stimulus battery as CR3 |
 
-Original generating formulas, parameter priors and sampling seeds remain unchanged;
-only their orchestration and outputs are unified. Exact X-generation semantics are
-never changed to force the six datasets to use the same distribution.
+Original generating formulas and parameter priors remain unchanged. CR4's X
+sampling changed to match C1/C2/C3 **algorithmically**, not just in statistical
+independence. CR4's 6D amount/probability ranges and fixed 500-trial count remain
+as before. Its old X random-number sequences are NOT identical to the new ones.
+CR4 and CR5 retain the original paired T prior/seed and response RNG streams.
 
 ## Implementation architecture
 
@@ -48,11 +50,22 @@ truth. The old `modlearn_rot/diagnostics/precheck/` and standalone
 `reference/cr*/s2_oracle_*.py` remain for historical comparison; standard S2
 **does not** run those alternative routines.
 
-C1/C2/C3 use the original generator's deterministic SeedSequence streams and
-Bernoulli draws. CR3/CR4/CR5 preserve their original `data_seed+4` parameter
-stream, `data_seed+1004` choice stream, and CR4's `data_seed+2004` X stream.
-CR3 uses the original optimized CR2 bank and its CR3 conditioning; CR5 copies
-the immutable CR3 bank. **Run CR3 Generate before CR5 Generate.**
+C1/C2/C3 and CR4 use **exactly the same** `generate_trialwise_dataset`
+per-subject loop and `sample_independent_uniform_x` helper. For each subject,
+a single `inputs` Generator is used to invoke
+`rng.uniform(low,high,size=(n_trials,x_dim))`. That Generator is the
+**same third SeedSequence child** of `data_seed` in all four models.
+C1/C2/C3 pass scalar bounds (-1,1), CR4 passes per-column lower/upper
+bounds [5,5,.05,5,5,.05] and [200,200,.95,200,200,.95].
+There are no shared questions, amount/probability substreams, X design banks,
+acceptance/rejection steps, or correlations imposed across trials.
+
+For **non-X** random variables, CR4 specifically preserves its original
+`data_seed+4` prior stream and `data_seed+1004` Bernoulli uniform stream,
+so the original CR4/CR5 subject parameter pairing is preserved. This is
+intentional model-specific T/Y behavior and does not affect the shared X
+algorithm. CR3/CR5 continue using their original CPT seed policies and
+immutable banks. **Run CR3 Generate before CR5 Generate.**
 
 ## Unified S2 checks
 
@@ -63,7 +76,8 @@ Every dataset goes through the same checks, with the same output keys:
 2. `generator_fidelity`: exact model probability recomputation on up to
    32 actual S1 subjects; max absolute error ≤ 1e-12.
 3. `stimulus_design`: model-provided prior/stimulus constraints including
-   frozen bank integrity for CR3/CR5 or fresh iid X for CR4.
+   frozen bank integrity for CR3/CR5 or CR4's freshly generated single-RNG X
+   verified against the common C1/C2/C3 SeedSequence input stream.
 4. `response_balance`: global Y rate compared with original P
    (within 5 Bernoulli standard errors).
 5. `fisher_information`: information spectrum on the actual subject-specific
@@ -134,7 +148,12 @@ and CR3/4/5 Y/P as single-column 2D; the common evaluator handles both
 without changing previously generated data.
 
 **Preservation:** if a dataset already exists, S1 prints `status=EXISTS`
-and does not overwrite it. An existing 5,000-person dataset is not silently
+and does not overwrite it. **Exception:** a legacy CR4 dataset is rejected
+even if its 8,000 subjects match, because v1 used a different X RNG policy.
+Archive the old `outputs/models/generate/CR4/` and
+`outputs/models/precheck/CR4/` directories, then regenerate CR4. S2 also
+rejects the old manifest policy; it cannot silently report a new-method pass
+for an old-method dataset. An existing 5,000-person dataset is not silently
 converted into 8,000 persons. Old `outputs/choice/` files are not read.
 Do not replace an immutable CR2/CR3/CR5 bank without preserving provenance and
 regenerating dependent datasets. CR2 bank optimization can differ slightly
@@ -148,7 +167,7 @@ python -m unittest discover -s models/tests -v
 ```
 
 GitHub Actions runs these tests on each push. Included tests cover classic
-model deterministic generation and S1/S2, CR4 original bitwise IID sampling,
+model deterministic generation and S1/S2, CR4 legacy original bitwise IID sampling plus v2 single-RNG X equivalence,
 CR3/CR5 original mathematical RNG sampling with a fixed test bank, and
 the common S2 MLE/Fisher reporting. **The workflow has not run the full
 8,000-person datasets or the expensive original CR2 bank optimizer.**

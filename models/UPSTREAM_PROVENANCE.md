@@ -22,3 +22,33 @@ the same thresholds: per-parameter Pearson r >=0.8 (min 30 subjects),
 Fisher full-rank fraction >=0.95. These are NEW diagnostic policy
 choices, not retrospective claims about upstream thresholds. Old
 reference MLE implementations and mathematical generators were not changed.
+
+## 2026-11-19 — CR4 X algorithm fully aligned with C1/C2/C3
+
+Only the CR4 X sampler and associated data provenance were intentionally
+changed. The old standalone reference `sample_subject_x` in
+`reference/cr4/s0_s1_cr4.py` (2 independent streams, data_seed+2004/2005)
+remains as an archived v1 reference, but **the active S1 driver no longer
+uses it**. C1/C2/C3 and CR4 now all use:
+
+- the same `generate_trialwise_dataset` per-subject loop;
+- the same `sample_independent_uniform_x(n_trials,rng,low,high,n_features)`;
+- one shared subject-continuous `inputs` RNG, produced by
+  `SeedSequence(data_seed).spawn(4)[2]`;
+- one `rng.uniform(low,high,size=(n_trials,x_dim))` call for every participant;
+- independent continuous values for each trial and each X dimension.
+
+Only per-feature X bounds, X dimensionality, and trial-count configuration
+differ. C1/C2/C3 remain bitwise identical to the original scalar-bound
+`rng.uniform(-1,1,...)`. CR4's X numbers change with identical data_seed
+because the RNG algorithm/stream changed; its X distribution remains four
+independent U(5,200) amounts and two independent U(.05,.95) probabilities.
+CR4 and CR5 continue using the *paired* T stream `data_seed+4`; CR4 also
+keeps its choice stream `data_seed+1004`. T priors, logits and Bernoulli
+response semantics remain unchanged.
+
+New CR4 outputs use `x_sampling_policy = "iid_uniform_single_inputs_seedsequence_v2"`
+and record the X RNG stream. Legacy CR4 datasets are explicitly rejected at
+both S1 reuse and S2 audit; they are never overwritten or silently re-labeled.
+Archive original CR4 generate and precheck directories, then run S1/S2 again
+to compare results under the new X mechanism.
