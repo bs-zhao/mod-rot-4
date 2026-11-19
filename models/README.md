@@ -154,3 +154,23 @@ for historical comparison but are NOT invoked by the standard S2 stage.
 In particular, standard S2 does NOT generate a second artificial
 cohort to test recoverability. Run `python models/s2_precheck.py --model C1`
 through `--model CR5` with identical command syntax.
+
+## Uniform model adapter pipeline (2026-11-19)
+
+**No dataset-specific branches inside the S1/S2 entrypoints.** Both scripts use
+`get_spec(model)`. `model_specs.py` encapsulates only the original
+model-specific parameter distributions, stimulus generation, response function,
+MLE/Fisher operators and design/provenance constraints. The common S1 driver
+generates, saves dataset/manifest/summary and prints identical progress fields.
+The common S2 driver calls exactly the same six diagnostic computations and
+saves identically named report/CSV/NPZ outputs for every model.
+
+The CR3/CR5 original bank-building routines are still used unchanged;
+their extra bank files are a model specification, not an alternative workflow.
+The CR4 trialwise IID draws and all original RNG offsets are retained.
+
+C1/C2/C3 reuse the exact original `generate_dataset` implementation; CR3/CR4/CR5
+now share the same in-memory CPT dataset assembler, with reference formulas and
+RNG streams unchanged. **Existing S1 datasets are always preserved and never
+regenerated automatically.** Under the new driver a fresh S1 also saves
+`s1_generate__summary.json` for each of the six models.
