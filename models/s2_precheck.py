@@ -3,17 +3,14 @@ import sys
 # Support direct invocation as: python np/sN_*.py ...
 MODELS_ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(MODELS_ROOT / 'src'))
-"""S2: Original full generator precheck, including CR3 fixed-X provenance/FOSD."""
+"""S2: Common validity, functional fidelity and actual-S1-subject recovery."""
 import json
 import numpy as np
 from modrot4.cli import parse_args
-from modrot4.pipeline import (ROOT, dataset_path, precheck_path, sha256,
-                              _cr3_bank, _cr4_oracle_ref, _cr5_bank,
-                              _cr5_oracle_ref, _run_legacy)
+from modrot4.pipeline import (ROOT, dataset_path, precheck_path, sha256, _cr3_bank, _cr5_bank)
 from modlearn_rot.generators.registry import get_model
 from modlearn_rot.generators.dataset import load_dataset
-from modlearn_rot.diagnostics.precheck import PrecheckSuite
-from modlearn_rot.utils.io import save_json
+from modrot4.unified_precheck import run_unified_precheck
 
 def _verify_cr3(data):
     bank = _cr3_bank()
@@ -131,116 +128,35 @@ def _verify_cr5(data):
 
 
 def precheck(args):
-    target = dataset_path(args.model)
-    if not target.is_file():
-        raise FileNotFoundError(f'Generate first: {target}')
-    data = load_dataset(target)
-    if args.model == 'CR5':
-        x,codes,names,design,logit_prob_error=_verify_cr5(data)
-        p=np.asarray(data.predictive_true,dtype=float)
-        y=np.asarray(data.y,dtype=np.int64)
-        qualified=bool(np.isfinite(p).all() and np.all((p>0)&(p<1)) and
-                       np.isin(y,[0,1]).all())
-        group_counts={str(name):int((codes==j).sum()) for j,name in enumerate(names)}
-        report=dict(
-            model_id='CR5',model_version='3P_exact_CR3_bank500_alpha1',
-            qualified=qualified,subjects=len(data.parameters),trials=500,
-            parameter_names=['lambda_loss','gamma','tau'],alpha_fixed=1.0,
-            original_cr3_stimulus_bank=True,original_cr3_trial_order=True,
-            original_cr3_condition_counts=group_counts,
-            source_cr3_bank_sha256=design['cr3_source_sha256'],
-            bank_sha256=sha256(_cr5_bank()),dataset_sha256=sha256(target),
-            mean_accuracy_bayes=float(np.maximum(p,1-p).mean()),
-            response_rate=float(y.mean()),true_p_std=float(p.std()),
-            parameter_correlation=np.corrcoef(data.parameters,rowvar=False).tolist(),
-            checks={
-                'exact_cr3_X_and_native_labels':{'passed':True,'counts':group_counts},
-                'no_strict_FOSD':{'passed':True},
-                'original_cr3_X_zero_amounts_preserved':{'passed':bool(np.any(x[:,[0,1,3,4]]==0))},
-                'finite_CPT_alpha1_generator':{'passed':logit_prob_error<=1e-12,
-                                               'max_abs_error':logit_prob_error},
-                'valid_binary_choices':{'passed':qualified},
-            },
-            note='Exact CR3 stimulus-design / CR4 three-parameter function controlled contrast. Optional S2 oracle MLE+Fisher uses unchanged CR4 estimator.',
-        )
-        save_json(report,precheck_path(args.model))
-        print('CR5 exact CR3 bank / 3P CPT precheck:',qualified)
-    elif args.model == 'CR4':
-        x, manifest, logit_prob_error = _verify_cr4(data)
-        prob = np.asarray(data.predictive_true, dtype=float)
-        y = np.asarray(data.y, dtype=int)
-        qualified = bool(np.isfinite(prob).all() and
-                         np.all((prob > 0) & (prob < 1)) and
-                         np.isin(y, [0, 1]).all())
-        report = dict(
-            model_id='CR4', model_version='3P_iidX_alpha1',
-            qualified=qualified, subjects=len(data.parameters), trials=500,
-            parameter_names=['lambda_loss', 'gamma', 'tau'], alpha_fixed=1.0,
-            x_shared=False, x_sampling_policy=manifest['x_sampling_policy'],
-            x_seed=manifest['x_seed'],
-            amount_range=manifest['amount_range'],
-            probability_range=manifest['probability_range'],
-            mean_accuracy_bayes=float(np.maximum(prob, 1 - prob).mean()),
-            response_rate=float(y.mean()), true_p_std=float(prob.std()),
-            parameter_correlation=np.corrcoef(data.parameters, rowvar=False).tolist(),
-            dataset_sha256=sha256(target),
-            checks={
-                'iid_subject_trial_X_provenance': {'passed':True},
-                'continuous_X_support': {'passed':True},
-                'distinct_subject_and_trial_X': {'passed':True},
-                'generator_matches_CR2_alpha1': {'passed':logit_prob_error <= 1e-12,
-                    'max_abs_error':logit_prob_error},
-                'valid_binary_probabilities': {'passed':qualified},
-            },
-            note='CR4 independently samples six X attributes for every subject and trial; '
-                 'no shared bank or special trial classes. Oracle MLE/Fisher optional.',
-        )
-        save_json(report, precheck_path(args.model))
-        print('CR4 IID-per-subject/trial precheck:', qualified)
-    elif args.model == 'CR3':
-        x = _verify_cr3(data)
-        probability = np.asarray(data.predictive_true, dtype=float).reshape(len(data.parameters), 500)
-        y = np.asarray(data.y, dtype=int).reshape(len(data.parameters), 500)
-        qualified = bool(np.isfinite(probability).all() and
-                         ((probability > 0) & (probability < 1)).all() and
-                         np.isin(y, [0, 1]).all())
-        report = dict(model_id='CR3', model_version='4P_fixed500',
-                      qualified=qualified, subjects=len(data.parameters), trials=500,
-                      parameter_names=['alpha', 'lambda_loss', 'gamma', 'tau'],
-                      mean_accuracy_bayes=float(np.maximum(probability, 1-probability).mean()),
-                      response_rate=float(y.mean()),
-                      true_p_std=float(probability.std()),
-                      parameter_correlation=np.corrcoef(data.parameters, rowvar=False).tolist(),
-                      bank_sha256=sha256(_cr3_bank()),
-                      dataset_sha256=sha256(target),
-                      checks={'structure_and_provenance':{'passed':True},
-                              'no_strict_FOSD':{'passed':True},
-                              'binary_probability':{'passed':qualified}},
-                      note='Exact original CR3 s2 structural checks plus bank provenance/FOSD audit. Optional original oracle MLE is available separately.')
-        path = precheck_path(args.model)
-        save_json(report, path)
-        # Preserve old CR3 S2 report structure for provenance.
-        print('CR3 original structural/FOSD precheck:', qualified)
-    else:
-        model = get_model(args.model)
-        model.n_subjects = len(data.parameters)
-        report = PrecheckSuite(model, data, args.precheck_seed).run(save_outputs=True)
-        print(args.model, 'original full precheck qualified:', report['qualified'])
-    if args.model == 'CR3' and args.oracle_precheck:
-        _run_legacy(ROOT/'models'/'reference'/'cr3'/'s2_oracle_cr3.py',
-                    ['--stage', 'mle', '--mle-subjects', str(args.oracle_subjects),
-                     '--mle-starts', str(args.oracle_starts)])
-    if args.model == 'CR4' and args.oracle_precheck:
-        _run_legacy(_cr4_oracle_ref(), ['--subjects',str(args.oracle_subjects),
-                 '--starts',str(args.oracle_starts),
-                 '--seed',str(args.precheck_seed)])
-    if args.model == 'CR5' and args.oracle_precheck:
-        _run_legacy(_cr5_oracle_ref(), ['--subjects',str(args.oracle_subjects),
-                 '--starts',str(args.oracle_starts),
-                 '--seed',str(args.precheck_seed)])
-    if not report['qualified']:
-        raise RuntimeError('Precheck failed; NN training blocked')
+    path = dataset_path(args.model)
+    if not path.is_file():
+        raise FileNotFoundError(f"Generate first: {path}")
+    data = load_dataset(path)
+    provenance = {"stimulus_scheme": "iid_trialwise_uniform"}
+    if args.model == "CR3":
+        _verify_cr3(data)
+        provenance = {"stimulus_scheme": "shared_frozen_CR3",
+                      "bank_sha256": sha256(_cr3_bank()), "strict_dominance": 0}
+    elif args.model == "CR4":
+        _x, manifest, error = _verify_cr4(data)
+        provenance = {"stimulus_scheme": "iid_subject_trial_uniform",
+                      "x_shared": False, "x_seed": manifest["x_seed"],
+                      "max_generator_error": error}
+    elif args.model == "CR5":
+        _x, codes, names, design, error = _verify_cr5(data)
+        provenance = {"stimulus_scheme": "exact_shared_CR3",
+                      "bank_sha256": sha256(_cr5_bank()),
+                      "condition_counts": design["source_condition_counts"],
+                      "max_generator_error": error}
+    report = run_unified_precheck(
+        args.model, data, seed=args.precheck_seed,
+        provenance=provenance, data_path=path)
+    if not report["qualified"]:
+        raise RuntimeError(
+            "Precheck failed: see " + str(precheck_path(args.model)) +
+            ". Fewer than 30 S1 subjects means statistically inconclusive recovery.")
     return report
 
-if __name__ == '__main__':
-    precheck(parse_args('S2: original simulator precheck'))
+
+if __name__ == "__main__":
+    precheck(parse_args("S2: unified model precheck"))
