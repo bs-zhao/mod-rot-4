@@ -9,6 +9,14 @@ import numpy as np
 from modlearn_rot.utils.io import save_json
 from modrot4.pipeline import precheck_path, sha256
 
+# Uniform, model-independent S2 evaluation policy.
+RECOVERY_SUBJECTS = 100
+RECOVERY_STARTS = 4
+MIN_RECOVERY_SUBJECTS = 30
+MIN_PEARSON_R = 0.80
+MIN_FISHER_FULL_RANK_FRACTION = 0.95
+PROB_TOL = 1e-12
+
 def pearson(a, b):
     aa, bb = a-a.mean(), b-b.mean()
     d = np.sqrt(np.dot(aa, aa)*np.dot(bb, bb))
