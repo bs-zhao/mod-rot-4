@@ -32,7 +32,7 @@ def dataset_path(model: str) -> Path:
 
 
 def precheck_path(model: str) -> Path:
-    return ROOT / "outputs" / "models" / "precheck" / model / "s2_precheck__report.json""
+    return ROOT / "outputs" / "models" / "precheck" / model / "s2_precheck__report.json"
 
 
 def _run_legacy(script: Path, argv: list[str]) -> None:

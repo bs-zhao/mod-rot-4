@@ -17,7 +17,7 @@ sys.path.insert(0, str(ROOT / "models" / "reference" / "cr4"))
 
 from modlearn_rot.generators.registry import get_model
 from modlearn_rot.generators.dataset import generate_dataset, load_dataset
-from s0_s1_cr4 import (sample_subject_x, sample_theta, theta_as_cr3,
+from s0_s1_cr4 import (sample_subject_x, sample_bank, sample_theta, theta_as_cr3,
                       logits, verify_x)
 from s0_cr2_design_recovery import logits as cr2_logits
 
