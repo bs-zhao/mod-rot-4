@@ -125,7 +125,7 @@ class TestNNPipeline(unittest.TestCase):
                 self.assertEqual(predictions["u_test"].shape[1],3)
             s9=zfile.parent.parent/"s9_rotation_sweep"
             self.assertTrue((s9/"summary.json").exists())
-            self.assertEqual(len(list((s9/"rotations").rglob("*.npz"))),28)
+            self.assertEqual(len(list((s9/"rotations").rglob("*.npz"))),29)
             self.assertEqual(len(list((s9/"figures_45deg").rglob("*heatmap.png"))),4)
             self.assertEqual(len(list((s9/"figures_45deg").rglob("*scatter.png"))),4)
             self.assertEqual(len(list((s9/"figures_45deg").rglob("rz_axis_correlations.png"))),4)
@@ -146,6 +146,18 @@ class TestNNPipeline(unittest.TestCase):
             with np.load(next((s9/"rotations").rglob("*deg_045.npz"))) as example:
                 np.testing.assert_allclose(example["R"] @ example["R"].T,
                                            np.eye(3),atol=1e-9)
+            self.assertTrue((s9/"figures_baseline"/"rz_vs_t_heatmap.png").exists())
+            self.assertTrue((s9/"figures_baseline"/"rz_vs_t_scatter.png").exists())
+            self.assertTrue((s9/"figures_baseline"/"rz_axis_correlations.png").exists())
+            with np.load(s9/"rotations"/"baseline"/"unswept.npz") as base:
+                np.testing.assert_allclose(base["R"],r,atol=1e-10)
+                np.testing.assert_allclose(base["delta_R"],np.eye(3),atol=1e-10)
+                self.assertEqual(str(base["candidate_type"]),"baseline_unswept")
+            with (s9/"rotation_index.csv").open() as fp:
+                entries=list(__import__("csv").DictReader(fp))
+                self.assertEqual(len(entries),29)
+                self.assertEqual(entries[0]["candidate_type"],"baseline_unswept")
+                self.assertEqual(sum(e["candidate_type"]=="sweep" for e in entries),28)
             s82=zfile.parent.parent/"s8_2_supervised_rotation"
             s92=zfile.parent.parent/"s9_2_rotation_sweep"
             self.assertTrue((s82/"z_standardized.npz").exists())
@@ -174,10 +186,21 @@ class TestNNPipeline(unittest.TestCase):
                 np.testing.assert_allclose(z_std.std(0,ddof=0),np.ones(3),atol=1e-10)
             with np.load(s82/"rotated_z.npz") as saved:
                 np.testing.assert_allclose(saved["rz"],z_std@r82.T,atol=1e-10)
-            self.assertEqual(len(list((s92/"rotations").rglob("*.npz"))),28)
+            self.assertEqual(len(list((s92/"rotations").rglob("*.npz"))),29)
             self.assertEqual(len(list((s92/"figures_45deg").rglob("rz_axis_correlations.png"))),4)
             self.assertTrue((s92/"z_variance_diagnostics"/"z_axis_variances.png").exists())
             self.assertTrue((s92/"original_z_variance_diagnostics"/"z_axis_variances.png").exists())
+            self.assertTrue((s92/"figures_baseline"/"rz_vs_t_heatmap.png").exists())
+            self.assertTrue((s92/"figures_baseline"/"rz_vs_t_scatter.png").exists())
+            self.assertTrue((s92/"figures_baseline"/"rz_axis_correlations.png").exists())
+            with np.load(s92/"rotations"/"baseline"/"unswept.npz") as base:
+                np.testing.assert_allclose(base["R"],r82,atol=1e-10)
+                np.testing.assert_allclose(base["global_z_mean"],mu,atol=1e-12)
+                np.testing.assert_allclose(base["global_z_std"],sd,atol=1e-12)
+            with (s92/"rotation_index.csv").open() as fp:
+                entries=list(__import__("csv").DictReader(fp))
+                self.assertEqual(len(entries),29)
+                self.assertEqual(entries[0]["candidate_type"],"baseline_unswept")
             with np.load(next((s92/"rotations").rglob("*deg_000.npz"))) as example:
                 np.testing.assert_allclose(example["R"],r82,atol=1e-9)
                 np.testing.assert_allclose(example["global_z_mean"],mu,atol=1e-12)
@@ -191,6 +214,9 @@ class TestNNPipeline(unittest.TestCase):
                 summary=json.load(handle)
                 self.assertEqual(summary["variant"],"s9_2_global_zscore")
                 self.assertEqual(summary["source_oracle_stage"],"s8_2_supervised_rotation")
+                self.assertEqual(summary["baseline_matrix_count"],1)
+                self.assertEqual(summary["sweep_matrix_count"],28)
+                self.assertEqual(summary["matrix_count"],29)
 
 
 if __name__=="__main__":

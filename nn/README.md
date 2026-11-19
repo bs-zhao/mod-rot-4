@@ -127,7 +127,15 @@ R(axes, theta) = G(axes, theta) @ R_star
 RZ = Z @ R(axes, theta).T
 ```
 
-S9 writes **each rotation separately**, grouped by subset size:
+S9 writes **each rotation separately**, grouped by subset size. In addition,
+the **unswept original R*** is a standalone first-class baseline, not merely
+a duplicate hidden among the 0-degree sweeps. The baseline has its own
+complete orthogonal matrix, metadata, diagnostic figures and a distinct
+`candidate_type=baseline_unswept` row in `rotation_index.csv`.
+Sweep entries use `candidate_type=sweep`. Neither the baseline nor any
+0-degree sweep is removed; both are kept for reproducible comparisons.
+
+
 
 ```text
 s9_rotation_sweep/
@@ -142,11 +150,18 @@ s9_rotation_sweep/
     paired_variance_tests_{all,train,validation,test}.csv
     z_variance_equal_tests.json
   rotations/
+    baseline/unswept.npz
     k02/axes_01_02__deg_000.npz
     k02/axes_01_02__deg_015.npz
     ...
     k03/axes_01_02_03__deg_045.npz
     ...
+  figures_baseline/
+    rz_vs_t_correlation.csv
+    rz_vs_t_heatmap.png
+    rz_vs_t_scatter.png
+    rz_axis_correlations.csv
+    rz_axis_correlations.png
   figures_45deg/
     k02/axes_01_02/
       rz_vs_t_correlation.csv
@@ -172,9 +187,10 @@ held-out TEST subjects and every TEST observation. Scatter plots may
 limit visible points (default up to 2000 TEST subjects per panel,
 `--max-test-scatter-points`), without changing the computed correlations.
 
-For T_dim=3: 4 subsets × 7 angles = 28 matrices, 4 heatmaps + 4 scatter
-grids. For T_dim=4: 11 subsets × 7 = 77 matrices, 11 heatmaps +
-11 scatter grids. With `--axes all` the count uses L instead and can be
+For T_dim=3: 4 subsets × 7 angles = 28 sweep matrices + 1
+independent baseline = **29 candidates**, with 4 sweep heatmap/scatter
+sets and 1 baseline set. For T_dim=4: 77 sweep matrices +
+1 baseline = **78 candidates**, with 11 sweep figure sets plus baseline. With `--axes all` the count uses L instead and can be
 very large; for example L=16 requires 458,633 matrices and 65,519
 figure pairs, which can consume substantial time and storage.
 
@@ -242,7 +258,9 @@ steps) in **Zz space**. All R files are full L×L orthogonal matrices
 the raw-space affine map is fully specified. Its separate directory
 `s9_2_rotation_sweep/` mirrors S9:
 
-- `rotations/` and `rotation_index.csv` for every R
+- `rotations/` and `rotation_index.csv` for every R, including
+  `rotations/baseline/unswept.npz` as its own indexed candidate
+- `figures_baseline/` for the unswept R*_2 T×U and U×U diagnostics
 - `figures_45deg/` for each 45-degree subset's T×U heatmap,
   T×U scatter grid, and U×U correlation heatmap/CSV
 - `z_variance_diagnostics/` for the *standardized Zz* axis variances
@@ -288,6 +306,8 @@ outputs/nn/<MODEL>/<condition>_<config-hash>/repeat01/
     s9_rotation_sweep/z_variance_diagnostics/z_variance_equal_tests.json
     s9_rotation_sweep/z_variance_diagnostics/z_axis_variances.png
     s9_rotation_sweep/rotation_index.csv
+    s9_rotation_sweep/rotations/baseline/unswept.npz
+    s9_rotation_sweep/figures_baseline/
     s9_rotation_sweep/summary.json
     s9_rotation_sweep/rotations/kXX/axes_...__deg_XXX.npz
     s9_rotation_sweep/figures_45deg/kXX/axes_.../rz_vs_t_heatmap.png
@@ -301,6 +321,8 @@ outputs/nn/<MODEL>/<condition>_<config-hash>/repeat01/
     s8_2_supervised_rotation/test_predictions.npz
     s8_2_supervised_rotation/... (the same S8 heatmaps/scatters)
     s9_2_rotation_sweep/rotation_index.csv
+    s9_2_rotation_sweep/rotations/baseline/unswept.npz
+    s9_2_rotation_sweep/figures_baseline/
     s9_2_rotation_sweep/rotations/kXX/axes_...__deg_XXX.npz
     s9_2_rotation_sweep/figures_45deg/kXX/axes_.../... (the same S9 figures)
     s9_2_rotation_sweep/z_variance_diagnostics/...
