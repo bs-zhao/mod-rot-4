@@ -238,6 +238,24 @@ class TestModels(unittest.TestCase):
                     np.testing.assert_array_equal(dataset.y,
                                                   expected_y.astype(np.int64).reshape(-1,1))
 
+    def test_generate_existing_wrong_subject_count_rejected(self):
+        # Preserving old files is mandatory, but must not silently reuse N=5 for N=8.
+        with tempfile.TemporaryDirectory() as tmp:
+            sandbox=Path(tmp)
+            shutil.copytree(ROOT/"models",sandbox/"models",
+                            ignore=shutil.ignore_patterns("__pycache__","*.pyc"))
+            script=sandbox/"models"/"s1_generate.py"
+            first=subprocess.run([sys.executable,str(script),"--model","C1","--subjects","5"],
+                                 cwd=sandbox,capture_output=True,text=True)
+            self.assertEqual(first.returncode,0,first.stderr)
+            second=subprocess.run([sys.executable,str(script),"--model","C1","--subjects","8"],
+                                  cwd=sandbox,capture_output=True,text=True)
+            self.assertNotEqual(second.returncode,0)
+            self.assertIn("existing_subjects=5",second.stderr)
+            self.assertIn("requested_subjects=8",second.stderr)
+            with np.load(sandbox/"outputs"/"models"/"generate"/"C1"/"s1_generate__dataset.npz") as data:
+                self.assertEqual(data["parameters"].shape[0],5)
+
     def test_cli_default_8000(self):
         from modrot4.cli import parse_args
         for model in ("C1","C2","C3","CR3","CR4","CR5"):
