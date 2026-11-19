@@ -309,6 +309,71 @@ class TestModels(unittest.TestCase):
                     np.testing.assert_array_equal(dataset.y,
                                                   expected_y.astype(np.int64).reshape(-1,1))
 
+    def test_cr5_generates_and_prechecks_without_cr3_or_cr2(self):
+        """End-to-end CR5 from its OWN local bank, with zero other-model outputs.
+
+        An inexpensive input source is substituted ONLY for CI; the real
+        full-parameter CR2 optimizer remains the production design algorithm.
+        """
+        from unittest.mock import patch
+        from modrot4 import fixed_bank
+        from s0_cr2_design_recovery import make_candidates
+        with tempfile.TemporaryDirectory() as tmp:
+            sandbox=Path(tmp)
+            shutil.copytree(ROOT/"models",sandbox/"models",
+                            ignore=shutil.ignore_patterns("__pycache__","*.pyc"))
+            out=sandbox/"outputs"/"models"/"generate"
+            cr5=out/"CR5"/"s0_design"
+            bank5=cr5/"CR5_3P_cr3bank500.npz"
+            info5=cr5/"CR5_3P_design.json"
+            bank3=out/"CR3"/"s0_design"/"CR3_4P_fixed500.npz"
+            info3=out/"CR3"/"s0_design"/"CR3_4P_design.json"
+            source,_=make_candidates(720,np.random.default_rng(2026))
+            meta=dict(objective=0.1,swaps_accepted=1,family_counts={})
+            with (patch("modrot4.fixed_bank.bank_path",
+                        side_effect=lambda m: bank5 if m=="CR5" else bank3),
+                  patch("modrot4.fixed_bank.design_path",
+                        side_effect=lambda m: info5 if m=="CR5" else info3),
+                  patch("modrot4.fixed_bank._optimise_4p_source",
+                        return_value=(source,meta))):
+                fixed_bank.ensure_local_bank("CR5",20261023)
+                self.assertTrue(bank5.is_file())
+                self.assertFalse(bank3.exists())
+                self.assertFalse((out/"CR2").exists())
+                fixed_bank.inspect_local_bank("CR5")
+                fixed_bank.ensure_local_bank("CR3",20261023)
+                fixed_bank.inspect_local_bank("CR3")
+            with np.load(bank5) as five, np.load(bank3) as three:
+                np.testing.assert_array_equal(five["X"],three["X"])
+                np.testing.assert_array_equal(five["type_codes"],three["type_codes"])
+            # CR3/CR2 output folders may not exist when CR5 S1/S2 run.
+            shutil.rmtree(out/"CR3")
+            self.assertFalse((out/"CR3").exists())
+            self.assertFalse((out/"CR2").exists())
+            generate=subprocess.run(
+                [sys.executable,str(sandbox/"models"/"s1_generate.py"),
+                 "--model","CR5","--subjects","5"],
+                cwd=sandbox,capture_output=True,text=True)
+            self.assertEqual(generate.returncode,0,generate.stderr)
+            self.assertTrue((out/"CR5"/"s1_generate__dataset.npz").is_file())
+            self.assertFalse((out/"CR3").exists())
+            self.assertFalse((out/"CR2").exists())
+            check=subprocess.run(
+                [sys.executable,str(sandbox/"models"/"s2_precheck.py"),
+                 "--model","CR5"],
+                cwd=sandbox,capture_output=True,text=True)
+            # n=5 fails the universal minimum n=30 recovery gate,
+            # not because any CR2/CR3 output is missing.
+            self.assertNotEqual(check.returncode,0)
+            self.assertIn("Precheck failed",check.stderr)
+            self.assertNotIn("CR3",check.stderr)
+            report=sandbox/"outputs"/"models"/"precheck"/"CR5"/"s2_precheck__report.json"
+            self.assertTrue(report.is_file(),check.stderr)
+            diagnostics=json.loads(report.read_text(encoding="utf-8"))
+            self.assertTrue(diagnostics["checks"]["stimulus_design"]["passed"])
+            self.assertTrue(diagnostics["checks"]["generator_fidelity"]["passed"])
+            self.assertFalse(diagnostics["checks"]["parameter_recovery"]["conclusive"])
+
     def test_generate_existing_wrong_subject_count_rejected(self):
         # Preserving old files is mandatory, but must not silently reuse N=5 for N=8.
         with tempfile.TemporaryDirectory() as tmp:
