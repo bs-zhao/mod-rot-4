@@ -87,7 +87,11 @@ class TestNNPipeline(unittest.TestCase):
                 ("s8_supervised_rotation.py",[],
                  "s8_supervised_rotation/rotation.npz"),
                 ("s9_rotation_sweep.py",[],
-                 "s9_rotation_sweep/rotation_index.csv")]
+                 "s9_rotation_sweep/rotation_index.csv"),
+                ("s8_2_supervised_rotation.py",[],
+                 "s8_2_supervised_rotation/rotation.npz"),
+                ("s9_2_rotation_sweep.py",[],
+                 "s9_2_rotation_sweep/rotation_index.csv")]
             for script,additional,expected in stages:
                 proc=subprocess.run(
                     [sys.executable,str(root/"nn"/script),*base,*additional],
@@ -142,6 +146,39 @@ class TestNNPipeline(unittest.TestCase):
             with np.load(next((s9/"rotations").rglob("*deg_045.npz"))) as example:
                 np.testing.assert_allclose(example["R"] @ example["R"].T,
                                            np.eye(3),atol=1e-9)
+            s82=zfile.parent.parent/"s8_2_supervised_rotation"
+            s92=zfile.parent.parent/"s9_2_rotation_sweep"
+            self.assertTrue((s82/"z_standardized.npz").exists())
+            with np.load(zfile) as source:
+                raw_z=np.asarray(source["z"],dtype=float)
+            with np.load(s82/"rotation.npz") as oracle:
+                mu=np.asarray(oracle["global_z_mean"],float)
+                sd=np.asarray(oracle["global_z_std"],float)
+                r82=np.asarray(oracle["R_star"],float)
+                self.assertEqual(str(oracle["z_standardization_scope"]),"all_subjects")
+                np.testing.assert_allclose(mu,raw_z.mean(0),atol=1e-12)
+                np.testing.assert_allclose(sd,raw_z.std(0,ddof=0),atol=1e-12)
+                np.testing.assert_allclose(r82@r82.T,np.eye(3),atol=1e-9)
+            with np.load(s82/"z_standardized.npz") as saved:
+                z_std=np.asarray(saved["z_standardized"],float)
+                np.testing.assert_allclose(z_std,(raw_z-mu)/sd,atol=1e-10)
+                np.testing.assert_allclose(z_std.mean(0),np.zeros(3),atol=1e-10)
+                np.testing.assert_allclose(z_std.std(0,ddof=0),np.ones(3),atol=1e-10)
+            with np.load(s82/"rotated_z.npz") as saved:
+                np.testing.assert_allclose(saved["rz"],z_std@r82.T,atol=1e-10)
+            self.assertEqual(len(list((s92/"rotations").rglob("*.npz"))),28)
+            self.assertEqual(len(list((s92/"figures_45deg").rglob("rz_axis_correlations.png"))),4)
+            self.assertTrue((s92/"z_variance_diagnostics"/"z_axis_variances.png").exists())
+            self.assertTrue((s92/"original_z_variance_diagnostics"/"z_axis_variances.png").exists())
+            with np.load(next((s92/"rotations").rglob("*deg_000.npz"))) as example:
+                np.testing.assert_allclose(example["R"],r82,atol=1e-9)
+                np.testing.assert_allclose(example["global_z_mean"],mu,atol=1e-12)
+                np.testing.assert_allclose(example["global_z_std"],sd,atol=1e-12)
+                self.assertEqual(str(example["z_coordinate_space"]),"globally_z_scored_Z")
+            with (s92/"summary.json").open() as handle:
+                summary=json.load(handle)
+                self.assertEqual(summary["variant"],"s9_2_global_zscore")
+                self.assertEqual(summary["source_oracle_stage"],"s8_2_supervised_rotation")
 
 
 if __name__=="__main__":

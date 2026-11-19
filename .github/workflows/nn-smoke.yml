@@ -1,4 +1,4 @@
-name: NN S3-S9 smoke
+name: NN S3-S9 and 8_2-9_2 smoke
 
 on:
   push:

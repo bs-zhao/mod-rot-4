@@ -1,6 +1,6 @@
 # Neural Process module (Mod-Rot-4)
 
-Seven independent scripts reproduce the scientific functionality of
+Nine independent scripts reproduce the scientific functionality of
 `mod-rot-3/np` S3–S9 for C1, C2, C3, CR3, CR4 and CR5. They consume
 **only** `outputs/models/generate/<MODEL>/s1_generate__dataset.npz` and the
 corresponding qualified S2 report from `models/`. No model simulation,
@@ -32,6 +32,8 @@ python nn/s6_z_diagnostics.py --model CR5 --latent-dim 3 --beta 0.0005 --repeat 
 python nn/s7_regression.py --model CR5 --latent-dim 3 --beta 0.0005 --repeat 1
 python nn/s8_supervised_rotation.py --model CR5 --latent-dim 3 --beta 0.0005 --repeat 1
 python nn/s9_rotation_sweep.py --model CR5 --latent-dim 3 --beta 0.0005 --repeat 1
+python nn/s8_2_supervised_rotation.py --model CR5 --latent-dim 3 --beta 0.0005 --repeat 1
+python nn/s9_2_rotation_sweep.py --model CR5 --latent-dim 3 --beta 0.0005 --repeat 1
 ```
 
 S3 saves the checkpoint, validation/test summaries, history and data/config
@@ -195,6 +197,58 @@ the existing d×L T-vs-RZ heatmap.
 No existing S8 or S5 artifacts are modified. S9 refuses to overwrite a
 nonempty previous S9 directory.
 
+## S8_2 and S9_2: orthogonal rotations after global per-axis Z-score
+
+These are **separate** pipelines and leave S8/S9 outputs unchanged.
+
+**S8_2:** From S5 all-trial posterior means `Z` (one row per subject),
+calculate for *each latent dimension* its mean `mu_all` and population
+standard deviation `sd_all` over **ALL subjects** (TRAIN+VAL+TEST).
+Define `Zz=(Z-mu_all)/sd_all`. Fail if any latent standard deviation
+is effectively zero; never silently replace it with 1. Then run exactly
+S8's orthogonal Procrustes T-supervised optimizer on `Zz`, fitting R*
+using only TRAIN subject T. Ridge T prediction uses the S8 TRAIN,
+VALIDATION, TEST policy, but **the global Z-score includes TEST
+subjects**: any TEST metrics are **transductive diagnostics**, not
+strictly inductive held-out validation.
+
+```text
+Zz = (Z - mean_all_subjects(Z)) / std_all_subjects(Z, ddof=0)
+R*_2 = argmin orthogonal R ||(Zz_train - mean_train(Zz)) R.T - [Tstd,0]||²
+U = Zz @ R*_2.T
+Z = mu_all + (U @ R*_2) * sd_all  [row convention]
+```
+
+`R*_2` is orthogonal **in Zz coordinates**, while the complete map
+from original Z to U is affine, not a pure orthogonal rotation on
+original Z. Because this is per-axis z-scoring, it is **not whitening**:
+any cross-dimensional correlations in Z can remain.
+
+Output `s8_2_supervised_rotation/` mirrors S8 (rotation.npz,
+rotated_z.npz, test_predictions.npz, both T×RZ/T×pred correlations,
+scatter grids, summary.json) and additionally saves
+`z_standardized.npz`. `rotation.npz` stores `global_z_mean`,
+`global_z_std`, source hashes and the standardization definition.
+
+**S9_2:** Loads the **exact** scaler and frozen R* from S8_2,
+validates that they match the source S5 Z, and generates all the
+same S9 Givens subset/angle combinations (0 to 90 degrees in 15-degree
+steps) in **Zz space**. All R files are full L×L orthogonal matrices
+**relative to Zz**, and each R NPZ also contains global means/std so
+the raw-space affine map is fully specified. Its separate directory
+`s9_2_rotation_sweep/` mirrors S9:
+
+- `rotations/` and `rotation_index.csv` for every R
+- `figures_45deg/` for each 45-degree subset's T×U heatmap,
+  T×U scatter grid, and U×U correlation heatmap/CSV
+- `z_variance_diagnostics/` for the *standardized Zz* axis variances
+- `original_z_variance_diagnostics/` for raw S5 Z variance tests
+- `summary.json` recording the scaler, oracle stage, and variant
+
+Both S9 and S9_2 use `--axes theta` by default and `--axes all`
+optionally. S9_2 requires S8_2 but not original S8 or S9; neither
+S8_2 nor S9_2 requires a new NP training or latent extraction.
+
 ## Outputs
 
 ```text
@@ -235,6 +289,16 @@ outputs/nn/<MODEL>/<condition>_<config-hash>/repeat01/
     s9_rotation_sweep/figures_45deg/kXX/axes_.../rz_vs_t_heatmap.png
     s9_rotation_sweep/figures_45deg/kXX/axes_.../rz_vs_t_scatter.png
     s9_rotation_sweep/figures_45deg/kXX/axes_.../rz_axis_correlations.png
+    s8_2_supervised_rotation/rotation.npz
+    s8_2_supervised_rotation/z_standardized.npz
+    s8_2_supervised_rotation/rotated_z.npz
+    s8_2_supervised_rotation/test_predictions.npz
+    s8_2_supervised_rotation/... (the same S8 heatmaps/scatters)
+    s9_2_rotation_sweep/rotation_index.csv
+    s9_2_rotation_sweep/rotations/kXX/axes_...__deg_XXX.npz
+    s9_2_rotation_sweep/figures_45deg/kXX/axes_.../... (the same S9 figures)
+    s9_2_rotation_sweep/z_variance_diagnostics/...
+    s9_2_rotation_sweep/original_z_variance_diagnostics/...
 ```
 
 Training conditions include beta/lambda/context/L and a hash of all relevant
