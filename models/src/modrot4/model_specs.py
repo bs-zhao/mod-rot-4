@@ -5,7 +5,6 @@ the original MLE/Fisher operators, and design provenance differ by ModelSpec.
 """
 from __future__ import annotations
 import json
-import subprocess
 import sys
 from pathlib import Path
 import numpy as np
@@ -17,8 +16,8 @@ from modlearn_rot.generators.uniform_inputs import sample_independent_uniform_x
 from modlearn_rot.utils.seeds import make_rng_streams
 from modlearn_rot.generators.registry import get_model
 from modlearn_rot.task_specs import get_task_spec_for_model
-from modrot4.pipeline import (ROOT, dataset_path, sha256, _cr2_bank,
-                              _cr3_bank, _cr5_bank)
+from modrot4.pipeline import (ROOT, dataset_path, sha256, _cr3_bank, _cr5_bank)
+from modrot4.fixed_bank import ensure_local_bank, inspect_local_bank
 REFERENCE = ROOT / "models" / "reference"
 for folder in (REFERENCE, REFERENCE / "cr3", REFERENCE / "cr4", REFERENCE / "cr5"):
     if str(folder) not in sys.path:
@@ -29,7 +28,6 @@ from s0_s1_cr3 import dominance_audit, condition_counts, COUNTS  # noqa: E402
 from s0_s1_cr4 import (sample_theta, sample_subject_x,  # noqa: E402
                        logits as logits_3p, SAMPLING_POLICY,
                        DEFAULT_AMOUNT_RANGE, DEFAULT_PROB_RANGE)
-from s0_s1_cr5 import validate_immutable_bank  # noqa: E402
 from s2_oracle_cr4 import (BOUNDS3, fit_subject as fit_3p,  # noqa: E402
                            gradient as gradient_3p)
 
@@ -120,47 +118,31 @@ def _verify_cr4(data):
 
 
 def _verify_cr5(data):
-    """Verify exact CR3 trial bank/codes, 3P CR4 generator and strong provenance."""
-    sys.path.insert(0,str(ROOT/'models'/'reference'/'cr5'))
-    from s0_s1_cr5 import validate_immutable_bank,logits
-    bank,codes,names,design=validate_immutable_bank()
+    """Audit CR5 against its *own* immutable bank; no CR3 files are needed."""
+    bank,codes,names,design=inspect_local_bank("CR5")
     n=len(data.parameters)
     if data.parameters.shape != (n,3) or not np.all(np.asarray(data.trial_counts)==500):
-        raise ValueError('CR5 must have exactly 3 parameters and 500 trials per subject')
+        raise ValueError("CR5 must have exactly 3 parameters and 500 trials per subject")
     if data.x.shape != (n*500,6):
-        raise ValueError('CR5 observed X dimension mismatch')
-    if not np.array_equal(
-        np.asarray(data.x).reshape(n,500,6),
-        np.broadcast_to(bank,(n,500,6))
-    ):
-        raise RuntimeError('CR5 raw X does not equal CR3 bank in every subject')
-    manifest_path=dataset_path('CR5').with_name('s1_generate__manifest.json')
-    manifest=json.loads(manifest_path.read_text(encoding='utf-8'))
-    if (manifest['bank_sha256']!=sha256(_cr5_bank()) or
-        manifest['dataset_sha256']!=sha256(dataset_path('CR5')) or
-        manifest['cr3_source_sha256']!=design['cr3_source_sha256']):
-        raise RuntimeError('CR5 dataset or CR3 bank provenance mismatch')
-    from scipy.special import expit
+        raise ValueError("CR5 X shape mismatch")
+    if not np.array_equal(np.asarray(data.x).reshape(n,500,6),
+                          np.broadcast_to(bank,(n,500,6))):
+        raise ValueError("CR5 X differs from its own local 500-trial bank")
+    manifest_path=dataset_path("CR5").with_name("s1_generate__manifest.json")
+    if not manifest_path.is_file():
+        raise FileNotFoundError("Missing CR5 subject dataset manifest")
+    manifest=json.loads(manifest_path.read_text(encoding="utf-8"))
+    if (manifest["bank_sha256"]!=sha256(_cr5_bank()) or
+        manifest["dataset_sha256"]!=sha256(dataset_path("CR5"))):
+        raise RuntimeError("CR5 local bank or subject dataset hash changed")
     p=np.asarray(data.predictive_true).reshape(n,500)
     check_ids=sorted({0,n//2,n-1})
     error=max(float(np.max(np.abs(
-        expit(logits(bank[None],data.parameters[s:s+1]))-p[s:s+1]
+        expit(logits_3p(bank[None],data.parameters[s:s+1]))-p[s:s+1]
     ))) for s in check_ids)
     if error>1e-12:
-        raise RuntimeError(f'CR5 3P CPT generator fidelity error {error}')
+        raise RuntimeError(f"CR5 generator fidelity error {error}")
     return bank,codes,names,design,error
-
-
-
-
-def _run_design(script, argv):
-    """Call original bank-construction mathematics, suppress its ad-hoc console UI."""
-    cmd = [sys.executable, str(script), *argv]
-    finished = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True)
-    if finished.returncode:
-        raise RuntimeError("Reference stimulus design failed: " + " ".join(cmd)
-                           + "\n" + finished.stdout[-4000:] + "\n"
-                           + finished.stderr[-4000:])
 
 
 # The old two-stream CR4 X generator is retained only in reference/cr4.
@@ -227,20 +209,11 @@ class ModelSpec:
         self.trial_range = ((300,500) if self.classic else (500,500))
 
     def _prepare_stimuli(self, args):
-        if self.model_id == "CR3":
-            if not _cr2_bank().is_file():
-                _run_design(REFERENCE / "s0_cr2_design_recovery.py",
-                            ["--mode","design","--variants","4",
-                             "--seed",str(args.design_seed)])
-            if not _cr3_bank().is_file():
-                _run_design(REFERENCE / "cr3" / "s0_s1_cr3.py",
-                            ["--stage","design","--seed",str(args.design_seed)])
-        elif self.model_id == "CR5":
-            if not _cr3_bank().is_file():
-                raise FileNotFoundError("Generate CR3 first: " + str(_cr3_bank()))
-            if not _cr5_bank().is_file():
-                _run_design(REFERENCE / "cr5" / "s0_s1_cr5.py",
-                            ["--stage","design"])
+        # CR3 and CR5 independently generate their own banks in their own
+        # directories using the same deterministic source recipe.
+        # No dependency on CR2/CR3/CR5 output artifacts of another model.
+        if self.model_id in ("CR3", "CR5"):
+            ensure_local_bank(self.model_id, args.design_seed)
 
     def generate(self, args):
         """Return the one standard GeneratedDataset, without saving or printing."""
@@ -309,16 +282,18 @@ class ModelSpec:
                         formula="CR2/CR3 logits with alpha=1 exactly",
                         lambda_gamma_tau_priors="unchanged CR2/CR3 marginals",
                         decoder_x_preprocessing="theoretical uniform X moments")
-        info = json.loads((_cr5_bank().parent/"CR5_3P_design.json").read_text(encoding="utf-8"))
+        _,_,_,info = inspect_local_bank("CR5")
         return dict(model="CR5",fixed_alpha=1.0,subjects=args.subjects,
                     trials_per_subject=500,parameter_names=list(self.parameter_names),
                     data_seed=args.data_seed,bank_sha256=sha256(_cr5_bank()),
                     dataset_sha256=sha256(saved_dataset),
-                    cr3_source_sha256=info["cr3_source_sha256"],
+                    design_seed=info.get("seed",args.design_seed),
+                    design_recipe=info.get("design_recipe","legacy_local_CR5_bank"),
+                    independent_bank=True,
                     source_type_counts=info["source_condition_counts"],
                     generator_equals_CR4_3P=True,
                     same_subject_prior_seed_policy_as_CR4=True,
-                    original_X_and_trial_order_equals_CR3=True,
+                    same_X_design_recipe_as_CR3=True,
                     trained_network=False)
 
     def validate_design(self, data):
@@ -334,7 +309,7 @@ class ModelSpec:
                     "x_rng_stream":manifest["x_rng_stream"],"x_shared":False,
                     "max_formula_error":error,"passed":True}
         _, codes, names, info, error = _verify_cr5(data)
-        return {"sampling":"exact_immutable_CR3_500","passed":True,
+        return {"sampling":"independent_local_CR5_frozen_500","passed":True,
                 "bank_sha256":sha256(_cr5_bank()),
                 "condition_counts":info["source_condition_counts"],
                 "max_formula_error":error}
