@@ -1,10 +1,11 @@
 """S1: a single generate/save/report pipeline for all six model specifications."""
 from pathlib import Path
 import sys
+import json
 import numpy as np
 sys.path.insert(0,str(Path(__file__).resolve().parent/"src"))
 from modrot4.cli import parse_args
-from modrot4.model_specs import get_spec
+from modrot4.model_specs import get_spec, CR4_X_POLICY
 from modrot4.pipeline import dataset_path
 from modlearn_rot.generators.dataset import save_dataset, summarize_dataset
 from modlearn_rot.utils.io import save_json
@@ -17,6 +18,20 @@ def generate(args):
     if target.exists():
         if args.overwrite:
             raise RuntimeError("Archive existing data instead of overwriting: "+str(target))
+        if spec.model_id == "CR4":
+            manifest_path = target.with_name("s1_generate__manifest.json")
+            if not manifest_path.is_file():
+                raise RuntimeError(
+                    "Old CR4 dataset has no sampling manifest. Archive "
+                    "outputs/models/generate/CR4 and outputs/models/precheck/CR4 "
+                    "before regenerating CR4 with the aligned X sampler.")
+            manifest=json.loads(manifest_path.read_text(encoding="utf-8"))
+            if manifest.get("x_sampling_policy") != CR4_X_POLICY:
+                raise RuntimeError(
+                    "CR4 dataset uses OLD two-stream X generation. "
+                    "Archive outputs/models/generate/CR4 and "
+                    "outputs/models/precheck/CR4, then rerun Generate for CR4. "
+                    "Existing data will not be overwritten.")
         with np.load(target,allow_pickle=False) as saved:
             existing_subjects=int(saved["parameters"].shape[0])
         if existing_subjects!=args.subjects:

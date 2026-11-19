@@ -6,7 +6,7 @@ import numpy as np
 from scipy.special import expit
 
 from .base import BinaryChoiceModel
-from ...uniform_inputs import sample_independent_uniform_x
+from ..uniform_inputs import sample_independent_uniform_x
 
 
 class ChoiceC1LinearLogit(BinaryChoiceModel):
