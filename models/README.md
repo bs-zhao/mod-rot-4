@@ -190,10 +190,10 @@ The source baseline from mod-rot-3 is
 [`98979c9ef522`](https://github.com/bs-zhao/mod-rot-3/tree/98979c9ef522caa7d24de7ccc683148b762d92a5/np).
 See `models/UPSTREAM_PROVENANCE.md` for subsequent Mod-Rot-4 changes.
 
-## Run CR5 first (without CR3)
+## Run CR5 independently (without CR3)
 
 ```bat
-cd /d D:\\Projects\\rotation\\mod-rot-4
+cd /d D:\Projects\rotation\mod-rot-4
 git pull
 conda activate py11
 python models/s1_generate.py --model CR5 --subjects 8000
