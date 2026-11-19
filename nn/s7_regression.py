@@ -26,6 +26,8 @@ from modrot4_nn.analysis import (load_frozen, ridge_probe, param_names, corr,
 
 
 def configure_s7_parser(parser):
+    parser.add_argument('--z-var-threshold',type=float,default=0.01,
+                        help='TRAIN original Z variance cutoff (default 0.01)')
     parser.add_argument('--pca-threshold', '--pca-variance-threshold',
                         dest='pca_threshold', type=float, default=0.10,
                         help='Retain only PCA components with individual TRAIN '
