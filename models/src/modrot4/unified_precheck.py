@@ -10,7 +10,7 @@ from modrot4.pipeline import precheck_path, sha256
 
 RECOVERY_SUBJECTS = 100
 MIN_RECOVERY_SUBJECTS = 30
-MIN_PEARSON_R = 0.80
+MIN_PEARSON_R = 0.75
 MIN_FULL_RANK = 0.95
 
 

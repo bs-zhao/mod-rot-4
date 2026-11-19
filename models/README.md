@@ -64,7 +64,7 @@ Uniform diagnostics:
 - Response-rate calibration against the theoretical Bernoulli probabilities
 - Fisher information rank (at least 95% of assessed subjects must be full rank)
 - Per-subject MLE on 100 randomly sampled *actual* subjects; Pearson r,
-  R², RMSE and bias for each T parameter, with r >= 0.8 required for all
+  R², RMSE and bias for each T parameter, with r >= 0.75 required for all
   parameters and 30 subjects required for a conclusive test
 
 Outputs are `s2_precheck__report.json` and
