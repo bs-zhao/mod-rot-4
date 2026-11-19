@@ -1,7 +1,7 @@
 """S1/S2 paths and subprocess helpers, independent of NP/torch.
 
 All generated outputs retain the original mod-rot-3 NP layout:
-outputs/choice/<MODEL>/s1_generate and s2_precheck.
+outputs/models/generate/<MODEL>/ and outputs/models/precheck/<MODEL>/.
 """
 from __future__ import annotations
 import hashlib
@@ -24,15 +24,15 @@ def sha256(path: Path) -> str:
 def out_dir(model: str) -> Path:
     if model not in MODELS and model != "CR2":
         raise ValueError(f"Unknown model: {model}")
-    return ROOT / "outputs" / "choice" / model
+    return ROOT / "outputs" / "models" / "generate" / model
 
 
 def dataset_path(model: str) -> Path:
-    return out_dir(model) / "s1_generate" / "s1_generate__dataset.npz"
+    return out_dir(model) / "s1_generate__dataset.npz"
 
 
 def precheck_path(model: str) -> Path:
-    return out_dir(model) / "s2_precheck" / "s2_precheck__report.json"
+    return ROOT / "outputs" / "models" / "precheck" / model / "s2_precheck__report.json""
 
 
 def _run_legacy(script: Path, argv: list[str]) -> None:

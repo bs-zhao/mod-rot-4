@@ -183,7 +183,7 @@ def main():
     result["fisher"] = fisher
     result["dataset_sha256"] = hash_file(DATASET)
     result["x_sampling_policy"] = SAMPLING_POLICY
-    folder = OUT / "s2_precheck"
+    folder = OUT.parents[1] / "precheck" / "CR4"
     folder.mkdir(parents=True, exist_ok=True)
     (folder/"s2_precheck__oracle_recovery.json").write_text(
         json.dumps(result, indent=2), encoding="utf-8")

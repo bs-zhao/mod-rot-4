@@ -25,10 +25,10 @@ sys.path[:0] = [str(RESEARCH), str(ROOT / "models" / "src")]
 from s0_cr2_design_recovery import sample_prior, logits, NAMES, make_candidates
 from modlearn_rot.generators.dataset import GeneratedDataset, save_dataset
 
-OUT = ROOT / "outputs" / "choice" / "CR3"
+OUT = ROOT / "outputs" / "models" / "generate" / "CR3"
 BANK = OUT / "s0_design" / "CR3_4P_fixed500.npz"
-DATASET = OUT / "s1_generate" / "s1_generate__dataset.npz"
-ORIGINAL = (ROOT / "outputs" / "choice" / "CR2" / "s0_design_recovery"
+DATASET = OUT / "s1_generate__dataset.npz"
+ORIGINAL = (ROOT / "outputs" / "models" / "generate" / "CR2" / "s0_design_recovery"
             / "CR2_4P_seed20261023_fixed500.npz")
 
 COUNTS = {"gain_only": 60, "gamma_neutral": 60,
@@ -224,7 +224,7 @@ def design(args):
     if DATASET.exists():
         raise FileExistsError(
             "CR3 subject dataset already exists and may use the OLD stimulus bank: "
-            f"{DATASET}. Archive the entire outputs/choice/CR3 directory before "
+            f"{DATASET}. Archive the entire outputs/models/generate/CR3 directory before "
             "changing its fixed bank, then regenerate the design/dataset and "
             "retrain any CR3 NP checkpoint. Do not reuse old CR3 checkpoints.")
     source = Path(args.original_bank)

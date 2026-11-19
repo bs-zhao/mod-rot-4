@@ -27,7 +27,7 @@ from conditional_nullspace_oracle import (
 )
 from discover_conditions_oracle import explore
 
-RESULTS = OUT / "s2_oracle"
+RESULTS = ROOT / "outputs" / "models" / "precheck" / "CR3" / "s2_oracle"
 INPUT_NAMES = ("D0_CR2_original500", "D1_CR3_balanced500")
 
 

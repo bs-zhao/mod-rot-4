@@ -37,7 +37,7 @@ def main(argv=None):
                   bank_sha256=hash_file(BANK),fisher=fisher,
                   type_counts=design["source_condition_counts"],
                   estimator="reused np/reference/cr4/s2_oracle_cr4.py (identical priors/bounds/seeds)")
-    out=OUT/"s2_precheck"
+    out=OUT.parents[1]/"precheck"/"CR5"
     out.mkdir(parents=True,exist_ok=True)
     (out/"s2_precheck__oracle_recovery.json").write_text(
         json.dumps(output,indent=2),encoding="utf-8")

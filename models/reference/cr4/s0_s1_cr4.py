@@ -21,9 +21,9 @@ sys.path[:0] = [str(RESEARCH), str(ROOT / "models" / "src")]
 from s0_cr2_design_recovery import sample_prior, logits as cr2_logits
 from modlearn_rot.generators.dataset import GeneratedDataset, save_dataset
 
-OUT = ROOT / "outputs" / "choice" / "CR4"
+OUT = ROOT / "outputs" / "models" / "generate" / "CR4"
 BANK = OUT / "s0_design" / "CR4_3P_random500.npz"
-DATASET = OUT / "s1_generate" / "s1_generate__dataset.npz"
+DATASET = OUT / "s1_generate__dataset.npz"
 PARAMETER_NAMES = ("lambda_loss", "gamma", "tau")
 X_NAMES = ("gain_A", "loss_A", "p_gain_A", "gain_B", "loss_B", "p_gain_B")
 N_TRIALS = 500
@@ -129,7 +129,7 @@ def dataset(args):
     if DATASET.exists():
         raise FileExistsError(
             f"Existing CR4 dataset preserved: {DATASET}. "
-            "Archive old outputs/choice/CR4 before regenerating IID-X CR4; "
+            "Archive old outputs/models/generate/CR4 before regenerating IID-X CR4; "
             "old S2/checkpoints are incompatible.")
     amount_range = (args.amount_min, args.amount_max)
     prob_range = (args.prob_min, args.prob_max)

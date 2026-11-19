@@ -20,7 +20,7 @@ def generate(args):
             manifest_path = target.with_name('s1_generate__manifest.json')
             manifest = json.loads(manifest_path.read_text(encoding='utf-8')) if manifest_path.is_file() else {}
             if manifest.get('x_sampling_policy') != 'iid_subject_trial_uniform_v1':
-                raise RuntimeError('Legacy CR4 fixed-X dataset found. Archive outputs/choice/CR4 '
+                raise RuntimeError('Legacy CR4 fixed-X dataset found. Archive outputs/models/generate/CR4 '
                                    'and regenerate before using IID-X CR4.')
         if args.overwrite:
             raise RuntimeError('Never overwrite a generated dataset in place; archive its output directory first.')

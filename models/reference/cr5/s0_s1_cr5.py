@@ -28,10 +28,10 @@ from s0_s1_cr4 import (PARAMETER_NAMES, X_NAMES, sample_theta,
                       logits, hash_file, write_json)
 from modlearn_rot.generators.dataset import GeneratedDataset,save_dataset
 
-OUT=ROOT/"outputs"/"choice"/"CR5"
+OUT=ROOT/"outputs"/"models"/"generate"/"CR5"
 BANK=OUT/"s0_design"/"CR5_3P_cr3bank500.npz"
 DESIGN=OUT/"s0_design"/"CR5_3P_design.json"
-DATASET=OUT/"s1_generate"/"s1_generate__dataset.npz"
+DATASET=OUT/"s1_generate__dataset.npz"
 TRIALS=500
 
 

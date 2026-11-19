@@ -20,7 +20,7 @@ from scipy.special import expit, logit
 from scipy.stats import beta as beta_dist, gamma as gamma_dist, truncnorm
 
 ROOT = Path(__file__).resolve().parents[2]
-OUT = ROOT / "outputs" / "choice" / "CR2" / "s0_design_recovery"
+OUT = ROOT / "outputs" / "models" / "generate" / "CR2" / "s0_design_recovery"
 NAMES = {4: ["alpha", "lambda_loss", "gamma", "tau"],
          5: ["alpha", "lambda_loss", "gamma", "delta", "tau"]}
 # Gamma is shape/scale. These are proposed population distributions,

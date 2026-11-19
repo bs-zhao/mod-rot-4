@@ -1,15 +1,20 @@
 from pathlib import Path
 
 REPO_ROOT=Path(__file__).resolve().parents[4]
-OUTPUT_ROOT=REPO_ROOT/"outputs"
+OUTPUT_ROOT=REPO_ROOT/"outputs"/"models"
 
 
 def model_output_dir(model):
-    return OUTPUT_ROOT/model.group/model.model_id
+    return OUTPUT_ROOT/"generate"/model.model_id
 
 
 def stage_dir(model,stage:str):
-    p=model_output_dir(model)/stage
+    if stage=="s2_precheck":
+        p=OUTPUT_ROOT/"precheck"/model.model_id
+    elif stage in ("s0_design", "s1_generate", "s0_design_recovery"):
+        p=OUTPUT_ROOT/"generate"/model.model_id
+    else:
+        raise ValueError(f"Unknown model-stage {stage!r}; training and rotations belong to their own modules")
     p.mkdir(parents=True,exist_ok=True)
     return p
 
