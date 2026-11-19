@@ -190,6 +190,7 @@ def main(args, *, variant="original"):
         angle_degrees="",
         rotation_file=str(baseline_file.relative_to(dest)).replace("\\", "/"),
         orthogonality_max_error=float(np.max(np.abs(r_star@r_star.T - np.eye(n_latent)))))
+    )
     for subset_index, axes in enumerate(axis_subsets(n_axes), 1):
         k = len(axes)
         subset_dir = folder / f"k{k:02d}"
