@@ -92,18 +92,30 @@ class TestModels(unittest.TestCase):
                     "s1_generate__dataset.npz")
             for stage, tail in (("s1_generate.py",["--subjects","5"]),
                                 ("s2_precheck.py",[])):
-                subprocess.run(
+                complete = subprocess.run(
                     [sys.executable, str(sandbox/"models"/stage),
                      "--model", "CR4", *tail],
-                    check=True, cwd=sandbox)
+                    check=(stage == "s1_generate.py"), cwd=sandbox)
+                if stage == "s2_precheck.py":
+                    # Five subjects cannot establish an r>=0.8 recovery gate;
+                    # the complete S2 report should still be written.
+                    self.assertNotEqual(complete.returncode, 0)
             data = load_dataset(path)
             self.assertEqual(data.parameters.shape, (5, 3))
             self.assertEqual(data.x.shape, (5*500, 6))
             report_file = (sandbox/"outputs"/"models"/"precheck"/"CR4"/
                            "s2_precheck__report.json")
             report = json.loads(report_file.read_text(encoding="utf-8"))
-            self.assertTrue(report["qualified"])
+            self.assertFalse(report["qualified"])
             self.assertEqual(report["subjects"], 5)
+            for key in ("structure", "generator_fidelity", "stimulus_design",
+                        "response_balance", "fisher_information"):
+                self.assertIn(key, report["checks"])
+                self.assertTrue(report["checks"][key]["passed"], key)
+            self.assertFalse(report["checks"]["parameter_recovery"]["conclusive"])
+            self.assertEqual(report["checks"]["parameter_recovery"]["sample_size"], 5)
+            self.assertTrue((sandbox/"outputs"/"models"/"precheck"/"CR4"/
+                             "s2_precheck__oracle_subjects.npz").is_file())
             self.assertFalse((sandbox/"outputs"/"choice").exists())
 
     def test_cli_default_8000(self):

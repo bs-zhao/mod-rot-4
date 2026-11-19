@@ -1,6 +1,6 @@
 # Models: faithful Mod-Rot-3 choice generators and S2 checks
 
-This module mirrors [mod-rot-3/np](https://github.com/bs-zhao/mod-rot-3/tree/main/np) at upstream source commit `98979c9ef522caa7d24de7ccc683148b762d92a5`. The generating mathematics, parameter priors, RNG streams, dataset field names, fixed-bank design, precheck tests and optional Oracle implementations are retained. CR4 X now uses an explicit per-subject, per-trial IID generation loop that is byte-equivalent to the old vectorized IID sampler. **The default subject count is now 8,000**; `--subjects` overrides it for **all six** models, including C1/C2/C3.
+This module mirrors [mod-rot-3/np](https://github.com/bs-zhao/mod-rot-3/tree/main/np) at upstream source commit `98979c9ef522caa7d24de7ccc683148b762d92a5`. The generating mathematics, parameter priors, RNG streams, dataset field names, fixed-bank design, precheck and Oracle implementations remain available as references. The default S2 now uses a uniform six-check protocol and fits actual saved S1 participants. CR4 X now uses an explicit per-subject, per-trial IID generation loop that is byte-equivalent to the old vectorized IID sampler. **The default subject count is now 8,000**; `--subjects` overrides it for **all six** models, including C1/C2/C3.
 
 ## Models
 
@@ -36,13 +36,13 @@ python models/s1_generate.py --model C3
 python models/s2_precheck.py --model C3
 
 python models/s1_generate.py --model CR3
-python models/s2_precheck.py --model CR3 --oracle-precheck --oracle-subjects 100 --oracle-starts 4
+python models/s2_precheck.py --model CR3
 
 python models/s1_generate.py --model CR4
-python models/s2_precheck.py --model CR4 --oracle-precheck --oracle-subjects 100 --oracle-starts 4
+python models/s2_precheck.py --model CR4
 
 python models/s1_generate.py --model CR5
-python models/s2_precheck.py --model CR5 --oracle-precheck --oracle-subjects 100 --oracle-starts 4
+python models/s2_precheck.py --model CR5
 ```
 
 By default each S1 command uses **8,000 subjects**. For a small test run, e.g. `python models/s1_generate.py --model CR4 --subjects 10`.
@@ -66,7 +66,7 @@ outputs/models/generate/<MODEL>/s1_generate__summary.json (C1/C2/C3)
 outputs/models/precheck/<MODEL>/s2_precheck__report.json
 ```
 
-CR3 and CR5 store their fixed-bank files under `outputs/models/generate/<MODEL>/s0_design/`. Optional Oracle diagnostics are written under `outputs/models/precheck/<MODEL>/` (CR3 in its `s2_oracle/` subfolder).
+CR3 and CR5 store their fixed-bank files under `outputs/models/generate/<MODEL>/s0_design/`. Standard S2 MLE recovery outputs are written under `outputs/models/precheck/<MODEL>/`.
 
 **Data preservation:** existing datasets are never silently overwritten, even when the requested subject count differs. To regenerate with a different N, archive/move the relevant `outputs/models/generate/<MODEL>/` directory first. CR3 and CR5 should use a consistent saved CR3/CR2 bank when comparing runs.
 
@@ -112,3 +112,45 @@ Each model's dataset and S1 manifest are directly in its `generate/<MODEL>/` dir
 **Do not rename old `outputs/choice/` assets into the new structure without confirming provenance.** They are not read by this version. CR3 and CR5 require a consistent original frozen CR2/CR3 bank. To reuse an existing immutable bank, copy only the verified reference bank files into the corresponding new `models/generate/` design folder, and keep their original manifests/checksums consistent. Generated 5k-person datasets are not 8k-person datasets; regenerate from S1 when changing N.
 
 CR4 per-subject trialwise sampling has the same distribution and reproducibility as before. Its code now loops over subjects, drawing all six X features independently for their trials, matching the C1/C2/C3 sampling organization. The tests require bitwise equivalence with the former flattened vectorized sampler.
+
+## Universal S2 precheck: same command for all six models
+
+No separate Oracle flag or optional Oracle mode is necessary. Each standard S2
+invocation always performs the following six checks:
+
+1. `structure`: every stored S1 subject/trial, parameter, X, Y and P is valid;
+2. `generator_fidelity`: verify calculated exact-model probabilities equal saved
+   `predictive_true` for a seeded sample of up to 32 actual subjects;
+3. `stimulus_design`: verify model-specific original X generation and provenance
+   (CR3/CR5 immutable bank, CR4 independent X, C1/C2/C3 input support);
+4. `response_balance`: verify the observed global choice rate agrees with stored
+   Bernoulli predictions within five sampling standard errors;
+5. `fisher_information`: report exact-model Fisher eigenvalues and the
+   full-rank fraction on the actual sampled S1 subject-specific X;
+6. `parameter_recovery`: fit original per-subject MLE using the **stored X/Y**.
+   Use true T **only for post-fit assessment**. Report true/estimated
+   parameters, Pearson r, uncalibrated R², RMSE and bias.
+
+Default MLE cohort: **100 S1 subjects sampled reproducibly without replacement**
+(seed `20261006`), four multi-start bounded MLEs per CPT subject (CR3/4/5),
+one convex GLM MLE per C1/2/3 subject. Same threshold for all models:
+**Pearson r >= 0.8 on every parameter**, with at least 30 assessed subjects.
+The Fisher full-rank fraction must be >=0.95.
+These are Mod-Rot-4's NEW unified S2 gates, distinct from legacy stage gates;
+no parameter recovery result is guaranteed to pass. Small diagnostic N<30
+is explicitly inconclusive and fails qualification.
+
+Outputs, always under `outputs/models/precheck/<MODEL>/`:
+
+```text
+s2_precheck__report.json
+s2_precheck__summary.csv
+s2_precheck__oracle_recovery.csv
+s2_precheck__oracle_subjects.npz
+```
+
+Previous standalone `models/reference/cr*/s2_oracle_*.py` scripts still exist
+for historical comparison but are NOT invoked by the standard S2 stage.
+In particular, standard S2 does NOT generate a second artificial
+cohort to test recoverability. Run `python models/s2_precheck.py --model C1`
+through `--model CR5` with identical command syntax.
