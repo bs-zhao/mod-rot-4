@@ -1,148 +1,142 @@
-"""Common S2 checks for all six simulated choice datasets.
-
-Recovery fits the ACTUAL S1 X and Y, never a newly synthesized cohort.
-"""
+"""One model-independent diagnostic protocol, using saved T, X, choice only."""
 from __future__ import annotations
+
 import csv
-import sys
 import numpy as np
+from scipy.special import expit
+
 from modlearn_rot.utils.io import save_json
 from modrot4.pipeline import precheck_path, sha256
 
-# Uniform, model-independent S2 evaluation policy.
 RECOVERY_SUBJECTS = 100
-RECOVERY_STARTS = 4
 MIN_RECOVERY_SUBJECTS = 30
 MIN_PEARSON_R = 0.80
-MIN_FISHER_FULL_RANK_FRACTION = 0.95
-PROB_TOL = 1e-12
-
-def pearson(a, b):
-    aa, bb = a-a.mean(), b-b.mean()
-    d = np.sqrt(np.dot(aa, aa)*np.dot(bb, bb))
-    return float(np.dot(aa, bb)/d) if d > 0 else float("nan")
+MIN_FULL_RANK = 0.95
 
 
-def run_unified_precheck(spec, data, *, seed, provenance, data_path):
-    model_id = spec.model_id
-    theta = np.asarray(data.parameters, dtype=float)
+def _pearson(a, b):
+    aa, bb = a - a.mean(), b - b.mean()
+    denominator = np.linalg.norm(aa) * np.linalg.norm(bb)
+    return float(aa @ bb / denominator) if denominator > 0 else float("nan")
+
+
+def run_precheck(spec, data, *, seed, data_path):
+    # Only T, X and observed Y (choice) are input to scientific diagnostics.
+    theta = np.asarray(data.parameters, dtype=np.float64)
+    x = np.asarray(data.x, dtype=np.float64)
+    y = np.asarray(data.choice).reshape(-1)
     counts = np.asarray(data.trial_counts, dtype=np.int64)
-    x = np.asarray(data.x, dtype=float)
-    y = np.asarray(data.y).reshape(-1)
-    p = np.asarray(data.predictive_true, dtype=float).reshape(-1)
-    names = spec.parameter_names
-    if theta.ndim != 2 or len(counts) != len(theta) or len(theta) < 1:
-        raise ValueError("Invalid parameter or subject counts")
-    n, dim = theta.shape
+    n = len(counts)
+    if n < 1 or theta.shape != (n, spec.n_parameters):
+        raise ValueError("Invalid subject/parameter dimensions")
     total = int(counts.sum())
-    xdim = spec.x_dim
-    if dim != len(names) or x.shape != (total, xdim) or y.shape != (total,) or p.shape != (total,):
-        raise ValueError("Invalid T/X/Y/P dimensions")
-    if np.any(counts < 1) or np.asarray(data.subject_index).shape != (total,) or np.asarray(data.trial_index).shape != (total,):
-        raise ValueError("Invalid subject/trial index geometry")
+    if x.shape != (total, spec.x_dim) or y.shape != (total,):
+        raise ValueError("Invalid X or choice dimensions")
     if not (np.isfinite(theta).all() and np.isfinite(x).all()
-            and np.isfinite(y).all() and np.isfinite(p).all()):
-        raise ValueError("Non-finite T/X/Y/P")
-    if not (np.isin(y, [0, 1]).all() and ((p > 0) & (p < 1)).all()):
-        raise ValueError("Invalid Bernoulli Y/P")
-    spec.validate_parameters_inputs(theta,x,counts)
+            and np.isin(y, (0, 1)).all()):
+        raise ValueError("Non-finite T/X or non-binary choice")
+    spec.validate(theta, x, counts)
+    ids, trials = np.asarray(data.subject_index), np.asarray(data.trial_index)
+    if ids.shape != (total,) or trials.shape != (total,):
+        raise ValueError("Invalid subject/trial indices")
     offsets = np.concatenate(([0], np.cumsum(counts)))
-    subjects = np.asarray(data.subject_index)
-    trials = np.asarray(data.trial_index)
     for sid in range(n):
-        lo, hi = int(offsets[sid]), int(offsets[sid+1])
-        if not np.all(subjects[lo:hi] == sid) or not np.array_equal(trials[lo:hi], np.arange(hi-lo)):
-            raise ValueError(f"Subject/trial ordering corrupted: {sid}")
-    structure = dict(passed=True, total_subjects=n, total_trials=total,
-                     min_trials=int(counts.min()), max_trials=int(counts.max()),
-                     parameter_names=list(names))
+        first, last = offsets[sid:sid+2]
+        if not np.all(ids[first:last] == sid):
+            raise ValueError(f"Subject index mismatch for subject {sid}")
+        if not np.array_equal(trials[first:last], np.arange(last-first)):
+            raise ValueError(f"Trial index mismatch for subject {sid}")
+
+    # Recompute probabilities from T and X; do NOT use the saved S1 p/logit
+    # arrays to evaluate recovery or response quality.
+    prob = np.empty(total, dtype=np.float64)
+    for sid in range(n):
+        first, last = offsets[sid:sid+2]
+        prob[first:last] = expit(spec.logit(x[first:last], theta[sid]))
+    if not np.all((prob > 0) & (prob < 1)):
+        raise ValueError("Invalid probabilities from T and X")
+    rate = float(y.mean())
+    expected_rate = float(prob.mean())
+    se = float(np.sqrt(np.sum(prob*(1-prob))) / total)
+    z_score = float(abs(rate-expected_rate) / max(se, 1e-15))
+    response = {
+        "passed": bool(z_score <= 5.0),
+        "observed_choice_rate": rate,
+        "expected_choice_rate": expected_rate,
+        "bernoulli_z_score": z_score,
+        "mean_bayes_accuracy": float(np.mean(np.maximum(prob, 1-prob))),
+    }
+
     rng = np.random.default_rng(seed)
-    selected = np.sort(rng.choice(n, size=min(RECOVERY_SUBJECTS,n), replace=False))
-    formula_subjects = np.sort(rng.choice(n, size=min(32,n), replace=False))
-    max_error = 0.
-    for sid in formula_subjects:
-        lo, hi = offsets[sid:sid+2]
-        max_error = max(max_error, float(np.max(np.abs(
-            spec.predict(x[lo:hi], theta[sid]) - p[lo:hi]))))
-    generator = dict(passed=bool(max_error <= PROB_TOL),
-                     subjects_checked=len(formula_subjects),
-                     max_abs_error=max_error, tolerance=PROB_TOL)
-    design = dict(passed=True, provenance=provenance)
-    expected_rate = float(p.mean())
-    actual_rate = float(y.mean())
-    se = float(np.sqrt(np.sum(p*(1-p)))/total)
-    z = abs(actual_rate - expected_rate)/max(se, 1e-15)
-    response = dict(passed=bool(z <= 5),
-                    observed_choice_rate=actual_rate, expected_choice_rate=expected_rate,
-                    bernoulli_z_score=float(z), z_limit=5.,
-                    mean_bayes_accuracy=float(np.maximum(p,1-p).mean()))
-    truth = theta[selected]
-    estimated = np.empty_like(truth)
-    eigmin = np.empty(len(selected))
-    condition = np.empty(len(selected))
-    sd = np.std(truth, axis=0, ddof=1) if len(selected) > 1 else np.ones(dim)
+    chosen = np.sort(rng.choice(n, min(n, RECOVERY_SUBJECTS), replace=False))
+    true = theta[chosen]
+    fit = np.empty_like(true)
+    information_eigs = np.empty(len(chosen))
+    sd = (true.std(axis=0, ddof=1) if len(chosen) > 1
+          else np.ones(spec.n_parameters))
     sd = np.maximum(sd, 1e-12)
-    fit_rng = np.random.default_rng(seed+202)
-    for pos, sid in enumerate(selected):
-        lo, hi = offsets[sid:sid+2]
-        xx, yy, pp = x[lo:hi], y[lo:hi], p[lo:hi]
-        estimated[pos] = spec.fit(xx, yy, fit_rng)
-        if not np.isfinite(estimated[pos]).all():
-            raise ValueError(f"MLE returned non-finite result for subject {sid}")
-        info = spec.fisher(xx, truth[pos], pp)
-        scaled = info * sd[:,None] * sd[None,:]
-        ev = np.linalg.eigvalsh((scaled+scaled.T)/2)
-        eigmin[pos] = ev[0]
-        condition[pos] = ev[-1]/ev[0] if ev[0] > 1e-12 else np.inf
-        if (pos+1)%25 == 0 or pos+1 == len(selected):
-            print(f"[PRECHECK] model={model_id} phase=MLE progress={pos+1}/{len(selected)}",flush=True)
-    err = estimated-truth
-    r = np.asarray([pearson(truth[:,k], estimated[:,k]) for k in range(dim)])
-    denom = np.sum((truth-truth.mean(axis=0))**2, axis=0)
-    r2 = 1-np.sum(err**2, axis=0)/np.maximum(denom, 1e-15)
-    passed = np.isfinite(r) & (r>=MIN_PEARSON_R)
-    enough = bool(len(selected)>=MIN_RECOVERY_SUBJECTS)
-    recovery = dict(passed=bool(enough and passed.all()), conclusive=enough,
-                    sample_size=len(selected), original_dataset_subjects=n,
-                    cohort="actual S1 subjects sampled without replacement",
-                    minimum_sample_size=MIN_RECOVERY_SUBJECTS,
-                    initializations=spec.n_starts,
-                    threshold_metric="each_parameter_pearson_r",
-                    threshold=MIN_PEARSON_R, names=list(names),
-                    pearson_r=r.tolist(), r2=r2.tolist(),
-                    rmse=np.sqrt(np.mean(err**2,axis=0)).tolist(),
-                    bias=np.mean(err,axis=0).tolist(), each_parameter_passed=passed.tolist())
-    fullrank = float(np.mean(eigmin > 1e-8))
-    fisher_check = dict(passed=bool(fullrank >= MIN_FISHER_FULL_RANK_FRACTION),
-                        full_rank_fraction=fullrank, threshold=MIN_FISHER_FULL_RANK_FRACTION,
-                        min_eigenvalue_p01=float(np.percentile(eigmin,1)),
-                        median_min_eigenvalue=float(np.median(eigmin)),
-                        median_condition=float(np.median(condition)))
-    checks = dict(structure=structure, generator_fidelity=generator,
-                  stimulus_design=design, response_balance=response,
-                  fisher_information=fisher_check, parameter_recovery=recovery)
-    qualified = bool(all(v["passed"] for v in checks.values()))
-    report = dict(model_id=model_id, qualified=qualified, subjects=n,
-                  trials=total, precheck_seed=seed,
-                  dataset_sha256=sha256(data_path), checks=checks)
-    output = precheck_path(model_id)
-    save_json(report, output)
-    with output.with_name("s2_precheck__summary.csv").open("w", newline="",encoding="utf-8") as f:
-        writer=csv.writer(f)
-        writer.writerow(["check","passed"])
-        writer.writerows((key,val["passed"]) for key,val in checks.items())
-        writer.writerow(["OVERALL",qualified])
-    with output.with_name("s2_precheck__oracle_recovery.csv").open("w", newline="",encoding="utf-8") as f:
-        writer=csv.writer(f)
-        writer.writerow(["subject_id"]+[column for name in names for column in
-                        (name+"_true", name+"_estimate")])
-        for pos,sid in enumerate(selected):
-            writer.writerow([int(sid)]+[value for k in range(dim) for value in
-                            (float(truth[pos,k]),float(estimated[pos,k]))])
-    np.savez_compressed(output.with_name("s2_precheck__oracle_subjects.npz"),
-                        subject_ids=selected, theta_true=truth, theta_mle=estimated,
-                        fisher_min_eigenvalue=eigmin, fisher_condition=condition)
-    print(f"[PRECHECK] model={model_id} phase=done qualified={qualified} "
-          f"sample={len(selected)} r={np.round(r,4)}",flush=True)
-    print(f"[PRECHECK] report={output}",flush=True)
+    fitting_rng = np.random.default_rng(seed + 202)
+    for pos, sid in enumerate(chosen):
+        first, last = offsets[sid:sid+2]
+        xx, yy, pp = x[first:last], y[first:last], prob[first:last]
+        fit[pos] = spec.fit(xx, yy, fitting_rng)
+        if not np.isfinite(fit[pos]).all():
+            raise ValueError(f"MLE failed on subject {sid}")
+        info = spec.fisher(xx, true[pos], pp)
+        scaled = info * sd[:, None] * sd[None, :]
+        information_eigs[pos] = np.linalg.eigvalsh(
+            (scaled + scaled.T) / 2)[0]
+        if (pos+1) % 25 == 0 or pos+1 == len(chosen):
+            print(f"[PRECHECK] model={spec.model_id} "
+                  f"phase=MLE progress={pos+1}/{len(chosen)}", flush=True)
+
+    error = fit - true
+    r = np.array([_pearson(true[:, j], fit[:, j])
+                  for j in range(spec.n_parameters)])
+    variance = np.sum((true - true.mean(axis=0))**2, axis=0)
+    r2 = 1 - np.sum(error**2, axis=0) / np.maximum(variance, 1e-15)
+    recovery_ok = (len(chosen) >= MIN_RECOVERY_SUBJECTS and
+                   np.isfinite(r).all() and (r >= MIN_PEARSON_R).all())
+    full_rank_fraction = float(np.mean(information_eigs > 1e-8))
+    checks = {
+        "structure": {"passed": True, "subjects": n, "trials": total},
+        "response_balance": response,
+        "fisher_information": {
+            "passed": bool(full_rank_fraction >= MIN_FULL_RANK),
+            "full_rank_fraction": full_rank_fraction,
+            "median_min_eigenvalue": float(np.median(information_eigs)),
+        },
+        "parameter_recovery": {
+            "passed": bool(recovery_ok),
+            "conclusive": bool(len(chosen) >= MIN_RECOVERY_SUBJECTS),
+            "sample_size": len(chosen),
+            "parameter_names": list(spec.parameter_names),
+            "pearson_r": r.tolist(),
+            "r2": r2.tolist(),
+            "rmse": np.sqrt(np.mean(error**2, axis=0)).tolist(),
+            "bias": error.mean(axis=0).tolist(),
+            "threshold_r": MIN_PEARSON_R,
+        },
+    }
+    qualified = bool(all(check["passed"] for check in checks.values()))
+    report = {
+        "model_id": spec.model_id, "qualified": qualified,
+        "dataset_sha256": sha256(data_path),
+        "precheck_seed": seed, "checks": checks,
+    }
+    target = precheck_path(spec.model_id)
+    save_json(report, target)
+    with target.with_name("s2_precheck__recovery.csv").open(
+            "w", newline="", encoding="utf-8") as stream:
+        writer = csv.writer(stream)
+        writer.writerow(["subject_id"] + [
+            item for name in spec.parameter_names
+            for item in (name + "_true", name + "_mle")])
+        for pos, sid in enumerate(chosen):
+            writer.writerow([int(sid)] + [
+                item for k in range(spec.n_parameters)
+                for item in (float(true[pos,k]), float(fit[pos,k]))])
+    print(f"[PRECHECK] model={spec.model_id} phase=done "
+          f"qualified={qualified} r={np.round(r,4)}", flush=True)
+    print(f"[PRECHECK] report={target}", flush=True)
     return report
