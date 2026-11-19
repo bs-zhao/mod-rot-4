@@ -445,6 +445,312 @@ Lamboni (2024) [R11] 研究由多个随机扰动的 **模型函数值查询** �
 
 同理，已知解析式的自动微分、直接调用冻结真 decoder 或生成新的 oracle 标签，必须视为单独的 **oracle / query-access benchmark**，不能在 blind WY 排名中与 A1–A9 平等比较。
 
+
+## 8B. 神经网络已知时的 Hessian 能量估计：算法分类与训练边界
+
+> **独立信息条件 B：** 本节建立在前述 A1–A12 之外，**不修改“仅凭固定 WY 观测矩阵”的方法**。假设已经有一个训练好的、冻结的 $\widehat f_\theta:W\to Y$ 神经网络，可通过计算图或前向查询访问它。此时可以直接计算**网络函数自身**的二阶导数，而不需要再从 WY 拟合另一个回归函数。它和“从 WY 推断未知真实函数的 Hessian”是两个不同的信息问题。
+
+### 8B.1 首先区分两个统计目标
+
+对冻结网络，定义：
+
+$$
+\boxed{
+M^{\rm NN}_{ij}(P_W)
+=\mathbb E_{W\sim P_W}
+\left[\bigl(\partial_{ij}\widehat f_\theta(W)\bigr)^2\right].
+}
+\tag{B1}
+$$
+
+未知真实函数的指标则是：
+
+$$
+M^\star_{ij}(P_W)
+=\mathbb E_{W\sim P_W}
+\left[\bigl(\partial_{ij}f^\star(W)\bigr)^2\right].
+\tag{B2}
+$$
+
+它们不自动相等。已训练网络允许对 $\widehat f_\theta$ 精确自动求导（至浮点精度），但**网络导数是否逼近真实函数导数**仍是需要单独检验的统计问题。估计误差至少可分解为：
+
+$$
+\widehat M^{\rm NN}_{ij}-M^\star_{ij}
+=
+\underbrace{\widehat M^{\rm NN}_{ij}-M^{\rm NN}_{ij}}_{\text{数值导数/积分误差}}
++
+\underbrace{M^{\rm NN}_{ij}-M^\star_{ij}}_{\text{网络二阶函数逼近误差}}.
+\tag{B3}
+$$
+
+**输出语义：** 如果网络输出两类 logits $a_0(W),a_1(W)$，二元 logit 是 $\eta_\theta=a_1-a_0$，不是单独的 $a_1$。选择概率是 $q_\theta=\sigma(a_1-a_0)$，其 Hessian 与 logit Hessian 不一样。最终采样的 0/1 choice 不属于平滑函数，不能直接求连续 Hessian。先固定 output_kind（logit/probability）、eval mode、latent 表示和网络 stochastic 状态。
+
+### 8B.2 方法地图：三层而非一条路线
+
+| 层次 | 方法 | 网络要求 | 是否重训 | 核心输出与适用范围 |
+|---|---|---|---|---|
+| 导数获取 **B1** | 完整自动微分 Hessian（AD） | 可用 autograd | 否 | 精确得到完整 $H_\theta(W)$；本项目首选 |
+| 导数获取 **B2** | Hessian–vector product / 逐列 | 可用输入梯度 | 否 | $H_\theta v$、$H e_j$，只算目标列/区块 |
+| 导数获取 **B3** | Hutchinson 型随机 probing | HVP | 否 | 直接估行平方能量与总能量；高维更有价值 |
+| 导数获取 **B4** | MLP 二阶链式法则传播 | 可读网络层/权重 | 否 | 逐层解析计算 Hessian，可独立验证 AD |
+| 导数获取 **B5** | 前向有限差分 | 只需前向查询 | 否 | 用差分计算二阶导数近似 |
+| 导数获取 **B6** | 直接平均差分商平方 | 只需前向查询 | 否 | 不保存 $H$，直接估 $\mathbb E[H_{ij}^2]$ |
+| 期望/支持 **B7** | 经验积分（empirical W） | 上述任意求导法 | 否 | 在真实 $(Z_s,X_{s,t})$ 输入点计算期望 |
+| 期望/支持 **B8** | 有界 MC / scrambled QMC | 明确合法联合 $P_W$ | 否 | 用已知设计分布或可信参考分布数值积分 |
+| 期望/支持 **B9** | Boundary-stratified integration | 训练支持信息 | 否 | 分别汇总内部、边界、可疑 OOD 区域 |
+| 可靠性 **B10** | 多网络/checkpoint ensemble | 多个已训练网络 | 已有则否 | 网络曲率分歧、边界敏感性 |
+| 可选改造 **B11** | 局部平滑代理 / 蒸馏 | 网络可查询 | 是 | 训练第二个代理，附加新的函数拟合偏差 |
+| 可选改造 **B12** | Sobolev/导数增强训练 | 可重训且有额外约束 | 是 | 改善导数质量，不属于冻结网络直接估计 |
+
+B1–B6 是**导数获取层**；B7–B9 是**积分测度和边界层**；B10–B12 是**模型可信度/改造层**。例如 B1+B7 与 B1+B8+B9 是两套完整而不同的估计方案，不应把 B7、B8 误称为替代自动微分的“求导算法”。
+
+### 8B.3 B1：冻结网络的完整自动微分
+
+在给定积分点 $w_n$ 上计算：
+
+$$
+H_\theta(w)=\nabla_w^2\widehat f_\theta(w),\qquad
+\boxed{\widehat M_{ij}^{\rm AD}
+=\frac{\sum_n\omega_n[H_\theta(w_n)]_{ij}^2}
+{\sum_n\omega_n}.}
+\tag{B4}
+$$
+
+对的是**网络输入 W 的 Hessian**，不是网络权重的 Hessian，也不是训练损失对权重的 Hessian。PyTorch 使用 torch.func.hessian 或 jacfwd(jacrev)；函数应返回**单个样本的标量 logit**，再批量映射多个点。[N1]
+
+对于 $d\approx9$–$12$，完整矩阵通常可负担，是最适合与 oracle 和其它估计器对比的高精度计算基线。检查矩阵对称性、有限值、输入列顺序、Float32/Float64 敏感性，并用 B5 在部分内部点核验导数。
+
+**激活函数问题：** 对纯 ReLU 分段仿射 MLP，经典 Hessian 几乎处处为零，即使预测准确也无法表示平滑真函数的曲率；GELU、SiLU、tanh、softplus 等允许非零、连续的二阶导数。但“网络光滑”仍不等于“网络已学到真曲率”。
+
+### 8B.4 B2/B3：HVP、随机投影与无需完整 H 的直接能量
+
+对任意方向 $v$：
+
+$$
+\boxed{H_\theta(w)v
+=\nabla_w\left[\nabla_w\widehat f_\theta(w)^\top v\right].}
+\tag{B5}
+$$
+
+使用 $v=e_j$ 得第 $j$ 列，从而仅计算想要的 UU/UX 部分；这是 Hessian–vector product（Pearlmutter, 1994）[N2]。
+
+如果 $v$ 是独立 Rademacher 探针，$\mathbb E_v[vv^\top]=I$，则：
+
+$$
+\boxed{\mathbb E_v[(Hv)_i^2]=\sum_jH_{ij}^2},
+\qquad
+\boxed{\mathbb E_v[\|Hv\|_2^2]=\|H\|_F^2}.
+\tag{B6}
+$$
+
+可直接估整行/区块曲率能量。但**单个** $(Hv)_iv_j$ 的平方不等于 $H_{ij}^2$ 的无偏估计。若确实需要逐元素平方，用两个条件独立的探针 $v,v'$：
+
+$$
+\boxed{
+\mathbb E_{v,v'}\left[v_j(Hv)_i\,v'_j(Hv')_i\right]=H_{ij}^2.
+}
+\tag{B7}
+$$
+
+这是探针恒等式的代数推论，不是宣称 Hutchinson 原论文给出了本项目的逐元素指标；有限次结果可能为负且方差较大，不可静默 clip，须随 probe 数和 seed 报告收敛。[N2,N3]
+
+对 UX 的行总能量，可只在 X 子空间取 probe；但行总和不等于完整逐元素 $M^{UX}$。对于本项目的低输入维数，B1 一般更简洁可靠。
+
+### 8B.5 B4：显式传播网络层的 Hessian
+
+对 $a=A h+b$，$h_{\rm new}=\phi(a)$：
+
+$$
+J_a=A J_h,\quad H_{a,r}=\sum_sA_{rs}H_{h,s},
+$$
+
+$$
+\boxed{
+H_{{\rm new},r}
+=\phi''(a_r)J_{a,r}J_{a,r}^\top
++\phi'(a_r)H_{a,r}.
+}
+\tag{B8}
+$$
+
+逐层递推得到输出 Hessian，不用知道真实生成公式。适合作为 GELU MLP 的数学独立校验。若包含 attention、LayerNorm、mask、softmax 等算子，需要额外推导对应导数；不能直接把简单 MLP 公式用于整个 NP encoder。
+
+### 8B.6 B5/B6：只有 forward API 时的数值差分与直接能量
+
+对 $i\ne j$ 用混合二阶差分：
+
+$$
+\widehat H_{ij,h}(w)=
+\frac{
+\widehat f_\theta(w+h_ie_i+h_je_j)
+-\widehat f_\theta(w+h_ie_i-h_je_j)
+-\widehat f_\theta(w-h_ie_i+h_je_j)
++\widehat f_\theta(w-h_ie_i-h_je_j)
+}{4h_ih_j}.
+\tag{B9}
+$$
+
+对角项：
+
+$$
+\widehat H_{ii,h}(w)=
+\frac{\widehat f_\theta(w+h_ie_i)-2\widehat f_\theta(w)+\widehat f_\theta(w-h_ie_i)}{h_i^2}.
+\tag{B10}
+$$
+
+**B5** 保存每点的数值 Hessian，再平方积分；**B6** 不显式存全矩阵，而直接在选定元素上平均 $\widehat H_{ij,h}^2$。两者都存在步长截断偏差和浮点相消。中心差分在足够光滑、stencil 完全合法的内部点通常具 $O(h^2)$ 截断阶，但 $h$ 过小会放大数值误差。必须对多尺度 $h$ 与网络输出精度做敏感性检查。
+
+若差分点超出训练支持，其数值可能精准反映 NN 的**外推**却未必反映真实生成函数。边界处应优先使用 AD 计算网络导数；如只允许 forward，应区分：(i) 仅评估完整中心 stencil 留在域内的内点，(ii) 采用单侧差分/局部拟合并接受不同误差阶，(iii) 明确标记外推差分。**把越界输入直接裁剪回边界再代入中心差分公式，不是有效的无偏边界修正。**
+
+### 8B.7 B7/B8：经验点与已知分布积分
+
+**B7：经验 W 积分（首选支持内 baseline）。** 对原始合法的被试–试次配对 $(Z_s,X_{s,t})$ 直接求网络 Hessian：
+
+$$
+\boxed{
+\widehat M^{\rm emp,NN}_{ij}
+=
+\frac{\sum_{s,t}\omega_{s,t}
+[\partial_{ij}\widehat f_\theta(Z_s,X_{s,t})]^2}
+{\sum_{s,t}\omega_{s,t}}.
+}
+\tag{B11}
+$$
+
+每条观测等权时 $\omega_{s,t}=1$；每被试等权时 $\omega_{s,t}=1/n_s$。一个被试有 500 个试次仍只有一个 Z 位置，bootstrap 应按主体分组。这个估计刻画**观测经验输入分布**的网络曲率，不自动等于任何独立高斯参考分布下的能量。
+
+**B8：已知目标 $P_W$ 的 MC/QMC。** 若已明确合法的联合分布 $P_{\rm target}$：
+
+$$
+\widehat M_{ij}^{\rm MC}
+=\frac1K\sum_{k=1}^K
+[\partial_{ij}\widehat f_\theta(W^{(k)})]^2,\quad
+W^{(k)}\sim P_{\rm target}.
+\tag{B12}
+$$
+
+也可用 scrambled Sobol QMC 在定义清楚的物理支持域采样后正确变换分布；这改善的是**积分点选择**，不是导数计算，优势依赖积分函数和有效维数。[N4] **均值/方差近似标准正态**并不等于潜变量 Z 的全部联合分布是无界独立高斯；随意在尾部或不同 Z 轴间拼接样本，可能走到网络完全没训练过的位置。
+
+对截断高斯应按**正确归一化后的截断分布**采样；将越界值 clip 到边界会产生点质量、改变 $P_W$，不能当作原期望。对于需要重新定义的外部参考分布，应在结果中明确标识，而不是混写成训练分布期望。
+
+### 8B.8 B9：训练数据有边界——最需要单独评估的一部分
+
+神经网络可以在训练支持外输出有数值的函数和导数，但：
+
+$$
+\boxed{
+\nabla^2\widehat f_\theta(w)\text{ 可由 AD 算出}
+\ \not\Rightarrow\
+\nabla^2 f^\star(w)\text{ 在该位置有充分统计支持}.
+}
+\tag{B13}
+$$
+
+**边界类型与本项目对应关系：**
+
+| 输入类型 | 真实支持/边界 | 推荐方法 | 不恰当做法 |
+|---|---|---|---|
+| **CR4 的连续 X** | 金额 $U(5,200)$，概率 $U(0.05,0.95)$，6 维有界物理设计 | 在合法物理分布采样，使用 checkpoint 中 TRAIN-only 的 X scaler 再进入 decoder | 在任意标准化盒内放大范围并称为原 CR4 分布 |
+| **CR3/CR5 的共享 X bank** | 有限 500 个题目，$P_X$ 为离散经验测度 | 对固定 500 个 X 求平均，按真实题库权重汇总 | 在连续盒中新抽题，然后称为 CR5 原设计期望 |
+| **个体潜变量 Z** | 每被试只有一条冻结 Z；可能相关、非高斯、近似低维流形 | 首先从观测 Z 经验抽样/真实组合；必要时拟合联合分布并检测 OOD | 只看各维 mean/SD，就假定独立正态全空间均可靠 |
+| **联合 W=(Z,X)** | $Z_s$ 共享于该主体各试次，X 可能受分组/实验设计约束 | 首先使用原真实主体–试次配对，外部积分必须定义联合参考分布 | 随机打乱 W 各列或独立组合极端值，忽视联合支持 |
+
+CR4 设计上的 X 是逐试次独立抽样；但**经 encoder 从某主体实际 $(X,Y)$ 提取的 Z** 在有限样本中可能与其观测 X 相关。因此把 $P_ZP_X$ 当积分分布，需要标明这是新的理论/参考测度，不能自动等同于经验 $P_{Z,X}$。在 CR5，离散 X 上可以求 NN 对连续 X 的微分，但真实函数在题库之外的变化**无法仅由这 500 个固定 X 识别**；网络曲率反映其学习到的插值/外推结构。
+
+**分层边界诊断。** 若目标 X 的真实支持是盒 $\Omega_X=\prod_a[a_a,b_a]$，用相对于各边界的归一化距离：
+
+$$
+d_{\partial\Omega}(x)
+=\min_a\left\{
+\frac{x_a-a_a}{b_a-a_a},
+\frac{b_a-x_a}{b_a-a_a}
+\right\}.
+\tag{B14}
+$$
+
+预先选 $\delta>0$，划分 $\Omega_{\rm in}=\{d_{\partial\Omega}\ge\delta\}$ 和 $\Omega_{\rm bdry}=\{0\le d_{\partial\Omega}<\delta\}$；输出内部与边界的条件能量及其质量比例：
+
+$$
+\begin{aligned}
+M^{\rm interior}_{ij}&=\mathbb E[H_{ij}^2\mid X\in\Omega_{\rm in}],\\
+M^{\rm boundary}_{ij}&=\mathbb E[H_{ij}^2\mid X\in\Omega_{\rm bdry}],\\
+\boxed{
+M^{\rm full}_{ij}
+&=\pi_{\rm in}M^{\rm interior}_{ij}
++\pi_{\rm bdry}M^{\rm boundary}_{ij}.
+}
+\end{aligned}
+\tag{B15}
+$$
+
+**删掉边界点后得到的内部平均不是原来的完整 $P_W$ 期望。** 对 $d_X$ 维独立均匀盒，内部 $P$ 质量是 $(1-2\delta)^{d_X}$（$\delta\in[0,1/2]$），所以六维 CR4 中边界层可能覆盖很大比例，即使 $\delta$ 看似不大。边界层应单独报告而不是隐藏。
+
+若联合 Z/X 支持不是矩形，不能对其简单采用坐标 min–max 作为真实可信域。可以补充 kNN 距离、局部密度、条件约束、到已观测流形的距离等**诊断指标**，但它们也需阈值校准、不能保证真实导数正确。AD 在 NN 数学上求边界处导数，不需要先从边界两侧取观测；**这种网络导数可计算性**并不能弥补真实函数一侧无观测数据所造成的不可识别性。[N7,N8]
+
+### 8B.9 B10–B12：不确定性、蒸馏和导数增强
+
+**B10：固定评估点上的多网络 ensemble。** 对 $B$ 个独立训练 checkpoint 分别求 $M^{(b)}$，输出：
+
+$$
+\bar M_{ij}=\frac1B\sum_bM^{(b)}_{ij},\quad
+V^{\rm model}_{ij}=\frac1{B-1}\sum_b(M^{(b)}_{ij}-\bar M_{ij})^2.
+\tag{B16}
+$$
+
+比较各模型边界距离与 Hessian 能量的关系。注意平均各模型的 $H^2$ **不等于**先平均各模型函数、再对平均函数求 Hessian 平方。ensemble 分歧可诊断部分不确定性，但如果所有模型一致地错误外推，低分歧也不能证明导数可靠。[N9]
+
+**B11：支持内局部代理蒸馏。** 若不能高效求完整 NN Hessian，可在可信支持区域查询 teacher NN 的输出（可选导数），拟合更易解析积分的样条、多项式或小型光滑代理。它会增加新的拟合误差，需要与 B1 对照，不能称作对原网络完全精确的微分。
+
+**B12：允许重训时的 Sobolev/derivative-enhanced training。** 若真正有额外可监督的梯度、导数约束或解析 toy oracle，可把输出误差与导数误差共同加入训练，改善 curvature fidelity；Czarnecki et al. (2017) 是相关经典研究。[N5] 但用原 NN 可能错误的自身导数作为唯一 teacher，并不能创造额外真实信息；高频/局部曲率还可能受到网络频率偏差影响。[N6]
+
+### 8B.10 mod-rot-4 的冻结 NP decoder 接口、旋转及评估推荐
+
+基于仓库当前源代码：
+
+- [离散 NP decoder](../nn/src/modrot4_nn/net/discrete.py) 是 **Linear + GELU MLP**，输出两个类别 logits，实际拼接顺序为 **[X, Z]**。外部研究可统一记 $W=(Z,X)$，但执行计算前一定要重排到 NN 的真实输入位置，并用 class-1 minus class-0 logits 作为二元选择 logit。
+- [训练预处理](../nn/src/modrot4_nn/net/preprocessing.py) 与 [nn/README.md](../nn/README.md) 规定 X 的标准化只在 TRAIN 被试拟合，并为 encoder/decoder 共用。求导应固定原始物理 X 还是网络标准化 X，必要时按 Part I 式 (7) 转换 Hessian。
+- S5 的 Z 是每被试冻结的 posterior mean。研究 decoder 的函数结构时，要把 Z 作为 decoder 的自由输入变量，不要把 encoder 的 $\partial Z/\partial X$ 混入。S8 和 S8_2 两种 Z 坐标规范并不一样；S8_2 全局标准化涉及 TEST，属于 transductive 约定，需标明。
+- 计算输入 Hessian 时保持 decoder 冻结、eval mode，**但不能在输入导数计算路径上关闭 autograd 或 detach 输入**。目标 $P_W$、Z 版本、X scaler、checkpoint sha、评估点集合均需固定。
+
+对潜变量正交旋转 $U=RZ$ 且保持同一物理函数、同一积分点时：
+
+$$
+H^{(R)}_{UU}=R H_{ZZ}R^\top,\quad
+H^{(R)}_{UX}=R H_{ZX},\quad
+H^{(R)}_{XX}=H_{XX}.
+\tag{B17}
+$$
+
+建议**先在合法原始 $(Z,X)$ 上求 Hessian，再做坐标变换**，避免每换一个 $R$ 就对旋转坐标按各维 min–max/正态重新抽样并走到支持外。Part III §17.1 已解释 $M(R)$ 不能通过 $RMR^\top$ 得到，而需要在固定点评估 Hessian 或保存交叉二阶矩张量。
+
+**推荐首轮实验：**
+
+| 目的 | 方法套餐 | 必须记录 |
+|---|---|---|
+| 冻结网络自身曲率 baseline | **B1 + B7** | UU/UX/XX 全矩阵、真实评估点与主体权重 |
+| 连续设计 X 的分布期望 | **B1 + B8 + B9** | 物理范围、标准化、QMC/MC seed、内部/边界两套指标 |
+| 高维只计算选定子块 | **B2 + B7/B8** | 方向和列索引、与 B1 抽检结果 |
+| 高维只看行/整体能量 | **B3 + B7/B8** | probe 次数、方差、逐元素估计负值 |
+| 只能查询 forward | **B5/B6 + B7 + B9** | 步长扫描、stencil 越界率、单侧方案 |
+| 对网络曲率不放心 | **B10 + B9** | checkpoint 间分歧、边界距离/OOD 分层 |
+| 需要另外改进导数代理 | **B11/B12（另立研究分支）** | 训练来源、teacher 偏差、额外导数监督 |
+| 对很多 R 搜索相同曲率损失 | **B1/B2 + 固定点 + 交叉二阶矩** | 同一物理函数/评估点/参考分布、旋转不变量检查 |
+
+建议新实验输出：checkpoint 与数据集 hash、decoder 输入列顺序、output kind、Z 版本与均值/SD、X scaler、P_W、被试/试次权重、support kind、boundary delta、OOD diagnostics、求导方法与精度、$M^{UU}$/$M^{UX}$/$M^{XX}$、内部/边界完整三套 $M$、积分 seed 与样本数、稳定性/旋转元数据。以上均为设计建议，**不意味着现有 S1–S9 代码已经实现 B 类模块**。
+
+### 8B.11 神经网络曲率推断专题文献（与原 A 类文献分开）
+
+- **[N1] PyTorch Contributors.** [Jacobians, Hessians, hvp, vhp, and more: composing function transforms](https://docs.pytorch.org/tutorials/intermediate/jacobians_hessians.html). 标准自动微分、Hessian、HVP 实现参考。
+- **[N2] Pearlmutter, B. A. (1994).** Fast exact multiplication by the Hessian. *Neural Computation, 6*(1), 147–160. [DOI](https://doi.org/10.1162/neco.1994.6.1.147). HVP 的基础。
+- **[N3] Hutchinson, M. F. (1990).** A stochastic estimator of the trace of the influence matrix for Laplacian smoothing splines. *Communications in Statistics – Simulation and Computation, 19*(2), 433–450. [DOI](https://doi.org/10.1080/03610919008812866). 随机探针思想；式 (B7) 是本节给出的代数恒等式。
+- **[N4] Owen, A. B.** [Practical quasi-Monte Carlo integration](https://artowen.su.domains/mc/practicalqmc.pdf). 数值积分与 scrambled QMC；[SciPy Sobol](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.qmc.Sobol.html)。
+- **[N5] Czarnecki, W. M., et al. (2017).** Sobolev training for neural networks. *NeurIPS*. [Proceedings](https://papers.nips.cc/paper_files/paper/2017/hash/758a06618c69880a6cee5314ee42d52f-Abstract.html). 导数增强训练。
+- **[N6] Tancik, M., et al. (2020).** Fourier features let networks learn high frequency functions in low dimensional domains. *NeurIPS*. [Proceedings](https://papers.nips.cc/paper/2020/hash/55053683268957697aa39fba6f231c68-Abstract.html). 神经网络的频率偏差。
+- **[N7] Schwinn, L., et al. (2021).** Identifying untrustworthy predictions in neural networks by geometric gradient analysis. *UAI / PMLR 161*, 854–864. [PMLR](https://proceedings.mlr.press/v161/schwinn21a.html). 梯度几何与不可信预测的诊断。
+- **[N8] Extrapolating from neural network models: a cautionary tale (2021).** [DOI](https://doi.org/10.1088/1361-6471/abf08a). 训练域外外推的风险。
+- **[N9] Lakshminarayanan, B., Pritzel, A., & Blundell, C. (2017).** Simple and scalable predictive uncertainty estimation using deep ensembles. *NeurIPS*. [Proceedings](https://papers.nips.cc/paper_files/paper/2017/hash/9ef2ed4b7fd2c810847ffa5fa85bce38-Abstract.html). 多网络不确定性。
+
+
 ## 9. 只比较预测误差是不够的：推荐评估协议
 
 **Ground truth 仅用于最终评价，而不用于 blind 估计或超参数选择。**
