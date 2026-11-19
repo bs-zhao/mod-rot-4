@@ -221,8 +221,8 @@ class TestModels(unittest.TestCase):
             for model_name in ("CR3","CR5"):
                 with self.subTest(model=model_name):
                     patch_target=("_cr3_bank" if model_name=="CR3" else "_cr5_bank")
-                    with patch.object(ModelSpec,"_prepare_stimuli",return_value=None), \\
-                         patch("modrot4.model_specs."+patch_target,return_value=bank_file):
+                    with (patch.object(ModelSpec,"_prepare_stimuli",return_value=None),
+                          patch("modrot4.model_specs."+patch_target,return_value=bank_file)):
                         dataset=get_spec(model_name).generate(args)
                     original_theta=sample_prior(3,4,np.random.default_rng(20261028+4))
                     expected_t=(original_theta if model_name=="CR3"
