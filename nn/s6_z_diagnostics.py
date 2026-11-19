@@ -291,6 +291,89 @@ def fit_unsupervised_ica_fa(z, train, *, factor_count=4, seed=31,
     return info
 
 
+
+def posterior_diagnostics(args, folder, z, train, validation, test, source):
+    """S5 posterior diagnostics, moved here from the old optional S4 revisit."""
+    import csv
+    from modrot4_nn.pipeline import latent_path
+    with np.load(source,allow_pickle=False) as saved:
+        lv=np.asarray(saved["z_logvar"],float)
+    if lv.shape!=z.shape or not np.isfinite(lv).all():
+        raise ValueError("S5 posterior mean/logvariance mismatch")
+    if np.max(lv)>80:
+        raise ValueError("Posterior logvariance is too large for stable diagnostics")
+    var=np.exp(lv)
+    kl=.5*(z*z+var-1-lv)
+    rows=[]
+    groups={"all":np.arange(len(z)),"train":train,
+            "validation":validation,"test":test}
+    for j in range(z.shape[1]):
+        axis=z[:,j]
+        rows.append(dict(
+            dimension=f"z{j+1}",mean=float(axis.mean()),
+            between_subject_variance=float(axis.var(ddof=0)),
+            std=float(axis.std(ddof=0)),
+            min=float(axis.min()),max=float(axis.max()),
+            q01=float(np.percentile(axis,1)),q05=float(np.percentile(axis,5)),
+            q25=float(np.percentile(axis,25)),median=float(np.median(axis)),
+            q75=float(np.percentile(axis,75)),q95=float(np.percentile(axis,95)),
+            q99=float(np.percentile(axis,99)),
+            mean_abs=float(np.mean(np.abs(axis))),
+            posterior_variance_mean=float(var[:,j].mean()),
+            posterior_variance_median=float(np.median(var[:,j])),
+            posterior_kl_mean=float(kl[:,j].mean())))
+    write_rows(folder/"z_statistics.csv",rows)
+    summary={"context_mode":"all_observed_trials",
+             "source_latent_sha256":sha256(source),
+             "split_sizes":{k:len(v) for k,v in groups.items()},
+             "mean_total_kl":float(kl.sum(axis=1).mean()),
+             "axis":rows}
+    for name,idx in groups.items():
+        matrix=z_axis_pearson(z[idx])
+        with (folder/f"z_correlations_{name}.csv").open(
+                "w",newline="",encoding="utf-8") as f:
+            writer=csv.writer(f)
+            writer.writerow(["axis"]+[f"z{i+1}" for i in range(z.shape[1])])
+            for j,r in enumerate(matrix):
+                writer.writerow([f"z{j+1}",*r.tolist()])
+    (folder/"z_posterior_summary.json").write_text(
+        json.dumps(summary,indent=2,allow_nan=False),encoding="utf-8")
+    fig,ax=plt.subplots(2,1,figsize=(max(7,z.shape[1]*.7),7))
+    ticks=np.arange(z.shape[1])
+    ax[0].bar(ticks-.2,[r["between_subject_variance"] for r in rows],
+              width=.4,label="Var across posterior means")
+    ax[0].bar(ticks+.2,[r["posterior_variance_mean"] for r in rows],
+              width=.4,label="Mean posterior variance")
+    ax[0].set(title="Between-subject variance versus posterior uncertainty",
+              xticks=ticks,xticklabels=[f"z{j+1}" for j in ticks])
+    ax[0].legend()
+    ax[1].bar(ticks,[r["posterior_kl_mean"] for r in rows])
+    ax[1].set(title="Mean axis-wise posterior KL",xticks=ticks,
+              xticklabels=[f"z{j+1}" for j in ticks])
+    fig.tight_layout();fig.savefig(folder/"z_variance_kl.png",dpi=170);plt.close(fig)
+    ncol=min(4,z.shape[1])
+    nrow=int(np.ceil(z.shape[1]/ncol))
+    fig,axs=plt.subplots(nrow,ncol,figsize=(ncol*3,nrow*2.6),squeeze=False)
+    for j,axis in enumerate(axs.flat):
+        if j>=z.shape[1]:
+            axis.axis("off");continue
+        axis.hist(z[:,j],bins=30,alpha=.5,density=True,label="all")
+        for label,idx in (("train",train),("validation",validation),("test",test)):
+            axis.hist(z[idx,j],bins=25,histtype="step",
+                      density=True,label=label)
+        axis.set_title(f"z{j+1}")
+        if j==0: axis.legend(fontsize=7)
+    fig.tight_layout();fig.savefig(folder/"z_histograms.png",dpi=150);plt.close(fig)
+    fig,axs=plt.subplots(1,2,figsize=(11,4.4))
+    for axis,(label,idx) in zip(axs,(("ALL",groups["all"]),("TRAIN",train))):
+        matrix=z_axis_pearson(z[idx])
+        axis.imshow(matrix,cmap="coolwarm",vmin=-1,vmax=1)
+        axis.set_title(f"Z correlations: {label}")
+        axis.set_xticks(ticks,[f"z{j+1}" for j in ticks],rotation=90)
+        axis.set_yticks(ticks,[f"z{j+1}" for j in ticks])
+    fig.tight_layout();fig.savefig(folder/"z_correlations.png",dpi=170);plt.close(fig)
+
+
 def pca_report(args):
     z, theta, splits, source = load_frozen(args)
     tr, va, te = (splits[k] for k in ('train','validation','test'))
@@ -299,6 +382,7 @@ def pca_report(args):
     explained = fitted.explained_variance_ratio_
     folder = stage_folder(args, 's6_z_diagnostics')
     folder.mkdir(parents=True, exist_ok=True)
+    posterior_diagnostics(args,folder,z,tr,va,te,source)
     source_sha = sha256(source)
     np.savez_compressed(folder/'s12__pca.npz',
         components=fitted.components_, explained_variance=fitted.explained_variance_,
