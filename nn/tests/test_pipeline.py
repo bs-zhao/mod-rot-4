@@ -83,7 +83,9 @@ class TestNNPipeline(unittest.TestCase):
                 ("s6_z_diagnostics.py",["--fa-factors","3","--pc-var-threshold","0"],
                  "s6_z_diagnostics/s12__pca.npz"),
                 ("s7_regression.py",["--pca-threshold","0","--z-var-threshold","0"],
-                 "s7_regression/s12__diagnostics.json")]
+                 "s7_regression/s12__diagnostics.json"),
+                ("s8_supervised_rotation.py",[],
+                 "s8_supervised_rotation/rotation.npz")]
             for script,additional,expected in stages:
                 proc=subprocess.run(
                     [sys.executable,str(root/"nn"/script),*base,*additional],
@@ -104,6 +106,17 @@ class TestNNPipeline(unittest.TestCase):
             self.assertTrue((s6/"z_variance_kl.png").exists())
             self.assertTrue((s6/"s12__ica.npz").exists())
             self.assertTrue((s6/"s12__factor_analysis.npz").exists())
+            s8=zfile.parent.parent/"s8_supervised_rotation"
+            self.assertTrue((s8/"rz_vs_t_correlation.png").exists())
+            self.assertTrue((s8/"pred_vs_t_correlation.png").exists())
+            self.assertTrue((s8/"rz_vs_t_scatter.png").exists())
+            self.assertTrue((s8/"pred_vs_t_scatter.png").exists())
+            with np.load(s8/"rotation.npz") as model:
+                r=model["R_star"]
+                np.testing.assert_allclose(r@r.T,np.eye(3),atol=1e-9)
+            with np.load(s8/"test_predictions.npz") as predictions:
+                self.assertEqual(predictions["theta_pred"].shape[1],3)
+                self.assertEqual(predictions["u_test"].shape[1],3)
 
 
 if __name__=="__main__":
