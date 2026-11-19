@@ -168,6 +168,7 @@ def main(args, *, variant="original"):
                     "R=G@R_star; row U=((Z-mu_all)/sd_all)@R.T"
                     if variant=="global_zscore" else "R = G @ R_star; rows RZ = Z @ R.T"),
                 global_z_mean=mu, global_z_std=sd,
+                global_z_variance=sd**2,
                 z_coordinate_space=np.array(
                     "globally_z_scored_Z" if variant=="global_zscore" else "original_Z"),
                 source_s8_rotation_sha256=np.array(source_hashes["s8_rotation_sha256"]),
@@ -208,6 +209,7 @@ def main(args, *, variant="original"):
         source_oracle_stage=oracle_stage,
         z_coordinate_space="globally_z_scored_Z" if variant=="global_zscore" else "original_Z",
         global_z_mean=mu.tolist(),global_z_std=sd.tolist(),
+        global_z_variance=(sd**2).tolist(),
         standardization_scope="all_subjects_including_TEST_transductive" if variant=="global_zscore" else "none",
         latent_dim=n_latent,
         theta_dim=tdim,

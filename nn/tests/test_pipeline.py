@@ -149,16 +149,24 @@ class TestNNPipeline(unittest.TestCase):
             s82=zfile.parent.parent/"s8_2_supervised_rotation"
             s92=zfile.parent.parent/"s9_2_rotation_sweep"
             self.assertTrue((s82/"z_standardized.npz").exists())
+            self.assertTrue((s82/"z_normalizer.npz").exists())
+            self.assertTrue((s82/"z_normalizer.csv").exists())
             with np.load(zfile) as source:
                 raw_z=np.asarray(source["z"],dtype=float)
             with np.load(s82/"rotation.npz") as oracle:
                 mu=np.asarray(oracle["global_z_mean"],float)
                 sd=np.asarray(oracle["global_z_std"],float)
                 r82=np.asarray(oracle["R_star"],float)
+                np.testing.assert_allclose(oracle["global_z_variance"],sd**2,atol=1e-12)
                 self.assertEqual(str(oracle["z_standardization_scope"]),"all_subjects")
                 np.testing.assert_allclose(mu,raw_z.mean(0),atol=1e-12)
                 np.testing.assert_allclose(sd,raw_z.std(0,ddof=0),atol=1e-12)
                 np.testing.assert_allclose(r82@r82.T,np.eye(3),atol=1e-9)
+            with np.load(s82/"z_normalizer.npz") as saved:
+                np.testing.assert_allclose(saved["mean"],mu,atol=1e-12)
+                np.testing.assert_allclose(saved["std"],sd,atol=1e-12)
+                np.testing.assert_allclose(saved["variance"],sd**2,atol=1e-12)
+                self.assertEqual(int(saved["ddof"]),0)
             with np.load(s82/"z_standardized.npz") as saved:
                 z_std=np.asarray(saved["z_standardized"],float)
                 np.testing.assert_allclose(z_std,(raw_z-mu)/sd,atol=1e-10)
@@ -174,7 +182,11 @@ class TestNNPipeline(unittest.TestCase):
                 np.testing.assert_allclose(example["R"],r82,atol=1e-9)
                 np.testing.assert_allclose(example["global_z_mean"],mu,atol=1e-12)
                 np.testing.assert_allclose(example["global_z_std"],sd,atol=1e-12)
+                np.testing.assert_allclose(example["global_z_variance"],sd**2,atol=1e-12)
                 self.assertEqual(str(example["z_coordinate_space"]),"globally_z_scored_Z")
+                transformed=(raw_z-mu)/sd @ example["R"].T
+                recovered=(transformed @ example["R"])*sd+mu
+                np.testing.assert_allclose(recovered,raw_z,atol=1e-9)
             with (s92/"summary.json").open() as handle:
                 summary=json.load(handle)
                 self.assertEqual(summary["variant"],"s9_2_global_zscore")

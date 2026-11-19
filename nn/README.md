@@ -227,14 +227,18 @@ any cross-dimensional correlations in Z can remain.
 Output `s8_2_supervised_rotation/` mirrors S8 (rotation.npz,
 rotated_z.npz, test_predictions.npz, both T×RZ/T×pred correlations,
 scatter grids, summary.json) and additionally saves
-`z_standardized.npz`. `rotation.npz` stores `global_z_mean`,
-`global_z_std`, source hashes and the standardization definition.
+\`z_standardized.npz\`. A standalone \`z_normalizer.npz\` saves
+\`mean\`, \`variance\`, \`std\`, number of subjects, \`ddof=0\` and the
+S5 source hash; \`z_normalizer.csv\` lists all axes for inspection.
+\`rotation.npz\` and \`z_standardized.npz\` also store
+\`global_z_mean\`, \`global_z_variance\`, \`global_z_std\`.
+For inversion, use **the saved** means and stds, never recompute them.
 
 **S9_2:** Loads the **exact** scaler and frozen R* from S8_2,
 validates that they match the source S5 Z, and generates all the
 same S9 Givens subset/angle combinations (0 to 90 degrees in 15-degree
 steps) in **Zz space**. All R files are full L×L orthogonal matrices
-**relative to Zz**, and each R NPZ also contains global means/std so
+**relative to Zz**, and each R NPZ also contains global means/variances/stds so
 the raw-space affine map is fully specified. Its separate directory
 `s9_2_rotation_sweep/` mirrors S9:
 
@@ -291,6 +295,8 @@ outputs/nn/<MODEL>/<condition>_<config-hash>/repeat01/
     s9_rotation_sweep/figures_45deg/kXX/axes_.../rz_axis_correlations.png
     s8_2_supervised_rotation/rotation.npz
     s8_2_supervised_rotation/z_standardized.npz
+    s8_2_supervised_rotation/z_normalizer.npz
+    s8_2_supervised_rotation/z_normalizer.csv
     s8_2_supervised_rotation/rotated_z.npz
     s8_2_supervised_rotation/test_predictions.npz
     s8_2_supervised_rotation/... (the same S8 heatmaps/scatters)

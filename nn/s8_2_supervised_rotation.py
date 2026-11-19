@@ -91,6 +91,7 @@ def global_standardize_z(z):
 def main(args):
     z, theta, splits, z_source=load_frozen(args)
     z, global_z_mean, global_z_std = global_standardize_z(z)
+    global_z_variance = global_z_std ** 2
     tr, va, te = (np.asarray(splits[k],dtype=np.int64)
                    for k in ("train","validation","test"))
     n, latent_dim=z.shape
@@ -126,6 +127,7 @@ def main(args):
         R_star=rotated["R"],R=rotated["R"],
         z_train_mean=rotated["z_train_mean"],
         global_z_mean=global_z_mean, global_z_std=global_z_std,
+        global_z_variance=global_z_variance,
         z_standardization_scope=np.array("all_subjects"),
         z_standardization_ddof=np.array(0),
         coordinate_system=np.array("Zz=(Z-mean_all)/std_all; orthogonal R in Zz"),
@@ -137,9 +139,23 @@ def main(args):
         latent_sha256=np.array(sha256(z_source)),
         dataset_sha256=np.array(sha256(dataset_path(args.model))),
         train_ids=tr,validation_ids=va,test_ids=te)
+    # Standalone normalizer can be kept beside any future rotation matrix.
+    np.savez_compressed(destination/"z_normalizer.npz",
+                        mean=global_z_mean, variance=global_z_variance,
+                        std=global_z_std, n_subjects=np.array(n),
+                        ddof=np.array(0),
+                        source_latent_sha256=np.array(sha256(z_source)),
+                        scope=np.array("all_subjects"))
+    with (destination/"z_normalizer.csv").open("w",newline="",encoding="utf-8") as f:
+        writer=csv.writer(f)
+        writer.writerow(["axis","mean","variance","std"])
+        writer.writerows((f"z{j+1}",float(global_z_mean[j]),
+                          float(global_z_variance[j]),float(global_z_std[j]))
+                         for j in range(latent_dim))
     np.savez_compressed(destination/"z_standardized.npz",
                         z_standardized=z,global_z_mean=global_z_mean,
                         global_z_std=global_z_std,
+                        global_z_variance=global_z_variance,
                         source_latent_sha256=np.array(sha256(z_source)))
     np.savez_compressed(destination/"rotated_z.npz",
                         rz=rz,u=u,
@@ -176,6 +192,7 @@ def main(args):
         "z_normalizer_ddof":0,
         "global_z_mean":global_z_mean.tolist(),
         "global_z_std":global_z_std.tolist(),
+        "global_z_variance":global_z_variance.tolist(),
         "coordinate_system":"Zz=(Z-mu_all)/sd_all; U=R*Zz; raw inverse Z=mu_all+sd_all*(R*.T U)",
         "evaluation_caveat":"TEST Z included in Z-score statistics (transductive); R* fits TRAIN T only.",
         "subjects":n,"split_counts":{k:int(len(v)) for k,v in splits.items()},
