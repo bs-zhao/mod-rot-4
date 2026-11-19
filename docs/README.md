@@ -495,6 +495,338 @@ Lamboni (2024) [R11] 研究由多个随机扰动的 **模型函数值查询** �
 
 不要把 **同一真实函数下改变的输入分布**（CR4/CR5）与 **在同一输入分布下只改变旋转坐标** 混为一谈。
 
+
+---
+
+# Part III. 基于平均平方曲率能量可以进一步计算的指标清单
+
+**研究起点：** 已经从解析式、oracle 数值积分或仅凭输入–输出矩阵得到逐元素二阶曲率能量矩阵：
+
+$
+\boxed{M_{ij}=\mathbb E_{W\sim P_W}\left[\left(\frac{\partial^2f(W)}{\partial W_i\partial W_j}\right)^2\right]\ge0,\quad M=M^\top.}
+\tag{21}
+$
+
+目标是进一步把这个矩阵汇总为**有含义、可比较、可复现的标量指标**：总曲率大小、单元稀疏性、能量集中度、参数轴分工、矩阵有效秩，以及能够用于搜索旋转 $R$ 的候选 loss。
+
+**注意两层目标：** （i）描述当前坐标下的曲率矩阵；（ii）寻找有利于生成函数简洁表达的参数坐标。二者不能混为一谈。Shannon entropy、Gini、HHI、Hoyer、effective rank 等是成熟通用的统计/矩阵指标，但把它们应用于 $M$ 并不构成“必然恢复真实参数轴”的定理；下面专门设计的自曲率 tail、UX 分组损失等都需在 C1/C2/C3/CR3/CR4/CR5 上实验验证。
+
+## 11. 统一记号与避免错误汇总的原则
+
+取 $W=(U,X)$、$U\in\mathbb R^k$、$X\in\mathbb R^p$，划分：
+
+$
+M=\begin{pmatrix}M^{UU}&M^{UX}\\(M^{UX})^\top&M^{XX}\end{pmatrix},
+\qquad M^{UU}\in\mathbb R_+^{k\times k},\
+M^{UX}\in\mathbb R_+^{k\times p}.
+\tag{22}
+$
+
+**11.1 对称矩阵是否重复计数。** 对任意 $i\ne j$，$M_{ij}=M_{ji}$。如果研究总 Frobenius 曲率，必须双计数非对角项：
+
+$
+\sum_{ij}M_{ij}=\sum_iM_{ii}+2\sum_{i<j}M_{ij}.
+$
+
+但如果问“有多少种独立变量对发挥作用”，应优先用半向量化 $\mathrm{vech}(M)$（仅 $i\le j$），每个无序变量对计数一次。对于矩形 $M^{UX}$，直接使用全部 $kp$ 个元素，不应再重复加入 $M^{XU}$。在 entropy、Hoyer、Gini、top-$k$ 等计算中，**重复计数约定会实质改变数值**，必须记录为方法配置。
+
+**11.2 非负能量向量与归一化。** 由指定矩阵区块和计数规则提取向量 $v=(v_1,\ldots,v_n)\ge0$，令
+
+$
+S=\sum_{e=1}^n v_e,\qquad p_e=\frac{v_e}{S}\ (S>0),\qquad
+v_{(1)}\ge v_{(2)}\ge\cdots\ge v_{(n)}.
+\tag{23}
+$
+
+在 $S=0$ 时输出独立状态 **all-zero**：原始总能量为 0，但归一化熵、Gini、HHI、Hoyer 等不定义；$n=1$ 时 Hoyer 分母也为 0。统一定义 $0\log0:=0$。
+
+**11.3 元素非负不等于矩阵半正定。** $M=\mathbb E[H\odot H]$ 非负、对称，**通常不保证半正定**，不等于 $\mathbb E[H^\top H]$。做有效秩/谱指标时优先用奇异值 SVD，而不是把 $M$ 的特征值强行当概率。
+
+**11.4 尺度、Y 类型和输入测度固定。** $M_{ij}$ 的量纲是 $f^2/(W_i^2W_j^2)$。若 $W=\mu+D W_{\mathrm{std}}$，则 $M^{\mathrm{std}}_{ij}=D_{ii}^2D_{jj}^2M^{\mathrm{physical}}_{ij}$。必须标明 logit 还是概率输出、X 和 Z 的变换、期望分布 $P_W$，以及不同试次/被试是否等权。不可对带量纲、尺度不同的 $M$ 不作说明就比较稀疏性。
+
+## 12. 第一类：总能量、对角和非对角比例（E01–E10）
+
+记 $d=\dim W$，$E=\sum_{ij}M_{ij}$：
+
+| ID | 指标 | 数学公式 | 含义 / 在正交旋转中的地位 |
+|---|---|---|---|
+| E01 | Total Hessian energy | $E=\sum_{ij}M_{ij}=\mathbb E\|H\|_F^2$ | 总二阶曲率；**整体正交旋转不变** |
+| E02 | Mean cell energy | $E/d^2$ | 平均有序单元能量；跨维数时需注意计数规则 |
+| E03 | Integrated Hessian norm | $\sqrt{E}$ | Hessian 的积分 $L_2$ 范数；旋转不变 |
+| E04 | Self-curvature energy | $E_{\mathrm{diag}}=\sum_iM_{ii}=\operatorname{tr}(M)$ | 轴自身曲率总量；随旋转可变 |
+| E05 | Mixed-curvature energy | $E_{\mathrm{off}}=2\sum_{i<j}M_{ij}$ | 混合二阶作用总量；随旋转可变 |
+| E06 | Self fraction | $r_{\mathrm{diag}}=E_{\mathrm{diag}}/E$ | 自曲率占比，**不能直接断言越大越好** |
+| E07 | Mixed fraction | $r_{\mathrm{off}}=E_{\mathrm{off}}/E$ | 混合曲率占比，**不能直接断言越小越真** |
+| E08 | Maximum energy | $\max_{ij}M_{ij}$ | 最强二阶作用 |
+| E09 | Median / quantile | $\mathrm{median}(v)$、$Q_q(v)$ | 典型与尾部作用量 |
+| E10 | Frobenius norm of M | $\|M\|_F=(\sum_{ij}M_{ij}^2)^{1/2}$ | 能量矩阵自身的 $L_2$，**不是** $\mathbb E\|H\|_F^2$；可随旋转变化 |
+
+分块总量：
+
+$
+\begin{aligned}
+E_{UU}&=\sum_{a,b}M^{UU}_{ab},&
+E_{UX}&=\sum_{a,j}M^{UX}_{aj},&
+E_{XX}&=\sum_{i,j}M^{XX}_{ij},\\
+E_{\mathrm{all}}&=E_{UU}+2E_{UX}+E_{XX}.
+\end{aligned}
+\tag{24}
+$
+
+**只对 $U$ 做正交旋转并固定 $X$ 与输入分布时，$E_{UU}$、$E_{UX}$、$E_{XX}$ 分别恒定。** 因此只用区块总能量或三者的比例不能选出 $R$。可以变化的是 UU 对角/非对角拆分，以及 UX 每行和每个元素的分布。
+
+## 13. 第二类：稀疏性、集中度、有效作用项数（S01–S19）
+
+以下使用 §11.2 的 $v$、$p$ 与从大到小排序。无额外说明时，**越小代表越集中**适用于 entropy/effective number/tail，**越大代表越集中**适用于 HHI/Gini/Hoyer/top-$k$。
+
+### 13.1 信息论与不均匀程度
+
+| ID | 指标 | 公式 | 含义 / 优化方向 |
+|---|---|---|---|
+| S01 | Shannon entropy | $H_1=-\sum_ep_e\log p_e$ | 小：集中于较少作用项 |
+| S02 | Shannon effective number | $N_1=\exp(H_1)$ | 小：有效作用项数少 |
+| S03 | HHI / Simpson concentration | $\mathrm{HHI}=\sum_ep_e^2$ | 大：少数大值主导 |
+| S04 | Inverse participation ratio | $N_2=1/\sum_ep_e^2$ | 小：有效主导项数少 |
+| S05 | Rényi entropy | $H_\alpha=\frac{\log\sum_ep_e^\alpha}{1-\alpha}$，$\alpha>0,\alpha\ne1$ | 不同 $\alpha$ 调整对小项的关注 |
+| S06 | Rényi effective number | $N_\alpha=(\sum_ep_e^\alpha)^{1/(1-\alpha)}$ | 有效项数；包含 $N_1$ 的连续极限 |
+| S07 | Normalized Shannon entropy | $H_1/\log n$，$n>1$ | 归一化均匀度，取值 $[0,1]$ |
+| S08 | Gini coefficient | $\frac{\sum_{a,b}|v_a-v_b|}{2n\sum_ev_e}$ | 大：能量分布不均匀 |
+| S09 | Hoyer sparsity | $\frac{\sqrt n-\|v\|_1/\|v\|_2}{\sqrt n-1}$，$n>1$ | 大：更稀疏；标准来源 [R13] |
+
+如果能量恰好平均分配到 $m$ 个非零项，其他项为零，则 $N_1=N_2=m$；但在一般不均匀分布下两个“有效数量”不同。所有指标只说明能量集中性，不自动说明正确的生成参数表示。
+
+### 13.2 头部/尾部与可微近似
+
+| ID | 指标 | 公式 | 含义 / 优化方向 |
+|---|---|---|---|
+| S10 | Top-$k$ mass | $\mathrm{Top}_k=\sum_{e\le k}v_{(e)}/S$ | 大：前 $k$ 项覆盖更多能量 |
+| S11 | Tail-$k$ mass | $\mathrm{Tail}_k=\sum_{e>k}v_{(e)}/S$ | 小：能量集中在前 $k$ 项 |
+| S12 | Absolute tail sum | $\sum_{e>k}v_{(e)}$ | 小：残余原始曲率能量更小 |
+| S13 | Tail-$L_2$ on M | $(\sum_{e>k}v_{(e)}^2)^{1/2}$ | 小：**平方的是已积分的 $M_{ij}$** |
+| S14 | Concave power penalty | $\sum_e v_e^\alpha$，$0<\alpha<1$ | 固定 $S$ 时，小：鼓励集中 |
+| S15 | Log-sum penalty | $\sum_e\log(v_e+\epsilon)$，$\epsilon>0$ | 固定 $S$、固定 $n$ 时，小：鼓励集中 |
+| S16 | Absolute threshold support | $\sum_e{\bf1}(v_e>\delta)$ | 小：超过绝对阈值的项少 |
+| S17 | Relative threshold support | $\sum_e{\bf1}(p_e>\delta_p)$ | 小：超过相对份额阈值的项少 |
+| S18 | Coverage count | $K_c=\min\{k:\sum_{e\le k}p_{(e)}\ge c\}$ | 小：较少项可覆盖 $c$ 比例 |
+| S19 | $L_2/L_1$ concentration | $\|v\|_2/\|v\|_1$ | 大：更集中；与 HHI 的平方根一致 |
+
+**S11 vs S13：** S11/S12 累积的是各项 $M_{ij}=\mathbb E[H_{ij}^2]$，而 S13 中有 $(M_{ij})^2$，不能把 S13 写作 $\mathbb E[H_{ij}^4]$：一般 $(\mathbb E[H_{ij}^2])^2\ne\mathbb E[H_{ij}^4]$。
+
+任何带有 $k,\delta,\delta_p,c,\alpha,\epsilon$ 的指标都要先记录超参数，不可观察 oracle $R$ 之后再反向挑选对该模型最有利的值。
+
+## 14. 第三类：逐轴、变量对、分组与交互结构（G01–G18）
+
+以 $B=M^{UX}\in\mathbb R_+^{k\times p}$ 为例，定义：
+
+$
+r_i=\sum_{a=1}^{p}B_{ia},\quad c_a=\sum_{i=1}^{k}B_{ia},\quad
+S_B=\sum_ir_i=\sum_ac_a.
+\tag{25}
+$
+
+| ID | 指标 | 公式 / 操作 | 解释 |
+|---|---|---|---|
+| G01 | Axis self-curvature | $a_i=M^{UU}_{ii}$ | 潜变量轴自身非线性 |
+| G02 | Axis UU energy | $\sum_jM^{UU}_{ij}$ | 该轴与所有参数的二阶作用（含自己） |
+| G03 | Axis UX energy | $r_i$ | 该轴与全部刺激的二阶作用 |
+| G04 | Stimulus UX energy | $c_a$ | 一个刺激属性对应的总体 UX 作用 |
+| G05 | UX axis share | $r_i/S_B$ | UX 能量如何分配给各潜变量轴 |
+| G06 | UX feature share | $c_a/S_B$ | UX 能量如何分配给各刺激变量 |
+| G07 | UX row entropy | $-\sum_a(B_{ia}/r_i)\log(B_{ia}/r_i)$ | 每个参数轴的刺激作用是否分散 |
+| G08 | UX row effective number | $\exp(\mathrm{RowEntropy}_i)$ | 每个参数轴有效作用于多少刺激维度 |
+| G09 | UX row tail-$k$ | 对每行 $B_{i:}$ 算 S11 | 一条轴是否只主要作用于少数刺激维度 |
+| G10 | UX row Hoyer | 对 $B_{i:}$ 算 S09 | 逐轴的作用稀疏性 |
+| G11 | UX column entropy / Hoyer | 对每列 $B_{:a}$ 算 S01/S09 | 每个刺激是否仅受少数轴影响 |
+| G12 | Row-total concentration | 对 $(r_1,\ldots,r_k)$ 算 S01/S03/S09 | 所有 UX 能量是否集中在少数潜变量轴 |
+| G13 | Active-axis count | $\sum_i{\bf1}(r_i>\delta)$ | 有明显刺激交互的轴数 |
+| G14 | Predefined group energy | $B_{ig}=\sum_{a\in\mathcal G_g}B_{ia}$ | 参数轴 × 刺激属性组的曲率能量 |
+| G15 | Group-block sparsity | 对 $\mathrm{vec}([B_{ig}])$ 算 S 类指标 | 是否只有少量轴–刺激组发挥作用 |
+| G16 | Row-pattern cosine | $\cos(B_{i:},B_{j:})$ | 两个潜变量轴的刺激作用模式是否相似 |
+| G17 | Row-pattern distinctness | $\frac{2}{k(k-1)}\sum_{i<j}(1-\cos(B_{i:},B_{j:}))$ | 轴分工的区分度，**未必越大越好** |
+| G18 | Conditional-group loss | $M^{(s)}_{ij}=\mathbb E[H_{ij}^2\mid S=s]$，再算 $L(M^{(s)})$ | 将同一简单性规则应用于多个试次类别 |
+
+**遇到 $r_i=0$：** 保存“inactive axis”标记；该轴的归一化行熵、Hoyer、cosine 不能按普通活跃行解释。聚合 row sparsity 时需事先规定活跃轴等权、总能量加权，或把无效轴单独作为一个目标。
+
+若比较不同试次类型，可预先选择公共指标函数 $\ell$ 与非负权重 $\omega_s$：
+
+$
+\boxed{L_{\mathrm{group}}(R)=\sum_s\omega_s\,\ell(M^{(s)}(R)).}
+\tag{26}
+$
+
+因为 $\ell$ 通常非线性，一般有 $\sum_s\omega_s\ell(M^{(s)})\ne \ell(\sum_s\omega_sM^{(s)})$。这对应**对所有试次类别使用相同的简单性原则，再联合约束旋转**，而不是为每类试次设计不同规则。组可重叠时须注意，简单按 $P(S=s)$ 加权并不自动重构整体分布。
+
+对于 CR4/CR5，可按收益、损失、概率属性（也可细分选项 A/B）事先确定 stimulus groups；CR3/CR5 固定题库还可以用 gain-only、loss-only、gamma-neutral 等条件子集。
+
+## 15. 第四类：奇异值、低秩与有效维数（R01–R08）
+
+对任意选定的矩阵子块 $B$（例如 $M^{UU}$ 或矩形 $M^{UX}$）做 SVD，令 $\sigma_1\ge\cdots\ge\sigma_r\ge0$，$s_j=\sigma_j/\sum_{\ell}\sigma_\ell$：
+
+| ID | 指标 | 公式 | 解释 / 注意 |
+|---|---|---|---|
+| R01 | Matrix rank | $\operatorname{rank}(B)$ | 精确秩，受数值噪声影响大 |
+| R02 | Effective rank | $\exp(-\sum_js_j\log s_j)$ | 基于奇异值熵的有效秩 [R14] |
+| R03 | Stable rank | $\|B\|_F^2/\|B\|_2^2=\sum_j\sigma_j^2/\sigma_1^2$ | 奇异模式集中程度 |
+| R04 | Nuclear norm | $\|B\|_*=\sum_j\sigma_j$ | 常用于矩阵低秩正则化，依赖尺度 |
+| R05 | Top singular share | $\sigma_1/\sum_j\sigma_j$ | 最大奇异方向的相对份额 |
+| R06 | Top-$k$ spectral energy | $\sum_{j\le k}\sigma_j^2/\sum_j\sigma_j^2$ | 前 $k$ 个模式解释的 Frobenius 能量 |
+| R07 | Best rank-$k$ tail | $(\sum_{j>k}\sigma_j^2)^{1/2}$ | 最佳秩-$k$ 近似的 Frobenius 残差 |
+| R08 | Thresholded rank | $\#\{j:\sigma_j/\sigma_1>\delta_\sigma\}$ | 依赖阈值的近似秩 |
+
+**不要把能量矩阵的低秩理解为生成函数只有这么多个真实参数。** 这个矩阵是在 Hessian **逐元素平方后再取期望**得到的；谱结构只是能量模式的线性代数特征，是否反映真实函数可分性需要单独证明。
+
+## 16. 第五类：直接用于旋转的候选简单性损失（L01–L08）
+
+这些指标是从前四组进一步**设计的研究假设**。不是所有小 loss 都代表简单，也不是每种真生成模型都必须偏好其原始参数轴。
+
+### L01. 自曲率尾部：寻找自身线性轴（强烈推荐）
+
+令 $a_i(R)=M^{UU}_{ii}(R)$，按降序 $a_{(1)}\ge\cdots\ge a_{(k)}$：
+
+$
+\boxed{L_{\mathrm{self},q}(R)=\sum_{i=q+1}^{k}a_{(i)}(R).}
+\tag{27}
+$
+
+意思是：允许最多 $q$ 个轴有自身非线性，希望其它轴的二阶曲率能量为零。
+
+对于 CR4/CR5 的真实三参数 **logit** 函数，$\partial_{\lambda\lambda}f=\partial_{\tau\tau}f=0$，所以在真实物理参数坐标下 $L_{\mathrm{self},1}(I)=0$。但**真轴未必是唯一零损失解**；未经对齐的 NP latent $Z$ 也不自动继承这一性质。
+
+### L02. 自曲率集中度
+
+$
+L_{\mathrm{self,log}}(R)=\sum_i\log(\epsilon+a_i(R)),\qquad
+L_{\mathrm{self,entropy}}(R)=H_1\bigl(a_i(R)/\sum_ja_j(R)\bigr).
+\tag{28}
+$
+
+前者需固定 $\epsilon$，后者需单独记录总自身曲率 $E_{\mathrm{diag}}(R)$，避免对角总和变化被归一化隐藏。
+
+### L03. UU 非对角能量（必须包括负面对照）
+
+$
+L_{UU,\mathrm{off}}(R)=2\sum_{i<j}M^{UU}_{ij}(R).
+\tag{29}
+$
+
+$f(a,b)=ab$ 的 Hessian 纯非对角，但旋转 45° 后 $f=(u_1^2-u_2^2)/2$，Hessian 纯对角，式 (29) 会奖励旋转后的坐标。故**“最小化混合二阶作用”不能作为唯一简单性准则**。
+
+### L04. UX 全局集中度
+
+对 $v(R)=\mathrm{vec}(M^{UX}(R))$ 使用 S01/S03/S09/S11/S14/S15 等，特别是：
+
+$
+L_{UX,\mathrm{tail},q}(R)=\frac{\sum_{e>q}v_{(e)}(R)}{\sum_ev_e(R)}.
+\tag{30}
+$
+
+由于 $E_{UX}$ 在正交旋转下不变，而 UX 各元素的能量分布可变，此项确实可以区分旋转；但是否喜欢真轴必须依赖 oracle landscape 检验。
+
+### L05. UX 逐轴稀疏性
+
+$
+L_{UX,\mathrm{rows}}(R)=\sum_{i:r_i(R)>0}\omega_i\,\mathrm{Tail}_{q_i}(M^{UX}_{i:}(R)).
+\tag{31}
+$
+
+可换 row entropy / Hoyer（Hoyer 越大越稀疏；作为 loss 可取 $1-\mathrm{Hoyer}$），并需明确 inactive row 处理规则及 $\omega_i$。
+
+### L06. 刺激组聚合稀疏性
+
+将 X 属性组 $\mathcal G_g$ 固定：
+
+$
+B_{ig}(R)=\sum_{a\in\mathcal G_g}M^{UX}_{ia}(R),\qquad
+L_{\mathrm{block}}(R)=\mathrm{Tail}_q(\mathrm{vec}(B(R))).
+\tag{32}
+$
+
+使模型在“参数 × 刺激类别”层面只有少量关键作用，而不是强制每个单一原始刺激坐标都稀疏。
+
+### L07. 多试次组共同约束
+
+$
+L_{\mathrm{multi}}(R)=\sum_s\omega_s\ell(M^{(s)}(R)).
+\tag{33}
+$
+
+同一 $\ell$ 对各组完全相同。各组权重、样本覆盖、重叠规则及等权还是概率加权都必须明确。
+
+### L08. 多目标 / Pareto
+
+定义 $\mathbf L(R)=(L_{\mathrm{self}},L_{UX,\mathrm{rows}},L_{UU,\mathrm{off}},L_{\mathrm{block}},\ldots)$，先独立比较这些分量的解析 oracle landscape、轴识别性和假极值，再考虑基于固定规则的加权/字典序/Pareto。不要只因某个 CR4 旋转角成功就反向调节指标权重。
+
+## 17. 旋转不变量与一个关键的数学限制
+
+在固定物理函数、固定分布和固定 X 的前提下，$U=RZ$、$R^\top R=I$：
+
+$
+H_{UU}^{(R)}=RH_{ZZ}R^\top,\qquad
+H_{UX}^{(R)}=RH_{ZX},\qquad H_{XX}^{(R)}=H_{XX}.
+\tag{34}
+$
+
+| 汇总量 | 随 R 变化？ | 可单独搜索 R？ |
+|---|---|---|
+| $E_{UU},E_{UX},E_{XX}$ | **不变** | 否 |
+| 这三个区块总量之间的比例 | **不变** | 否 |
+| $E^{UU}_{\mathrm{diag}}$ 与 $E^{UU}_{\mathrm{off}}$ | 一般变化，但和固定 | 可作为候选 |
+| $M^{UX}$ 的 Shannon、Hoyer、tail | 一般变化 | 可作为候选 |
+| UX 行能量 $r_i$ 与行 sparsity | 一般变化 | 可作为候选 |
+| UX **列能量** $c_a=\sum_iM^{UX}_{ia}$ | **不变** | 否 |
+| $M^{XX}$ 全矩阵及其所有指标 | **不变** | 否 |
+| $M^{UX}$ 的 effective rank | 不保证不变；也不保证偏好真轴 | 仅候选 |
+
+### 17.1 仅有 M 不能准确推导 M(R)
+
+不可以直接用 $RMR^\top$ 代替旋转后的平均平方 Hessian，因为旋转先对 Hessian 元素进行线性组合，**随后平方将产生交叉乘积**。
+
+对 UU，必须知道四阶下标（但只是 Hessian 的二阶矩）张量：
+
+$
+C^{UU}_{abcd}=\mathbb E[H^{UU}_{ab}(W)H^{UU}_{cd}(W)],
+$
+
+$
+\boxed{
+M^{UU}_{ij}(R)=\sum_{a,b,c,d}R_{ia}R_{jb}R_{ic}R_{jd}\,C^{UU}_{abcd}.
+}
+\tag{35}
+$
+
+对 UX 的每个固定刺激坐标 $\ell$：
+
+$
+C^{UX,\ell}_{ab}=\mathbb E[H^{UX}_{a\ell}(W)H^{UX}_{b\ell}(W)],
+$
+
+$
+\boxed{
+M^{UX}_{i\ell}(R)=\sum_{a,b}R_{ia}R_{ib}\,C^{UX,\ell}_{ab}.
+}
+\tag{36}
+$
+
+原始 $M$ 只有 $\mathbb E[H_{ab}^2]$，缺失 $a,b$ 与 $c,d$ 不同的交叉二阶矩。要快速、精确比较多个旋转，应保留每个评估点的 Hessian、足够完整的 $C$ 张量，或在每次旋转后重新估计。若 Hessian 仅从 WY 估计，$C$ 本身也有估计误差。
+
+## 18. 优先指标清单与未来输出协议
+
+| 输入矩阵 / 子向量 | 第一批重点指标 | 首要检验 |
+|---|---|---|
+| UU 对角 | E04、S02、S09、S11、L01 | 恢复线性轴，是否有其它零 loss 旋转 |
+| UU 非对角上三角 | E05、S02、S11、L03 | 45° 双线性反例是否失败 |
+| UX 全矩阵 | E_UX、S02、S03、S09、S11、L04 | 全局作用稀疏性 |
+| UX 各行 | G03、G07–G10、G12、L05 | 每轴分工是否明确 |
+| UX 属性组 | G14、G15、L06 | 结构在收益/损失/概率组是否集中 |
+| 条件试次组 | G18、L07 | 不同 stimulus subsets 能否联合约束 |
+| UX 谱 | R02、R03、R06 | 补充低维模式诊断，不作为主要 loss |
+| 全矩阵 | E01、E03 | 旋转不变性 sanity check |
+
+**推荐输出而非新代码要求：** 保存每个模型、Y 类型、Hessian estimator 和 R 对应的 (i) 未截断 $M^{UU},M^{UX},M^{XX}$；(ii) RMS $D_{ij}=\sqrt{M_{ij}}$；(iii) 每个指标的值、计数约定、超参数、minimize/maximize 方向、valid/all-zero 标志；(iv) $P_W$ / 坐标版本 / subject split / seed；(v) oracle–blind 的事后比较。若直接二次泛函估计出现负的原始 $\widehat M$（估计误差导致），应单独保留原始估计，不可静默 clip 后假装是严格非负量。
+
+**推荐实验顺序：** 先固定真实解析函数与积分点，对所有候选 loss 做一维 Givens 和一般 $k$ 维正交旋转 landscape；用 CR4/CR5 的物理真参数坐标（允许置换和符号等价）检验 oracle 目标，再以只有 $(W,Y)$ 的方法估计 $\widehat M$，比较估计矩阵与旋转损失是否仍保真。别把“某指标描述能量分布很漂亮”误认为“它必然恢复真实参数”。
+
+
 ---
 
 # References / 参考文献
@@ -513,6 +845,8 @@ Lamboni (2024) [R11] 研究由多个随机扰动的 **模型函数值查询** �
 - **[R10] Sudret, B., & Mai, C. V. (2015).** Computing derivative-based global sensitivity measures using polynomial chaos expansions. *Reliability Engineering & System Safety, 134*, 241–250. [arXiv](https://arxiv.org/abs/1405.5740). **PCE + 导数敏感性指标**。
 - **[R11] Lamboni, M. (2024).** Optimal estimators of cross-partial derivatives and surrogates of functions. *Stats, 7*(3), 697–718. [DOI](https://doi.org/10.3390/stats7030042). **可查询函数的随机扰动导数代理**；不能直接当作固定噪声 WY 的估计器。
 - **[R12] Friedman, J. H. (1991).** Multivariate adaptive regression splines. *The Annals of Statistics, 19*(1), 1–67（含讨论见当期后续页）. [DOI](https://doi.org/10.1214/aos/1176347963). **稀疏自适应交互样条**。
+- **[R13] Hoyer, P. O. (2004).** Non-negative matrix factorization with sparseness constraints. *Journal of Machine Learning Research, 5*, 1457–1469. [JMLR](https://www.jmlr.org/papers/v5/hoyer04a.html). **Hoyer 基于 L1/L2 的稀疏性指标**。
+- **[R14] Roy, O., & Vetterli, M. (2007).** The effective rank: A measure of effective dimensionality. *15th European Signal Processing Conference (EUSIPCO)*. [Archive](https://zenodo.org/records/40328). **基于奇异值熵的有效秩**。
 
 **文献到任务的映射：** 若问“这种量是否有数学先例”，看 [R1–R3]；若问“仅有 noisy WY 怎么估计”，看 [R5–R9] 并研究 [R1] 的直接二次泛函；若问“交互意义和可解释性”，看 [R2,R9,R10]；若问“需要额外 f 查询的导数方法”，看 [R11]。
 
