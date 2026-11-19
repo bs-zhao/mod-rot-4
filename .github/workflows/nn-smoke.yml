@@ -1,0 +1,22 @@
+name: NN S3-S7 smoke
+
+on:
+  push:
+    paths:
+      - 'nn/**'
+      - 'requirements-nn.txt'
+      - '.github/workflows/nn-smoke.yml'
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+      - run: python -m pip install numpy scipy scikit-learn matplotlib
+      - run: python -m unittest discover -s nn/tests -v
