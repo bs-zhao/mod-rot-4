@@ -163,8 +163,8 @@ def _fit_encoder_preprocessing(data:DiscreteData,train_indices:Tensor):
     ).numpy()
     mask=data.trial_mask[ids].numpy()
     mean,std=masked_mean_std(obs,mask)
-    mean[:-1]=0.0
-    std[:-1]=1.0
+    mean[..., :-1]=0.0
+    std[..., :-1]=1.0
     return mean,std
 
 
