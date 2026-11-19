@@ -8,6 +8,7 @@ grids in a separate figures_45deg folder, evaluated on untouched TEST.
 from __future__ import annotations
 
 import csv
+import shutil
 from pathlib import Path
 import sys
 
@@ -83,9 +84,11 @@ def main(args):
     count = count_subsets(n_axes)
     total = expected_rotation_count(n_axes)
     dest = stage_folder(args, "s9_rotation_sweep")
-    if dest.exists() and any(dest.iterdir()):
-        raise FileExistsError(
-            f"S9 output already exists: {dest}. Archive before rerunning.")
+    # S9 is a derived artifact: always replace its own previous outputs.
+    # Clear stale matrices/figures so that summary.json matches this sweep.
+    if dest.exists():
+        shutil.rmtree(dest)
+    dest.mkdir(parents=True, exist_ok=True)
     if args.axes == "all" and n_axes > 12:
         print(f"[S9 WARNING] exhaustive --axes all with L={n_axes} "
               f"will create {total:,} R files and {count:,} two-figure sets.",
