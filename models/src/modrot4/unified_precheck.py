@@ -74,15 +74,15 @@ def run_unified_precheck(model_id, data, *, seed, provenance, data_path):
     theta = np.asarray(data.parameters, dtype=float)
     counts = np.asarray(data.trial_counts, dtype=np.int64)
     x = np.asarray(data.x, dtype=float)
-    y = np.asarray(data.y)
-    p = np.asarray(data.predictive_true, dtype=float)
+    y = np.asarray(data.y).reshape(-1)
+    p = np.asarray(data.predictive_true, dtype=float).reshape(-1)
     names = get_parameter_names(model_id)
     if theta.ndim != 2 or len(counts) != len(theta) or len(theta) < 1:
         raise ValueError("Invalid parameter or subject counts")
     n, dim = theta.shape
     total = int(counts.sum())
     xdim = {"C1": 3, "C2": 4, "C3": 4, "CR3": 6, "CR4": 6, "CR5": 6}[model_id]
-    if dim != len(names) or x.shape != (total, xdim) or y.shape != (total, 1) or p.shape != (total, 1):
+    if dim != len(names) or x.shape != (total, xdim) or y.shape != (total,) or p.shape != (total,):
         raise ValueError("Invalid T/X/Y/P dimensions")
     if np.any(counts < 1) or np.asarray(data.subject_index).shape != (total,) or np.asarray(data.trial_index).shape != (total,):
         raise ValueError("Invalid subject/trial index geometry")
@@ -120,7 +120,7 @@ def run_unified_precheck(model_id, data, *, seed, provenance, data_path):
     for sid in formula_subjects:
         lo, hi = offsets[sid:sid+2]
         max_error = max(max_error, float(np.max(np.abs(
-            probabilities(model_id, x[lo:hi], theta[sid]) - p[lo:hi, 0]))))
+            probabilities(model_id, x[lo:hi], theta[sid]) - p[lo:hi]))))
     generator = dict(passed=bool(max_error <= PROB_TOL),
                      subjects_checked=len(formula_subjects),
                      max_abs_error=max_error, tolerance=PROB_TOL)
@@ -142,7 +142,7 @@ def run_unified_precheck(model_id, data, *, seed, provenance, data_path):
     fit_rng = np.random.default_rng(seed+202)
     for pos, sid in enumerate(selected):
         lo, hi = offsets[sid:sid+2]
-        xx, yy, pp = x[lo:hi], y[lo:hi,0], p[lo:hi,0]
+        xx, yy, pp = x[lo:hi], y[lo:hi], p[lo:hi]
         estimated[pos] = fit(model_id, xx, yy, fit_rng)
         if not np.isfinite(estimated[pos]).all():
             raise ValueError(f"MLE returned non-finite result for subject {sid}")
