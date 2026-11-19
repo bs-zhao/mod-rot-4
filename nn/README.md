@@ -210,8 +210,9 @@ directory. They show the complete L×L Pearson correlation matrix among
 all rotated Z axes on TEST subjects. This is a different diagnostic from
 the existing d×L T-vs-RZ heatmap.
 
-No existing S8 or S5 artifacts are modified. S9 refuses to overwrite a
-nonempty previous S9 directory.
+No existing S8 or S5 artifacts are modified. S9 and S9_2 replace only their own existing sweep output folders on rerun
+(including stale rotation matrices and figure files); S8, S8_2 and S5 are
+not overwritten by a sweep. This matches the current sweep implementation.
 
 ## S8_2 and S9_2: orthogonal rotations after global per-axis Z-score
 
