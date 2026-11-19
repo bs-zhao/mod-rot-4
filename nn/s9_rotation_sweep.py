@@ -40,10 +40,10 @@ def configure_parser(parser):
              "all TEST subjects are used to calculate Pearson correlations")
 
 
-def _read_oracle(args, z, splits, z_file):
-    path = stage_folder(args, "s8_supervised_rotation") / "rotation.npz"
+def _read_oracle(args, z, splits, z_file, *, oracle_stage="s8_supervised_rotation"):
+    path = stage_folder(args, oracle_stage) / "rotation.npz"
     if not path.is_file():
-        raise FileNotFoundError(f"Run S8 first: {path}")
+        raise FileNotFoundError(f"Run {oracle_stage} first: {path}")
     with np.load(path, allow_pickle=False) as stored:
         required = ("R_star", "n_latent", "n_theta", "latent_sha256",
                     "dataset_sha256", "checkpoint_sha256",
@@ -70,11 +70,32 @@ def _read_oracle(args, z, splits, z_file):
     return r, tdim, path
 
 
-def main(args):
+def main(args, *, variant="original"):
+    if variant not in ("original","global_zscore"):
+        raise ValueError(f"Unknown S9 variant: {variant}")
     if args.max_test_scatter_points < 1:
         raise ValueError("--max-test-scatter-points must be positive")
     z, t, splits, z_file = load_frozen(args)
-    r_star, tdim, oracle_file = _read_oracle(args, z, splits, z_file)
+    original_z = z
+    oracle_stage = ("s8_2_supervised_rotation" if variant=="global_zscore"
+                    else "s8_supervised_rotation")
+    r_star, tdim, oracle_file = _read_oracle(
+        args, z, splits, z_file, oracle_stage=oracle_stage)
+    if variant == "global_zscore":
+        with np.load(oracle_file,allow_pickle=False) as saved:
+            if str(saved["z_standardization_scope"]) != "all_subjects":
+                raise ValueError("S8_2 oracle does not use global subject standardization")
+            mu = np.asarray(saved["global_z_mean"],dtype=np.float64)
+            sd = np.asarray(saved["global_z_std"],dtype=np.float64)
+        if mu.shape!=(z.shape[1],) or sd.shape!=mu.shape or np.any(sd<=1e-12):
+            raise ValueError("S8_2 stored global Z normalizer is invalid")
+        if not (np.allclose(original_z.mean(0),mu,rtol=1e-9,atol=1e-10)
+                and np.allclose(original_z.std(0,ddof=0),sd,rtol=1e-9,atol=1e-10)):
+            raise ValueError("S8_2 saved global Z normalizer differs from S5 Z")
+        z = (original_z - mu)/sd
+    else:
+        mu = np.zeros(z.shape[1],dtype=np.float64)
+        sd = np.ones(z.shape[1],dtype=np.float64)
     if t.shape[1] != tdim:
         raise ValueError("True T dimension does not match S8")
     n_latent = z.shape[1]
@@ -83,7 +104,8 @@ def main(args):
         raise ValueError("At least two selected axes are needed for S9")
     count = count_subsets(n_axes)
     total = expected_rotation_count(n_axes)
-    dest = stage_folder(args, "s9_rotation_sweep")
+    dest = stage_folder(args, "s9_2_rotation_sweep" if variant=="global_zscore"
+                        else "s9_rotation_sweep")
     # S9 is a derived artifact: always replace its own previous outputs.
     # Clear stale matrices/figures so that summary.json matches this sweep.
     if dest.exists():
@@ -93,7 +115,7 @@ def main(args):
         print(f"[S9 WARNING] exhaustive --axes all with L={n_axes} "
               f"will create {total:,} R files and {count:,} two-figure sets.",
               flush=True)
-    print(f"[S9] model={args.model} L={n_latent} T_dim={tdim} "
+    print(f"[{ 'S9_2' if variant=='global_zscore' else 'S9'}] model={args.model} L={n_latent} T_dim={tdim} "
           f"axis_scope={args.axes} subsets={count} "
           f"angles={list(ANGLES)} rotations={total} figures_45deg={count*3}",
           flush=True)
@@ -104,6 +126,8 @@ def main(args):
     folder.mkdir(parents=True, exist_ok=False)
     figure_folder.mkdir(parents=True, exist_ok=False)
     variance_reports = save_z_variance_diagnostics(z, splits, variance_folder)
+    if variant=="global_zscore":
+        save_z_variance_diagnostics(original_z, splits, dest/"original_z_variance_diagnostics")
     print("[S9] original Z variance: TRAIN max/min ratio="
           f"{variance_reports['train']['max_min_variance_ratio']}; "
           f"Holm-significant pairs="
@@ -140,7 +164,12 @@ def main(args):
                 subset_size=np.array(k, dtype=np.int64),
                 angle_degrees=np.array(angle, dtype=np.int64),
                 rotation_policy=np.array("ordered_adjacent_Givens_sweep_v1"),
-                coordinate_convention=np.array("R = G @ R_star; rows RZ = Z @ R.T"),
+                coordinate_convention=np.array(
+                    "R=G@R_star; row U=((Z-mu_all)/sd_all)@R.T"
+                    if variant=="global_zscore" else "R = G @ R_star; rows RZ = Z @ R.T"),
+                global_z_mean=mu, global_z_std=sd,
+                z_coordinate_space=np.array(
+                    "globally_z_scored_Z" if variant=="global_zscore" else "original_Z"),
                 source_s8_rotation_sha256=np.array(source_hashes["s8_rotation_sha256"]),
                 source_latent_sha256=np.array(source_hashes["latent_sha256"]))
             records.append(dict(
@@ -175,6 +204,11 @@ def main(args):
     save_json(dict(
         model=args.model,
         condition=condition(args),
+        variant="s9_2_global_zscore" if variant=="global_zscore" else "s9_original",
+        source_oracle_stage=oracle_stage,
+        z_coordinate_space="globally_z_scored_Z" if variant=="global_zscore" else "original_Z",
+        global_z_mean=mu.tolist(),global_z_std=sd.tolist(),
+        standardization_scope="all_subjects_including_TEST_transductive" if variant=="global_zscore" else "none",
         latent_dim=n_latent,
         theta_dim=tdim,
         axis_scope=args.axes,
