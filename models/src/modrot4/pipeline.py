@@ -1,6 +1,5 @@
-"""Common S1/S2 paths and checksum; no per-model pipeline dispatch."""
+"""File locations for the two common model stages."""
 from __future__ import annotations
-
 import hashlib
 from pathlib import Path
 
@@ -8,37 +7,34 @@ ROOT = Path(__file__).resolve().parents[3]
 MODELS = ("C1", "C2", "C3", "CR3", "CR4", "CR5")
 
 
-def sha256(path: Path) -> str:
-    h = hashlib.sha256()
+def sha256(path):
+    hasher = hashlib.sha256()
     with Path(path).open("rb") as stream:
-        for block in iter(lambda: stream.read(1024*1024), b""):
-            h.update(block)
-    return h.hexdigest()
+        for block in iter(lambda: stream.read(1024 * 1024), b""):
+            hasher.update(block)
+    return hasher.hexdigest()
 
 
-def out_dir(model: str) -> Path:
-    if model not in MODELS and model != "CR2":
+def out_dir(model):
+    if model not in MODELS:
         raise ValueError(f"Unknown model: {model}")
     return ROOT / "outputs" / "models" / "generate" / model
 
 
-def dataset_path(model: str) -> Path:
+def dataset_path(model):
     return out_dir(model) / "s1_generate__dataset.npz"
 
 
-def precheck_path(model: str) -> Path:
+def precheck_path(model):
     if model not in MODELS:
         raise ValueError(f"Unknown model: {model}")
-    return ROOT / "outputs" / "models" / "precheck" / model / "s2_precheck__report.json"
+    return (ROOT / "outputs" / "models" / "precheck" / model /
+            "s2_precheck__report.json")
 
 
-def _cr2_bank() -> Path:
-    return out_dir("CR2")/"s0_design_recovery"/"CR2_4P_seed20261023_fixed500.npz"
+def _cr3_bank():
+    return out_dir("CR3") / "s0_design" / "CR3_4P_fixed500.npz"
 
 
-def _cr3_bank() -> Path:
-    return out_dir("CR3")/"s0_design"/"CR3_4P_fixed500.npz"
-
-
-def _cr5_bank() -> Path:
-    return out_dir("CR5")/"s0_design"/"CR5_3P_cr3bank500.npz"
+def _cr5_bank():
+    return out_dir("CR5") / "s0_design" / "CR5_3P_cr3bank500.npz"
