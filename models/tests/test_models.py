@@ -151,6 +151,7 @@ class TestModels(unittest.TestCase):
         from unittest.mock import patch
         from scipy.special import expit
         from modrot4.unified_precheck import run_unified_precheck
+        from modrot4.model_specs import get_spec
         from modlearn_rot.generators.dataset import GeneratedDataset, save_dataset
         from s0_cr2_design_recovery import sample_prior, logits as cpt_logits
         for model_id in ("CR3", "CR5"):
@@ -177,7 +178,7 @@ class TestModels(unittest.TestCase):
                 output_path = root/"s2_precheck__report.json"
                 with patch("modrot4.unified_precheck.precheck_path", return_value=output_path):
                     report = run_unified_precheck(
-                        model_id, data, seed=20261006,
+                        get_spec(model_id), data, seed=20261006,
                         provenance={"unit_test": True}, data_path=input_path)
                 self.assertTrue(report["checks"]["generator_fidelity"]["passed"])
                 self.assertEqual(report["checks"]["parameter_recovery"]["sample_size"],n)
@@ -185,6 +186,57 @@ class TestModels(unittest.TestCase):
                 recovered = np.load(root/"s2_precheck__oracle_subjects.npz")
                 self.assertEqual(recovered["theta_mle"].shape, theta.shape)
                 self.assertTrue(np.isfinite(recovered["theta_mle"]).all())
+
+    def test_model_spec_generation_retains_original_cr4_random_sequences(self):
+        from types import SimpleNamespace
+        from scipy.special import expit
+        from modrot4.model_specs import get_spec
+        from s0_s1_cr4 import logits as three_logits
+        args=SimpleNamespace(subjects=4,data_seed=20261028,design_seed=20261023)
+        generated=get_spec("CR4").generate(args)
+        xx=sample_subject_x(4,seed=20261028+2004)
+        theta=sample_theta(4,np.random.default_rng(20261028+4))
+        prob=expit(three_logits(xx,theta[:,None,:]))
+        choice=(np.random.default_rng(20261028+1004).random(prob.shape)<prob).astype(np.int64)
+        np.testing.assert_array_equal(generated.parameters,theta)
+        np.testing.assert_array_equal(generated.x,xx.reshape(-1,6))
+        np.testing.assert_array_equal(generated.predictive_true,prob.reshape(-1,1))
+        np.testing.assert_array_equal(generated.y,choice.reshape(-1,1))
+
+    def test_model_spec_generation_retains_cr3_cr5_sampling(self):
+        from types import SimpleNamespace
+        from unittest.mock import patch
+        from scipy.special import expit
+        from modrot4.model_specs import get_spec, ModelSpec
+        from s0_cr2_design_recovery import sample_prior, logits as cr3_logits
+        args=SimpleNamespace(subjects=3,data_seed=20261028,design_seed=20261023)
+        rng=np.random.default_rng(40)
+        bank=np.column_stack((
+            rng.uniform(5,200,500),rng.uniform(5,200,500),
+            rng.uniform(.05,.95,500),rng.uniform(5,200,500),
+            rng.uniform(5,200,500),rng.uniform(.05,.95,500)))
+        with tempfile.TemporaryDirectory() as tmp:
+            bank_file=Path(tmp)/"synthetic_reference.npz"
+            np.savez_compressed(bank_file,X=bank)
+            for model_name in ("CR3","CR5"):
+                with self.subTest(model=model_name):
+                    patch_target=("_cr3_bank" if model_name=="CR3" else "_cr5_bank")
+                    with patch.object(ModelSpec,"_prepare_stimuli",return_value=None), \\
+                         patch("modrot4.model_specs."+patch_target,return_value=bank_file):
+                        dataset=get_spec(model_name).generate(args)
+                    original_theta=sample_prior(3,4,np.random.default_rng(20261028+4))
+                    expected_t=(original_theta if model_name=="CR3"
+                                else original_theta[:,1:])
+                    np.testing.assert_array_equal(dataset.parameters,expected_t)
+                    np.testing.assert_array_equal(dataset.x,
+                                                  np.tile(bank,(3,1)))
+                    full_t=original_theta if model_name=="CR3" else theta_as_cr3(expected_t)
+                    expected_p=expit(cr3_logits(bank[None],full_t[:,None,:]))
+                    np.testing.assert_array_equal(dataset.predictive_true,
+                                                  expected_p.reshape(-1,1))
+                    expected_y=(np.random.default_rng(20261028+1004).random(expected_p.shape)<expected_p)
+                    np.testing.assert_array_equal(dataset.y,
+                                                  expected_y.astype(np.int64).reshape(-1,1))
 
     def test_cli_default_8000(self):
         from modrot4.cli import parse_args
