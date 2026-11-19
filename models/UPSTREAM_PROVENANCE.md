@@ -52,3 +52,20 @@ and record the X RNG stream. Legacy CR4 datasets are explicitly rejected at
 both S1 reuse and S2 audit; they are never overwritten or silently re-labeled.
 Archive original CR4 generate and precheck directories, then run S1/S2 again
 to compare results under the new X mechanism.
+
+## 2026-11-19 — Cross-model output independence
+
+Standard S1/S2 no longer require running one model before another. CR5 used
+to require `outputs/models/generate/CR3/s0_design/CR3_4P_fixed500.npz`;
+CR3 used to require a separately generated CR2 bank. Both requirements are
+removed. `src/modrot4/fixed_bank.py` constructs the **original CR2-4P
+optimized 500-trial design in memory** separately for each model and then
+applies the original CR3 60/60/40/340 no-FOSD conditioning algorithm. The bank
+is saved *only* to the requesting model's `s0_design/`. CR5's local bank
+includes its original 3P parameter labels. On the same seed and numerical
+environment the CR3 and CR5 X matrices should coincide, but each is computed
+and stored independently; neither S1 nor S2 reads or writes the other model's
+output tree. If a bank exists from the previous pipeline, the local bank and
+local checksums may still be used without CR3/CR2 source files. The vendored
+`models/reference/` scripts remain historical and may preserve old paths;
+the public S1/S2 entrypoints use the new standalone adapter.

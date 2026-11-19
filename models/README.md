@@ -18,9 +18,9 @@ exists: individual MLE parameter recovery is part of S2 by default.
 | C1 | 4 | Uniform integer 300–500 | 3 raw features, fresh iid U(-1,1) |
 | C2 | 4 | Uniform integer 300–500 | 4 raw option features, fresh iid U(-1,1) |
 | C3 | 6 | Uniform integer 300–500 | 4 raw option features, fresh iid U(-1,1) |
-| CR3 | 4 (alpha, lambda, gamma, tau) | 500 | Original frozen CR3 500×6 battery, shared across people |
+| CR3 | 4 (alpha, lambda, gamma, tau) | 500 | Locally built 500×6 bank, shared across this model's people; independent of CR2 outputs |
 | CR4 | 3 (lambda, gamma, tau), alpha fixed to 1 | 500 | Fresh 6D X for **every person and every trial**, independent amount U(5,200) and probability U(.05,.95) |
-| CR5 | 3 (lambda, gamma, tau), alpha fixed to 1 | 500 | Exact same frozen 500×6 stimulus battery as CR3 |
+| CR5 | 3 (lambda, gamma, tau), alpha fixed to 1 | 500 | Independently constructed local 500×6 bank, same deterministic recipe and default seed as CR3 |
 
 Original generating formulas and parameter priors remain unchanged. CR4's X
 sampling changed to match C1/C2/C3 **algorithmically**, not just in statistical
@@ -35,6 +35,7 @@ models/s1_generate.py                    same S1 driver for every model
     └── src/modrot4/model_specs.py       T/X/probability/choice generators
         ├── original C1/C2/C3 generator
         └── original CR3/CR4/CR5 math and bank preparation
+    └── src/modrot4/fixed_bank.py         independent per-model CR3/CR5 bank construction
     └── common dataset, manifest and summary writer
 
 models/s2_precheck.py                    same S2 driver for every model
@@ -65,7 +66,8 @@ For **non-X** random variables, CR4 specifically preserves its original
 so the original CR4/CR5 subject parameter pairing is preserved. This is
 intentional model-specific T/Y behavior and does not affect the shared X
 algorithm. CR3/CR5 continue using their original CPT seed policies and
-immutable banks. **Run CR3 Generate before CR5 Generate.**
+immutable **locally generated** banks. **Every model can Generate and
+Precheck independently, including CR3 and CR5. No prior CR2/CR3 run is required.**
 
 ## Unified S2 checks
 
@@ -130,9 +132,8 @@ outputs/
         s1_generate__dataset.npz
         s1_generate__manifest.json
         s1_generate__summary.json         # for fresh generation
-      CR2/s0_design_recovery/              # CR3 upstream optimized bank
-      CR3/s0_design/                       # CR3 immutable bank
-      CR5/s0_design/                       # CR5 immutable bank copy
+      CR3/s0_design/                       # CR3 independently built 500-X bank
+      CR5/s0_design/                       # CR5 independently built 500-X bank
     precheck/
       C1/ C2/ C3/ CR3/ CR4/ CR5/
         s2_precheck__report.json
@@ -155,10 +156,21 @@ Archive the old `outputs/models/generate/CR4/` and
 rejects the old manifest policy; it cannot silently report a new-method pass
 for an old-method dataset. An existing 5,000-person dataset is not silently
 converted into 8,000 persons. Old `outputs/choice/` files are not read.
-Do not replace an immutable CR2/CR3/CR5 bank without preserving provenance and
-regenerating dependent datasets. CR2 bank optimization can differ slightly
-across NumPy/SciPy versions even with fixed seeds, so preserve frozen banks
-when strict binary reproducibility is required.
+Do not replace either model's immutable CR3/CR5 bank without preserving its
+own provenance and regenerating that model's dependent dataset. Neither model
+reads CR2/CR3/CR5 generated outputs owned by another model.
+The original CR2 design optimization is executed **within each model's own
+Generate** when a local bank is absent, retaining all original hyperparameters:
+6,000 candidates, 48 reference parameters, greedy shortlist 96 and 600 swaps.
+The resulting CR3-style 500-row bank has 60 gain-only, 60 gamma-neutral,
+40 loss-only and 340 general items; strict dominance is forbidden.
+The only difference between the CR3 and CR5 bank files is their parameter
+metadata and output folder. With the same design seed, code and numeric
+environment, the X arrays are deterministic and should be identical.
+The first standalone Generate of CR3 *or* CR5 may perform expensive bank
+optimization; subsequent runs can use its own cached bank. No global CR2
+bank needs to be generated. Optimizer floating-point behavior can differ
+across NumPy/SciPy versions; do not assume bitwise match across environments.
 
 ## Verification and source provenance
 
@@ -168,10 +180,28 @@ python -m unittest discover -s models/tests -v
 
 GitHub Actions runs these tests on each push. Included tests cover classic
 model deterministic generation and S1/S2, CR4 legacy original bitwise IID sampling plus v2 single-RNG X equivalence,
-CR3/CR5 original mathematical RNG sampling with a fixed test bank, and
+CR3/CR5 original mathematical RNG sampling with a fixed test bank,
+an end-to-end CR5 Generate + Precheck test with **both CR2 and CR3 output
+directories absent**, independent CR3/CR5 equal-design construction, and
 the common S2 MLE/Fisher reporting. **The workflow has not run the full
 8,000-person datasets or the expensive original CR2 bank optimizer.**
 
 The source baseline from mod-rot-3 is
 [`98979c9ef522`](https://github.com/bs-zhao/mod-rot-3/tree/98979c9ef522caa7d24de7ccc683148b762d92a5/np).
 See `models/UPSTREAM_PROVENANCE.md` for subsequent Mod-Rot-4 changes.
+
+## Run CR5 first (without CR3)
+
+```bat
+cd /d D:\\Projects\\rotation\\mod-rot-4
+git pull
+conda activate py11
+python models/s1_generate.py --model CR5 --subjects 8000
+python models/s2_precheck.py --model CR5
+```
+
+CR5's own bank is stored at
+`outputs/models/generate/CR5/s0_design/CR5_3P_cr3bank500.npz`.
+CR3 and CR2 output folders are **not consulted**. If an existing CR5 bank
+was created by the old workflow, its own stored bank and SHA are still
+validated locally, without requiring the old CR3 source folder.
