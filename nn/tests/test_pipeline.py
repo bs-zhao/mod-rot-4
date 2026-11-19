@@ -85,7 +85,9 @@ class TestNNPipeline(unittest.TestCase):
                 ("s7_regression.py",["--pca-threshold","0","--z-var-threshold","0"],
                  "s7_regression/s12__diagnostics.json"),
                 ("s8_supervised_rotation.py",[],
-                 "s8_supervised_rotation/rotation.npz")]
+                 "s8_supervised_rotation/rotation.npz"),
+                ("s9_rotation_sweep.py",[],
+                 "s9_rotation_sweep/rotation_index.csv")]
             for script,additional,expected in stages:
                 proc=subprocess.run(
                     [sys.executable,str(root/"nn"/script),*base,*additional],
@@ -117,6 +119,16 @@ class TestNNPipeline(unittest.TestCase):
             with np.load(s8/"test_predictions.npz") as predictions:
                 self.assertEqual(predictions["theta_pred"].shape[1],3)
                 self.assertEqual(predictions["u_test"].shape[1],3)
+            s9=zfile.parent.parent/"s9_rotation_sweep"
+            self.assertTrue((s9/"summary.json").exists())
+            self.assertEqual(len(list((s9/"rotations").rglob("*.npz"))),28)
+            self.assertEqual(len(list((s9/"figures_45deg").rglob("*heatmap.png"))),4)
+            self.assertEqual(len(list((s9/"figures_45deg").rglob("*scatter.png"))),4)
+            with np.load(next((s9/"rotations").rglob("*deg_000.npz"))) as example:
+                np.testing.assert_allclose(example["R"],r,atol=1e-9)
+            with np.load(next((s9/"rotations").rglob("*deg_045.npz"))) as example:
+                np.testing.assert_allclose(example["R"] @ example["R"].T,
+                                           np.eye(3),atol=1e-9)
 
 
 if __name__=="__main__":

@@ -1,7 +1,7 @@
 # Neural Process module (Mod-Rot-4)
 
-Six independent scripts reproduce the scientific functionality of
-`mod-rot-3/np` S3–S8 for C1, C2, C3, CR3, CR4 and CR5. They consume
+Seven independent scripts reproduce the scientific functionality of
+`mod-rot-3/np` S3–S9 for C1, C2, C3, CR3, CR4 and CR5. They consume
 **only** `outputs/models/generate/<MODEL>/s1_generate__dataset.npz` and the
 corresponding qualified S2 report from `models/`. No model simulation,
 legacy `outputs/choice` data or second Generate/Precheck exists here.
@@ -31,6 +31,7 @@ python nn/s5_extract_z.py --model CR5 --latent-dim 3 --beta 0.0005 --repeat 1
 python nn/s6_z_diagnostics.py --model CR5 --latent-dim 3 --beta 0.0005 --repeat 1
 python nn/s7_regression.py --model CR5 --latent-dim 3 --beta 0.0005 --repeat 1
 python nn/s8_supervised_rotation.py --model CR5 --latent-dim 3 --beta 0.0005 --repeat 1
+python nn/s9_rotation_sweep.py --model CR5 --latent-dim 3 --beta 0.0005 --repeat 1
 ```
 
 S3 saves the checkpoint, validation/test summaries, history and data/config
@@ -96,6 +97,78 @@ This script requires only S3 checkpoint, S5 Z and S1 T: S6/S7 are **not**
 prerequisites. Archive an existing S8 output folder before regenerating
 it; no silent overwrite is performed.
 
+## S9: exhaustive rotations around the frozen S8 oracle R*
+
+S9 is independent from S6/S7 and requires **S8 `rotation.npz`**, S5 Z
+and the original S1 true parameters. It does not retrain NP or refit R*.
+
+By default, S9 rotates the first **d = T_dim** S8-aligned axes (the
+"parameter axes"), leaving any L-d extra latent coordinates untouched.
+Use `--axes all` to include all L axes instead. Given d selected axes,
+it enumerates every subset of size k=2,3,...,d and applies seven angles:
+**0, 15, 30, 45, 60, 75, 90 degrees**. The number of distinct subsets is
+`2**d - d - 1`; the number of saved R matrices is 7 times that.
+
+Because a k>2-dimensional "rotation by angle θ" is not mathematically
+unique, S9 defines a reproducible **ordered Givens sweep**. For each
+sorted subset `(a1,...,ak)`, rotate adjacent pairs in order
+`(a1,a2)`, `(a2,a3)`, ..., `(a(k-1),ak)`, using angle θ for
+each elementary plane rotation. This is **one deterministic construction**,
+not an exhaustive search over every possible k-dimensional rotation.
+The same rule is applied to all models; k=2 is an ordinary plane rotation.
+
+Every saved matrix is a full L×L orthogonal matrix:
+
+```text
+G(axes, theta) = ordered product of adjacent Givens rotations
+R(axes, theta) = G(axes, theta) @ R_star
+RZ = Z @ R(axes, theta).T
+```
+
+S9 writes **each rotation separately**, grouped by subset size:
+
+```text
+s9_rotation_sweep/
+  rotation_index.csv
+  summary.json
+  rotations/
+    k02/axes_01_02__deg_000.npz
+    k02/axes_01_02__deg_015.npz
+    ...
+    k03/axes_01_02_03__deg_045.npz
+    ...
+  figures_45deg/
+    k02/axes_01_02/
+      rz_vs_t_correlation.csv
+      rz_vs_t_heatmap.png
+      rz_vs_t_scatter.png
+    k03/axes_01_02_03/
+      rz_vs_t_correlation.csv
+      rz_vs_t_heatmap.png
+      rz_vs_t_scatter.png
+    ...
+```
+
+The saved NPZ rotation files include `R`, `R_star`, the incremental
+orthogonal `delta_R`, zero-based and one-based participating axes,
+angle, convention and S8/S5 source hashes.
+
+For **every 45° subset**, the other folder provides a correlation
+heatmap and all-pairs scatter grid across **all L rotated Z coordinates**
+against **all d true parameters**. Pearson correlations use only the
+held-out TEST subjects and every TEST observation. Scatter plots may
+limit visible points (default up to 2000 TEST subjects per panel,
+`--max-test-scatter-points`), without changing the computed correlations.
+
+For T_dim=3: 4 subsets × 7 angles = 28 matrices, 4 heatmaps + 4 scatter
+grids. For T_dim=4: 11 subsets × 7 = 77 matrices, 11 heatmaps +
+11 scatter grids. With `--axes all` the count uses L instead and can be
+very large; for example L=16 requires 458,633 matrices and 65,519
+figure pairs, which can consume substantial time and storage.
+
+No existing S8 or S5 artifacts are modified. S9 refuses to overwrite a
+nonempty previous S9 directory.
+
 ## Outputs
 
 ```text
@@ -128,11 +201,16 @@ outputs/nn/<MODEL>/<condition>_<config-hash>/repeat01/
     s8_supervised_rotation/pred_vs_t_correlation.csv/png
     s8_supervised_rotation/pred_vs_t_scatter.png
     s8_supervised_rotation/summary.json
+    s9_rotation_sweep/rotation_index.csv
+    s9_rotation_sweep/summary.json
+    s9_rotation_sweep/rotations/kXX/axes_...__deg_XXX.npz
+    s9_rotation_sweep/figures_45deg/kXX/axes_.../rz_vs_t_heatmap.png
+    s9_rotation_sweep/figures_45deg/kXX/axes_.../rz_vs_t_scatter.png
 ```
 
 Training conditions include beta/lambda/context/L and a hash of all relevant
 training hyperparameters. `--repeat` identifies independent repetitions.
-Pass identical run selector parameters for S3–S8. Use `--run-id <name>`
+Pass identical run selector parameters for S3–S9. Use `--run-id <name>`
 to replace the default training-condition tag when required.
 
 Both S3 checkpoints and S5 Z files reject in-place overwrites. The user is
