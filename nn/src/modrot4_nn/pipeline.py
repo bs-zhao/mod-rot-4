@@ -9,7 +9,7 @@ import torch
 
 from .training_helpers import training_condition_tag
 
-ROOT = Path(__file__).resolve().parents[4]
+ROOT = Path(__file__).resolve().parents[3]
 
 
 def sha256(path):

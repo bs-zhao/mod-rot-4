@@ -31,10 +31,6 @@ def configure_s7_parser(parser):
                         help='Retain only PCA components with individual TRAIN '
                              'explained_variance_ratio strictly greater than '
                              'this threshold (default: 0.10). S7 only.')
-    parser.add_argument('--z-var-threshold',type=float,default=0.01,
-                        help='Retain original Z dimensions whose TRAIN sample '
-                             'variance (ddof=1) strictly exceeds this absolute '
-                             'threshold (default: 0.01); S7 only.')
 
 
 def select_pcs_above_threshold(explained_variance_ratio, threshold=0.10):
@@ -330,15 +326,13 @@ def regression_report(args):
         pca_threshold=np.asarray(threshold),
         retained_pc_indices_1based=retained+1,
         retained_explained_variance_ratio=explained_retained)
-    s4=stage_folder(args,'s7_regression')
-    s4.mkdir(parents=True,exist_ok=True)
-    (s4/'s4_evaluate__summary.json').write_text(json.dumps(dict(
+    (folder/'s7__linear_summary.json').write_text(json.dumps(dict(
         model=args.model,latent_dim=args.latent_dim,
         latent_is='encoder posterior mean using ALL observed trials',
         parameter_names=names,results=results,
         pca_variance_threshold_ridge=filtered_summary,
         source_checkpoint_sha256=sha256(train_path(args))),indent=2),encoding='utf-8')
-    np.savez_compressed(s4/'s4_evaluate__linear_predictions.npz',test_ids=te,
+    np.savez_compressed(folder/'s7__linear_predictions.npz',test_ids=te,
         theta_true=theta[te],theta_linear_pred=full['theta_linear_pred'])
     diagnostics=dict(model=args.model,condition=condition(args),latent_dim=args.latent_dim,
         source_latent_sha256=sha256(source),source_checkpoint_sha256=sha256(train_path(args)),

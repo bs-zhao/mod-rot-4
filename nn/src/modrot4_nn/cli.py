@@ -27,8 +27,6 @@ def parse_args(description, argv=None, *, configure_parser=None):
     parser.add_argument("--split-seed", type=int, default=31)
     parser.add_argument("--inference-batch", type=int, default=128)
     parser.add_argument("--log-every", type=int, default=10)
-    parser.add_argument("--pc-var-threshold", type=float, default=.05)
-    parser.add_argument("--z-var-threshold", type=float, default=.01)
     if configure_parser is not None:
         configure_parser(parser)
     args = parser.parse_args(argv)

@@ -19,7 +19,8 @@ from sklearn.linear_model import Ridge
 from sklearn.metrics import r2_score
 
 from modrot4_nn.specs import get_model
-from modrot4_nn.pipeline import stage_folder, latent_path, train_path, condition, sha256
+from modrot4_nn.pipeline import stage_folder, latent_path, train_path, dataset_path, condition, sha256
+from modrot4_nn.dataset import load_choice_dataset
 
 RIDGE_GRID = (0.0, .01, .1, 1.0, 10.0, 100.0, 1000.0)
 
@@ -105,7 +106,9 @@ def load_frozen(args):
         if str(saved['context_mode']) != 'all_observed_trials':
             raise RuntimeError('Analysis requires Z encoded using ALL observed trials')
         z = np.asarray(saved['z'], float)
-        theta = np.asarray(saved['theta_true'], float)
+        if str(saved['dataset_sha256']) != sha256(dataset_path(args.model)):
+            raise RuntimeError('S5 Z and S1 dataset are different')
+        theta = np.asarray(load_choice_dataset(dataset_path(args.model)).parameters, float)
         split = {name: np.asarray(saved[name+'_ids'], int) for name in ('train','validation','test')}
     if z.shape[0] != theta.shape[0] or z.shape[1] != args.latent_dim:
         raise ValueError('Z/theta geometry inconsistent with --latent-dim')

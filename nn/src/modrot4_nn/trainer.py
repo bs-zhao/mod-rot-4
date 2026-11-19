@@ -162,7 +162,10 @@ def _fit_encoder_preprocessing(data:DiscreteData,train_indices:Tensor):
         [data.x[ids],data.choice[ids].float().unsqueeze(-1)],dim=-1
     ).numpy()
     mask=data.trial_mask[ids].numpy()
-    return masked_mean_std(obs,mask)
+    mean,std=masked_mean_std(obs,mask)
+    mean[:-1]=0.0
+    std[:-1]=1.0
+    return mean,std
 
 
 def _normalize_encoder_batch(x,choice,mean,std):

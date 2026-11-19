@@ -16,7 +16,7 @@ from modrot4_nn.trainer import DiscreteNPTrainer,DiscreteNPTrainingConfig
 from modrot4_nn.training_helpers import (
     split_subject_indices,make_fixed_context_masks,stable_run_seed,
     save_checkpoint,save_history_csv)
-from modlearn_rot.utils.io import save_json
+from modrot4_nn.files import save_json
 
 
 def train(args):

@@ -12,7 +12,7 @@ import numpy as np
 from modrot4_nn.cli import parse_args
 from modrot4_nn.pipeline import train_path,stage_folder,dataset_path,sha256
 from modrot4_nn.training_helpers import load_checkpoint
-from modlearn_rot.utils.io import save_json
+from modrot4_nn.files import save_json
 
 
 def evaluate(args):
