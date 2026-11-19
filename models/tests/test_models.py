@@ -1,6 +1,8 @@
 """Fast, deterministic S1/S2 smoke tests; no optimized CR2 bank regeneration."""
 from __future__ import annotations
 import json
+import shutil
+import tempfile
 import subprocess
 import sys
 import unittest
@@ -55,28 +57,54 @@ class TestModels(unittest.TestCase):
         self.assertFalse(np.array_equal(x[0],x[1]))
         self.assertFalse(np.array_equal(x[0,0],x[0,1]))
         np.testing.assert_array_equal(x[:2],sample_subject_x(2, seed=20263032))
+        # Regression: the per-subject implementation is byte-equivalent to the
+        # upstream vectorized IID sampler for the same seed/trial count.
+        np.testing.assert_array_equal(x, sample_bank(seed=20263032, n=1500).reshape(3,500,6))
         t = sample_theta(3,np.random.default_rng(19))
         self.assertEqual(t.shape,(3,3))
         np.testing.assert_allclose(logits(x,t[:,None,:]),
                                    cr2_logits(x,theta_as_cr3(t)[:,None,:]),
                                    rtol=0,atol=0)
 
+    def test_output_path_contract(self):
+        from modrot4.pipeline import (dataset_path, precheck_path, _cr2_bank,
+                                      _cr3_bank, _cr5_bank)
+        self.assertEqual(
+            dataset_path("CR4"),
+            ROOT/"outputs"/"models"/"generate"/"CR4"/"s1_generate__dataset.npz")
+        self.assertEqual(
+            precheck_path("CR4"),
+            ROOT/"outputs"/"models"/"precheck"/"CR4"/"s2_precheck__report.json")
+        self.assertIn("models/generate/CR2/s0_design_recovery",
+                      _cr2_bank().as_posix())
+        self.assertIn("models/generate/CR3/s0_design",
+                      _cr3_bank().as_posix())
+        self.assertIn("models/generate/CR5/s0_design",
+                      _cr5_bank().as_posix())
+
     def test_cr4_pipeline_and_precheck(self):
-        # Tests the same two user-facing entrypoints in sequence.
-        path = ROOT / "outputs" / "choice" / "CR4" / "s1_generate" / "s1_generate__dataset.npz"
-        if path.exists():
-            self.skipTest("CR4 dataset already exists; preserve it instead of changing it")
-        for stage, tail in (("s1_generate.py",["--subjects","5"]),
-                            ("s2_precheck.py",[])):
-            subprocess.run([sys.executable, str(ROOT / "models" / stage),
-                            "--model", "CR4", *tail],check=True,cwd=ROOT)
-        data = load_dataset(path)
-        self.assertEqual(data.parameters.shape, (5,3))
-        self.assertEqual(data.x.shape,(5*500,6))
-        report = json.loads((ROOT/"outputs"/"choice"/"CR4"/"s2_precheck"/
-                             "s2_precheck__report.json").read_text())
-        self.assertTrue(report["qualified"])
-        self.assertEqual(report["subjects"],5)
+        # Exercise the CLI scripts without contaminating a real 8000-subject run.
+        with tempfile.TemporaryDirectory() as temp:
+            sandbox = Path(temp)
+            shutil.copytree(ROOT/"models", sandbox/"models",
+                            ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+            path = (sandbox/"outputs"/"models"/"generate"/"CR4"/
+                    "s1_generate__dataset.npz")
+            for stage, tail in (("s1_generate.py",["--subjects","5"]),
+                                ("s2_precheck.py",[])):
+                subprocess.run(
+                    [sys.executable, str(sandbox/"models"/stage),
+                     "--model", "CR4", *tail],
+                    check=True, cwd=sandbox)
+            data = load_dataset(path)
+            self.assertEqual(data.parameters.shape, (5, 3))
+            self.assertEqual(data.x.shape, (5*500, 6))
+            report_file = (sandbox/"outputs"/"models"/"precheck"/"CR4"/
+                           "s2_precheck__report.json")
+            report = json.loads(report_file.read_text(encoding="utf-8"))
+            self.assertTrue(report["qualified"])
+            self.assertEqual(report["subjects"], 5)
+            self.assertFalse((sandbox/"outputs"/"choice").exists())
 
     def test_cli_default_8000(self):
         from modrot4.cli import parse_args

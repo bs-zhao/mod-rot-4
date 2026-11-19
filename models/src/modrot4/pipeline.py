@@ -1,6 +1,6 @@
 """S1/S2 paths and subprocess helpers, independent of NP/torch.
 
-All generated outputs retain the original mod-rot-3 NP layout:
+All generated outputs use the new model-stage-first layout:
 outputs/models/generate/<MODEL>/ and outputs/models/precheck/<MODEL>/.
 """
 from __future__ import annotations

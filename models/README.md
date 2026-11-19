@@ -1,6 +1,6 @@
 # Models: faithful Mod-Rot-3 choice generators and S2 checks
 
-This module mirrors [mod-rot-3/np](https://github.com/bs-zhao/mod-rot-3/tree/main/np) at upstream source commit `98979c9ef522caa7d24de7ccc683148b762d92a5`. The generating mathematics, parameter priors, X sampling policies, RNG streams, dataset field names, fixed-bank design, precheck tests and optional Oracle implementations are retained. **The default subject count is now 8,000**; `--subjects` overrides it for **all six** models, including C1/C2/C3.
+This module mirrors [mod-rot-3/np](https://github.com/bs-zhao/mod-rot-3/tree/main/np) at upstream source commit `98979c9ef522caa7d24de7ccc683148b762d92a5`. The generating mathematics, parameter priors, RNG streams, dataset field names, fixed-bank design, precheck tests and optional Oracle implementations are retained. CR4 X now uses an explicit per-subject, per-trial IID generation loop that is byte-equivalent to the old vectorized IID sampler. **The default subject count is now 8,000**; `--subjects` overrides it for **all six** models, including C1/C2/C3.
 
 ## Models
 
@@ -10,7 +10,7 @@ This module mirrors [mod-rot-3/np](https://github.com/bs-zhao/mod-rot-3/tree/mai
 | C2 | 4 (b1–b4) | Uniform integer 300–500 | Independent trial-specific 4 raw option attributes; linear and quadratic X1 |
 | C3 | 6 (b1–b6) | Uniform integer 300–500 | Independent trial-specific 4 raw option attributes; 2 quadratic + interaction |
 | CR3 | 4 (alpha, lambda_loss, gamma, tau) | Exactly 500 | Shared immutable 500×6 CR3 design built from original CR2 optimized bank |
-| CR4 | 3 (lambda_loss, gamma, tau), alpha=1 | Exactly 500 | **Independent IID 6D X per subject/trial**: amounts U(5,200), gain probs U(0.05,0.95) |
+| CR4 | 3 (lambda_loss, gamma, tau), alpha=1 | Exactly 500 | **Fresh independent 6D X for each trial of each subject, like C1/C2/C3**: amounts U(5,200), gain probs U(0.05,0.95) |
 | CR5 | 3 (lambda_loss, gamma, tau), alpha=1 | Exactly 500 | **Exact CR3 immutable 500×6 X** with the CR4 3-parameter response model |
 
 CR3 is not CR4: their X designs differ. CR4 and CR5 share the same priors/function, but not the X-design policy. CR3/CR5 preserve the original 60 gain-only + 60 gamma-neutral + 40 loss-only + 340 general trial categories. **C3 has six parameters**, as in the upstream source.
@@ -47,7 +47,7 @@ python models/s2_precheck.py --model CR5 --oracle-precheck --oracle-subjects 100
 
 By default each S1 command uses **8,000 subjects**. For a small test run, e.g. `python models/s1_generate.py --model CR4 --subjects 10`.
 
-**Run CR3 S1 before CR5 S1.** CR3 S1 uses the frozen CR2 4P Fisher-optimized design if already present in `outputs/choice/CR2/s0_design_recovery/`; otherwise it executes the unchanged original CR2 bank optimizer then constructs CR3's 500-item bank. CR5 **requires the actual CR3 bank** and will not fabricate or resample it. CR4 does not create a shared S0 bank.
+**Run CR3 S1 before CR5 S1.** CR3 S1 uses the frozen CR2 4P Fisher-optimized design if already present in `outputs/models/generate/CR2/s0_design_recovery/`; otherwise it executes the unchanged original CR2 bank optimizer then constructs CR3's 500-item bank. CR5 **requires the actual CR3 bank** and will not fabricate or resample it. CR4 does not create a shared S0 bank.
 
 ## Seeds and frozen format
 
@@ -57,18 +57,18 @@ By default each S1 command uses **8,000 subjects**. For a small test run, e.g. `
 - Precheck seed: `20261006`.
 - All datasets use the original `GeneratedDataset` keys: `parameters, trial_counts, subject_index, trial_index, x, y, predictive_true`.
 
-Paths, compatible with the previous pipeline:
+Paths, arranged by module, stage, then model (breaking the Mod-Rot-3 path layout):
 
 ```text
-outputs/choice/<MODEL>/s1_generate/s1_generate__dataset.npz
-outputs/choice/<MODEL>/s1_generate/s1_generate__manifest.json
-outputs/choice/<MODEL>/s1_generate/s1_generate__summary.json (C1/C2/C3)
-outputs/choice/<MODEL>/s2_precheck/s2_precheck__report.json
+outputs/models/generate/<MODEL>/s1_generate__dataset.npz
+outputs/models/generate/<MODEL>/s1_generate__manifest.json
+outputs/models/generate/<MODEL>/s1_generate__summary.json (C1/C2/C3)
+outputs/models/precheck/<MODEL>/s2_precheck__report.json
 ```
 
-CR3 and CR5 store their fixed-bank files under `outputs/choice/<MODEL>/s0_design/`. Optional CR3–CR5 Oracle diagnostics are written to the original S2 output locations.
+CR3 and CR5 store their fixed-bank files under `outputs/models/generate/<MODEL>/s0_design/`. Optional Oracle diagnostics are written under `outputs/models/precheck/<MODEL>/` (CR3 in its `s2_oracle/` subfolder).
 
-**Data preservation:** existing datasets are never silently overwritten, even when the requested subject count differs. To regenerate with a different N, archive/move the relevant `outputs/choice/<MODEL>/` directory first. CR3 and CR5 should use a consistent saved CR3/CR2 bank when comparing runs.
+**Data preservation:** existing datasets are never silently overwritten, even when the requested subject count differs. To regenerate with a different N, archive/move the relevant `outputs/models/generate/<MODEL>/` directory first. CR3 and CR5 should use a consistent saved CR3/CR2 bank when comparing runs.
 
 The original CR2 design optimization may depend on the NumPy/SciPy versions. Same seed + same source does not guarantee an **identical binary bank file** across environments: if byte-level replication is required, reuse and verify the original CR2/CR3 bank rather than rerunning the optimizer. This is also why bank checksums are retained.
 
@@ -79,7 +79,7 @@ The original CR2 design optimization may depend on the NumPy/SciPy versions. Sam
 - `src/modlearn_rot/generators/`, `src/modlearn_rot/diagnostics/precheck/`, `src/modlearn_rot/utils/`: original generation, dataset serialization, and full C1–C3 precheck implementations.
 - `reference/`: original CR2 bank optimizer, CR3/CR4/CR5 generators, Oracle implementations and CR3 identifiability helpers.
 
-Only deliberate source adjustments: `np/` -> `models/` filesystem imports; original standalone reference generator `--subjects` default 5,000 -> 8,000; C1/C2/C3 class default 5,000 -> 8,000; S1 sets `model.n_subjects=args.subjects` so the flag actually controls these three generators; CR3 optional Oracle subprocess reference path fixed for this module. **No formula, prior, sampling policy, RNG offsets, or precheck threshold was deliberately changed.**
+Deliberate source adjustments: `np/` -> `models/` filesystem imports; original standalone reference generator `--subjects` default 5,000 -> 8,000; C1/C2/C3 class default 5,000 -> 8,000; S1 sets `model.n_subjects=args.subjects` so the flag actually controls these three generators; CR3 optional Oracle subprocess reference path fixed for this module. **No formula, prior, underlying X distribution, RNG offsets, or precheck threshold was changed.**
 
 ## Tests
 
@@ -88,3 +88,27 @@ python -m unittest discover -s models/tests -v
 ```
 
 The smoke tests cover deterministic C1/C2/C3 generation, 3P CPT equivalence and CR4's IID-X generation/S2 provenance. They do not regenerate the expensive CR2 optimized bank, and they are **not** full 8,000-subject numerical equivalence tests.
+
+## Stage-first output organization (Mod-Rot-4)
+
+```text
+outputs/
+└── models/
+    ├── generate/
+    │   ├── C1/  C2/  C3/
+    │   ├── CR2/s0_design_recovery/     # CR3 upstream optimized bank
+    │   ├── CR3/s0_design/             # CR3 frozen shared bank
+    │   ├── CR4/                       # S1 data; NO shared bank
+    │   └── CR5/s0_design/             # Exact copy of CR3 bank
+    └── precheck/
+        ├── C1/  C2/  C3/             # S2 report and check arrays
+        ├── CR3/s2_oracle/            # Optional CR3 Oracle comparison
+        ├── CR4/                      # S2 + optional Oracle
+        └── CR5/                      # S2 + optional Oracle
+```
+
+Each model's dataset and S1 manifest are directly in its `generate/<MODEL>/` directory; each S2 report is directly in `precheck/<MODEL>/`. Subfolders are reserved for supplementary bank design and CR3 Oracle studies.
+
+**Do not rename old `outputs/choice/` assets into the new structure without confirming provenance.** They are not read by this version. CR3 and CR5 require a consistent original frozen CR2/CR3 bank. To reuse an existing immutable bank, copy only the verified reference bank files into the corresponding new `models/generate/` design folder, and keep their original manifests/checksums consistent. Generated 5k-person datasets are not 8k-person datasets; regenerate from S1 when changing N.
+
+CR4 per-subject trialwise sampling has the same distribution and reproducibility as before. Its code now loops over subjects, drawing all six X features independently for their trials, matching the C1/C2/C3 sampling organization. The tests require bitwise equivalence with the former flattened vectorized sampler.

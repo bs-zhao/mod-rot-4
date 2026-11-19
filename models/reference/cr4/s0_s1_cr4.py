@@ -1,4 +1,4 @@
-"""CR4 3P CPT (alpha=1), with independent X for every subject and trial.
+"""CR4 3P CPT (alpha=1), independent X per trial of each subject.
 
 X is sampled independently of T and choices. Neither CR3 nor CR5's fixed
 stimulus banks are changed.
@@ -90,12 +90,30 @@ def sample_bank(seed=20261023, n=N_TRIALS,
 def sample_subject_x(subjects, seed, trials=N_TRIALS,
                      amount_range=DEFAULT_AMOUNT_RANGE,
                      prob_range=DEFAULT_PROB_RANGE):
-    """Generate IID X for each (subject, trial), shape (subjects,trials,6)."""
+    """Draw fresh 6D X for every trial of every subject, as in C1/C2/C3.
+
+    This deliberately iterates over subjects while sharing *only* the RNG
+    streams, never the stimuli. Each subject gets independent trial samples.
+    Streaming draws retain exactly the old vectorized IID random sequences
+    and prefix reproducibility for a fixed seed, distribution and trial count.
+    """
     if subjects < 1 or trials < 1:
         raise ValueError("subjects and trials must be positive")
-    return sample_bank(seed=seed, n=subjects * trials,
-                       amount_range=amount_range,
-                       prob_range=prob_range).reshape(subjects, trials, 6)
+    alo, ahi = map(float, amount_range)
+    plo, phi = map(float, prob_range)
+    if not (0 < alo < ahi and 0 < plo < phi < 1):
+        raise ValueError("Need 0 < amount_min < amount_max and 0 < p_min < p_max < 1")
+    rng_amount = np.random.default_rng(seed)
+    rng_prob = np.random.default_rng(seed + 1)
+    x = np.empty((subjects, trials, 6), dtype=np.float64)
+    for subject in range(subjects):
+        # Independent per-trial draws; different subjects never share a bank.
+        each_trial = x[subject]
+        each_trial[:, [0, 1, 3, 4]] = rng_amount.uniform(
+            alo, ahi, size=(trials, 4))
+        each_trial[:, [2, 5]] = rng_prob.uniform(
+            plo, phi, size=(trials, 2))
+    return x
 
 
 def verify_x(x, amount_range=DEFAULT_AMOUNT_RANGE,
@@ -176,6 +194,7 @@ def selftest():
     assert x.shape == (3, N_TRIALS, 6) and verify_x(x)
     assert np.array_equal(x, sample_subject_x(3, seed=17))
     assert np.array_equal(x[:2], sample_subject_x(2, seed=17))
+    assert np.array_equal(x, sample_bank(seed=17, n=3*N_TRIALS).reshape(3, N_TRIALS, 6))
     assert not np.array_equal(x[0], x[1])
     assert not np.array_equal(x[0, 0], x[0, 1])
     theta = sample_theta(3, np.random.default_rng(19))

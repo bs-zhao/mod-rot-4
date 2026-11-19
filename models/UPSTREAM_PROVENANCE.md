@@ -5,3 +5,9 @@ Copied from [bs-zhao/mod-rot-3/np](https://github.com/bs-zhao/mod-rot-3/tree/989
 Only imports and paths referencing `np/` were changed to `models/`; C1/C2/C3 class sample-size defaults and CR3/CR4/CR5 reference script CLI defaults changed from 5000 to 8000; S1 now passes `--subjects` through for C1/C2/C3; the S1/S2 orchestration path/CLI was separated from NP training dependencies. Model formulas, priors, RNG algorithms, fixed-bank construction and precheck thresholds were not changed.
 
 The source input SHA for each vendored file is available through the upstream Git history at this commit. Do not modify the frozen model mathematics without creating a new model version.
+
+## Mod-Rot-4 output + CR4 sampling revision
+
+- All model outputs moved to `outputs/models/generate/<MODEL>/` and `outputs/models/precheck/<MODEL>/` (including CR2/CR3/CR5 frozen design banks and optional S2 Oracle artifacts). Previous `outputs/choice/` files are not automatically read or overwritten.
+- CR4 X is now drawn with a per-subject loop, using two continuous RNG streams and independent samples across all trials and subject boundaries. The X distribution, parameter sampling, logit function, seeds and trial order are unchanged. Regression test checks bitwise identity with the original vectorized `sample_bank(seed, n=subjects*trials).reshape(subjects,trials,6)` implementation.
+- Existing C1/C2/C3 generators already draw new X at each participant's trials; they were not altered.
