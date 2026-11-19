@@ -1,6 +1,7 @@
 """S1: a single generate/save/report pipeline for all six model specifications."""
 from pathlib import Path
 import sys
+import numpy as np
 sys.path.insert(0,str(Path(__file__).resolve().parent/"src"))
 from modrot4.cli import parse_args
 from modrot4.model_specs import get_spec
@@ -16,7 +17,15 @@ def generate(args):
     if target.exists():
         if args.overwrite:
             raise RuntimeError("Archive existing data instead of overwriting: "+str(target))
-        print(f"[GENERATE] model={spec.model_id} phase=done status=EXISTS",flush=True)
+        with np.load(target,allow_pickle=False) as saved:
+            existing_subjects=int(saved["parameters"].shape[0])
+        if existing_subjects!=args.subjects:
+            raise RuntimeError(
+                f"[GENERATE] model={spec.model_id} status=EXISTS "
+                f"existing_subjects={existing_subjects} requested_subjects={args.subjects}. "
+                "Archive the old dataset and regenerate; never silently reuse wrong N.")
+        print(f"[GENERATE] model={spec.model_id} phase=done status=EXISTS "
+              f"subjects={existing_subjects}",flush=True)
         print(f"[GENERATE] dataset={target}",flush=True)
         return
     data=spec.generate(args)
