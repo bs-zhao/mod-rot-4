@@ -89,8 +89,14 @@ def iter_subject_slices(dataset):
         yield sid,int(boundaries[sid]),int(boundaries[sid+1])
 
 
-def generate_trialwise_dataset(model, seed: int) -> GeneratedDataset:
-    rngs=make_rng_streams(seed,("parameters","trial_counts","inputs","observations"))
+def generate_trialwise_dataset(model, seed: int, *, rng_streams=None) -> GeneratedDataset:
+    # Shared S1 per-person loop. CR4 supplies legacy-compatible T/Y streams;
+    # its X uses the SAME SeedSequence "inputs" child as C1/C2/C3.
+    rngs=(make_rng_streams(seed,("parameters","trial_counts","inputs","observations"))
+          if rng_streams is None else rng_streams)
+    expected={"parameters","trial_counts","inputs","observations"}
+    if set(rngs)!=expected:
+        raise ValueError("RNG streams must be parameters/trial_counts/inputs/observations")
     parameters=model.sample_parameters(model.n_subjects,rngs["parameters"])
     counts=rngs["trial_counts"].integers(
         model.trial_count_min,model.trial_count_max+1,size=model.n_subjects
@@ -152,10 +158,12 @@ def generate_questionnaire_dataset(model, seed: int) -> QuestionnaireGeneratedDa
     )
 
 
-def generate_dataset(model, seed: int):
+def generate_dataset(model, seed: int, *, rng_streams=None):
     if getattr(model,"data_layout","trialwise")=="subject_by_item":
+        if rng_streams is not None:
+            raise ValueError("Custom RNG streams only supported for trialwise datasets")
         return generate_questionnaire_dataset(model,seed)
-    return generate_trialwise_dataset(model,seed)
+    return generate_trialwise_dataset(model,seed,rng_streams=rng_streams)
 
 
 def summarize_dataset(dataset) -> dict:

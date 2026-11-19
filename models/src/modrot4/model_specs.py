@@ -12,6 +12,9 @@ import numpy as np
 from scipy.special import expit
 
 from modlearn_rot.generators.dataset import GeneratedDataset, generate_dataset
+from modlearn_rot.generators.choice.base import BinaryChoiceModel
+from modlearn_rot.generators.uniform_inputs import sample_independent_uniform_x
+from modlearn_rot.utils.seeds import make_rng_streams
 from modlearn_rot.generators.registry import get_model
 from modlearn_rot.task_specs import get_task_spec_for_model
 from modrot4.pipeline import (ROOT, dataset_path, sha256, _cr2_bank,
@@ -76,8 +79,8 @@ def _verify_cr4(data):
     if not manifest_file.is_file():
         raise FileNotFoundError('Missing CR4 generator manifest')
     manifest = json.loads(manifest_file.read_text(encoding='utf-8'))
-    if manifest.get('x_sampling_policy') != 'iid_subject_trial_uniform_v1':
-        raise RuntimeError('Legacy CR4 shared-bank dataset found; archive and regenerate IID-X CR4')
+    if manifest.get('x_sampling_policy') != CR4_X_POLICY:
+        raise RuntimeError('Old CR4 X sampling stream: archive its generate/CR4 and precheck/CR4 folders, then regenerate CR4 with the shared C1/C2/C3 RNG-based sampler')
     if manifest.get('x_shared') is not False:
         raise RuntimeError('CR4 manifest does not declare subject-specific X')
     if manifest['dataset_sha256'] != sha256(dataset_path('CR4')):
@@ -95,11 +98,12 @@ def _verify_cr4(data):
     if manifest.get('subjects') != n:
         raise RuntimeError('CR4 manifest subject count disagrees with dataset')
     audit_n = min(n, 2)
-    audit_x = sample_subject_x(audit_n, seed=manifest['x_seed'],
-                               amount_range=manifest['amount_range'],
-                               prob_range=manifest['probability_range'])
+    audit_rng = make_rng_streams(manifest["data_seed"], TRIALWISE_STREAM_NAMES)["inputs"]
+    iid_sampler = CR4TrialwiseModel(audit_n)
+    audit_x = np.stack([iid_sampler.sample_inputs(500, audit_rng)
+                        for _ in range(audit_n)])
     if not np.array_equal(x[:audit_n], audit_x):
-        raise RuntimeError('CR4 stored X does not match deterministic IID RNG stream')
+        raise RuntimeError('CR4 X differs from the C1/C2/C3 single-RNG trialwise sampling stream')
     if n > 1 and np.array_equal(x[0], x[1]):
         raise ValueError('CR4 first two subjects share identical 500-trial X')
     if np.array_equal(x[0, 0], x[0, 1]):
@@ -159,6 +163,57 @@ def _run_design(script, argv):
                            + finished.stderr[-4000:])
 
 
+# The old two-stream CR4 X generator is retained only in reference/cr4.
+# The active standard S1 policy uses the same SeedSequence/one-RNG
+# per-participant sampler as C1/C2/C3. Old CR4 X must be regenerated.
+CR4_X_POLICY = "iid_uniform_single_inputs_seedsequence_v2"
+CR4_X_LOW = np.array([5.0, 5.0, 0.05, 5.0, 5.0, 0.05])
+CR4_X_HIGH = np.array([200.0, 200.0, 0.95, 200.0, 200.0, 0.95])
+TRIALWISE_STREAM_NAMES = ("parameters", "trial_counts", "inputs", "observations")
+
+
+class CR4TrialwiseModel(BinaryChoiceModel):
+    """CR4 X via precisely the C1/C2/C3 trialwise generator contract."""
+    model_id = "CR4"
+    model_version = "x-v2"
+    n_factors = 3
+    parameter_names = ("lambda_loss", "gamma", "tau")
+    n_input_features = 6
+    trial_count_min = 500
+    trial_count_max = 500
+    n_subjects = 8000
+
+    def __init__(self, n_subjects):
+        self.n_subjects = int(n_subjects)
+
+    def sample_parameters(self, n_subjects, rng):
+        # Keep exact CR4/CR5 paired theta draws (only X-policy changes).
+        return sample_theta(n_subjects, rng)
+
+    def sample_inputs(self, n_trials, rng):
+        return sample_independent_uniform_x(
+            n_trials, rng, low=CR4_X_LOW, high=CR4_X_HIGH,
+            n_features=self.n_input_features)
+
+    def choice_probability(self, x, theta):
+        return expit(logits_3p(np.asarray(x, dtype=float), theta))
+
+    def sample_observations(self, x, theta, rng):
+        # Preserve CR4/CR5 uniform-draw Bernoulli coupling. This is a
+        # model response method; the X generation code is fully shared.
+        p = self.choice_probability(x, theta)
+        return (rng.random(p.shape) < p).astype(np.int64)
+
+
+def cr4_rng_streams(seed):
+    streams = make_rng_streams(seed, TRIALWISE_STREAM_NAMES)
+    # Preserve CR4/CR5 theta coupling and observation stream. The X "inputs"
+    # stream remains exactly the standard C1/C2/C3 SeedSequence child.
+    streams["parameters"] = np.random.default_rng(seed + 4)
+    streams["observations"] = np.random.default_rng(seed + 1004)
+    return streams
+
+
 class ModelSpec:
     def __init__(self, model_id):
         self.model_id = model_id
@@ -193,21 +248,23 @@ class ModelSpec:
             model = get_model(self.model_id)
             model.n_subjects = args.subjects
             return generate_dataset(model, args.data_seed)
+        if self.model_id == "CR4":
+            model = CR4TrialwiseModel(args.subjects)
+            return generate_dataset(
+                model, args.data_seed,
+                rng_streams=cr4_rng_streams(args.data_seed))
         self._prepare_stimuli(args)
         n = args.subjects
         rng_theta = np.random.default_rng(args.data_seed + 4)
         rng_choice = np.random.default_rng(args.data_seed + 1004)
         theta = (sample_prior(n,4,rng_theta) if self.model_id == "CR3"
                  else sample_theta(n,rng_theta))
-        if self.model_id == "CR4":
-            x3 = sample_subject_x(n,seed=args.data_seed+2004)
-        else:
-            bank = _cr3_bank() if self.model_id == "CR3" else _cr5_bank()
-            with np.load(bank,allow_pickle=False) as source:
-                fixed = np.asarray(source["X"], dtype=np.float64)
-            if fixed.shape != (500,6):
-                raise ValueError("Expected a 500-by-6 immutable CPT stimulus bank")
-            x3 = np.broadcast_to(fixed, (n,500,6))
+        bank = _cr3_bank() if self.model_id == "CR3" else _cr5_bank()
+        with np.load(bank,allow_pickle=False) as source:
+            fixed = np.asarray(source["X"], dtype=np.float64)
+        if fixed.shape != (500,6):
+            raise ValueError("Expected a 500-by-6 immutable CPT stimulus bank")
+        x3 = np.broadcast_to(fixed, (n,500,6))
         eta = (logits_cpt(x3,theta[:,None,:]) if self.model_id == "CR3"
                else logits_3p(x3,theta[:,None,:]))
         p = expit(eta)
@@ -241,9 +298,11 @@ class ModelSpec:
         if self.model_id == "CR4":
             return dict(model="CR4",n_parameters=3,fixed_alpha=1.0,
                         subjects=args.subjects,trials_per_subject=500,
-                        x_dim=6,x_shared=False,x_sampling_policy=SAMPLING_POLICY,
+                        x_dim=6,x_shared=False,x_sampling_policy=CR4_X_POLICY,
+                        x_rng_stream="SeedSequence(data_seed).spawn(4)[2]",
+                        x_sampling_driver="generate_trialwise_dataset",
                         parameter_names=list(self.parameter_names),
-                        data_seed=args.data_seed,x_seed=args.data_seed+2004,
+                        data_seed=args.data_seed,
                         amount_range=list(DEFAULT_AMOUNT_RANGE),
                         probability_range=list(DEFAULT_PROB_RANGE),
                         dataset_sha256=sha256(saved_dataset),
@@ -272,7 +331,7 @@ class ModelSpec:
         if self.model_id == "CR4":
             _, manifest, error = _verify_cr4(data)
             return {"sampling":"iid_per_subject_per_trial",
-                    "x_seed":manifest["x_seed"],"x_shared":False,
+                    "x_rng_stream":manifest["x_rng_stream"],"x_shared":False,
                     "max_formula_error":error,"passed":True}
         _, codes, names, info, error = _verify_cr5(data)
         return {"sampling":"exact_immutable_CR3_500","passed":True,

@@ -6,6 +6,7 @@ import numpy as np
 from scipy.special import expit
 
 from .base import BinaryChoiceModel
+from ...uniform_inputs import sample_independent_uniform_x
 
 
 class ChoiceC1LinearLogit(BinaryChoiceModel):
@@ -45,8 +46,9 @@ class ChoiceC1LinearLogit(BinaryChoiceModel):
         )
 
     def sample_inputs(self,n_trials,rng):
-        return rng.uniform(
-            -1.0,1.0,size=(int(n_trials),self.n_input_features)
+        return sample_independent_uniform_x(
+            n_trials, rng, low=-1.0, high=1.0,
+            n_features=self.n_input_features
         )
 
     @staticmethod
