@@ -10,6 +10,34 @@ from modrot4_nn.s9_rotation import (
 
 
 class TestS9Sweep(unittest.TestCase):
+    def test_equal_and_unequal_variances_with_paired_data(self):
+        from modrot4_nn.s9_diagnostics import (
+            paired_variance_comparison,correlation_of_axes)
+        rng=np.random.default_rng(808)
+        z=rng.normal(size=(350,4))
+        rows,pairs,report=paired_variance_comparison(z)
+        self.assertEqual(len(rows),4)
+        self.assertEqual(len(pairs),6)
+        self.assertLess(report["max_min_variance_ratio"],1.5)
+        self.assertTrue(all(0<=p["p_holm"]<=1 for p in pairs))
+        self.assertEqual(correlation_of_axes(z).shape,(4,4))
+        # Same subjects but a different marginal variance in the last axis.
+        z[:,3]*=4
+        rows,pairs,report=paired_variance_comparison(z)
+        self.assertGreater(report["max_min_variance_ratio"],10)
+        self.assertGreaterEqual(report["significant_pair_count"],3)
+        self.assertFalse(report["all_pairwise_equal_variances_not_rejected"])
+        self.assertTrue(any(p["reject_equal_variance"] for p in pairs))
+
+    def test_rotated_axis_correlations_match_direct_numpy(self):
+        from modrot4_nn.s9_diagnostics import correlation_of_axes
+        rng=np.random.default_rng(18)
+        z=rng.normal(size=(450,4))*np.array([1,1,3,4])
+        r,_=np.linalg.qr(rng.normal(size=(4,4)))
+        rotated=z@r.T
+        np.testing.assert_allclose(correlation_of_axes(rotated),
+                                   np.corrcoef(rotated,rowvar=False),atol=1e-12)
+
     def test_combinatorial_coverage(self):
         for d in (2,3,4,6,8):
             sets=list(axis_subsets(d))

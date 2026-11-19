@@ -124,6 +124,19 @@ class TestNNPipeline(unittest.TestCase):
             self.assertEqual(len(list((s9/"rotations").rglob("*.npz"))),28)
             self.assertEqual(len(list((s9/"figures_45deg").rglob("*heatmap.png"))),4)
             self.assertEqual(len(list((s9/"figures_45deg").rglob("*scatter.png"))),4)
+            self.assertEqual(len(list((s9/"figures_45deg").rglob("rz_axis_correlations.png"))),4)
+            self.assertEqual(len(list((s9/"figures_45deg").rglob("rz_axis_correlations.csv"))),4)
+            self.assertTrue((s9/"z_variance_diagnostics"/"z_variance_equal_tests.json").exists())
+            self.assertTrue((s9/"z_variance_diagnostics"/"z_axis_variances.png").exists())
+            self.assertTrue((s9/"z_variance_diagnostics"/"paired_variance_tests_train.csv").exists())
+            with (s9/"z_variance_diagnostics"/"z_variance_equal_tests.json").open() as fp:
+                variance_report=json.load(fp)
+            self.assertEqual(len(variance_report["splits"]["train"]["variances"]),3)
+            self.assertEqual(variance_report["splits"]["train"]["pairwise_comparisons"],3)
+            with next((s9/"figures_45deg").rglob("rz_axis_correlations.csv")).open() as fp:
+                grid=list(__import__("csv").reader(fp))
+            self.assertEqual(len(grid),4)
+            self.assertEqual(len(grid[0]),4)
             with np.load(next((s9/"rotations").rglob("*deg_000.npz"))) as example:
                 np.testing.assert_allclose(example["R"],r,atol=1e-9)
             with np.load(next((s9/"rotations").rglob("*deg_045.npz"))) as example:
