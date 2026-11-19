@@ -227,11 +227,11 @@ any cross-dimensional correlations in Z can remain.
 Output `s8_2_supervised_rotation/` mirrors S8 (rotation.npz,
 rotated_z.npz, test_predictions.npz, both T×RZ/T×pred correlations,
 scatter grids, summary.json) and additionally saves
-\`z_standardized.npz\`. A standalone \`z_normalizer.npz\` saves
-\`mean\`, \`variance\`, \`std\`, number of subjects, \`ddof=0\` and the
-S5 source hash; \`z_normalizer.csv\` lists all axes for inspection.
-\`rotation.npz\` and \`z_standardized.npz\` also store
-\`global_z_mean\`, \`global_z_variance\`, \`global_z_std\`.
+`z_standardized.npz`. A standalone `z_normalizer.npz` saves
+`mean`, `variance`, `std`, number of subjects, `ddof=0` and the
+S5 source hash; `z_normalizer.csv` lists all axes for inspection.
+`rotation.npz` and `z_standardized.npz` also store
+`global_z_mean`, `global_z_variance`, `global_z_std`.
 For inversion, use **the saved** means and stds, never recompute them.
 
 **S9_2:** Loads the **exact** scaler and frozen R* from S8_2,
