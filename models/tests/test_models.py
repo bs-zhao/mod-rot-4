@@ -187,21 +187,92 @@ class TestModels(unittest.TestCase):
                 self.assertEqual(recovered["theta_mle"].shape, theta.shape)
                 self.assertTrue(np.isfinite(recovered["theta_mle"]).all())
 
-    def test_model_spec_generation_retains_original_cr4_random_sequences(self):
+    def test_shared_x_sampler_keeps_original_classic_random_sequences(self):
+        # C1/C2/C3 must draw exactly the same numbers as their original
+        # single-rng uniform(-1,+1) implementation.
+        from modlearn_rot.utils.seeds import make_rng_streams
+        for model_id in ("C1","C2","C3"):
+            with self.subTest(model=model_id):
+                model=get_model(model_id)
+                seed=20261006
+                a=np.random.default_rng(seed)
+                b=np.random.default_rng(seed)
+                np.testing.assert_array_equal(
+                    model.sample_inputs(57,a),
+                    b.uniform(-1.0,1.0,size=(57,model.n_input_features)))
+                model.n_subjects=4
+                ds=generate_dataset(model,seed)
+                inp=make_rng_streams(seed,(
+                    "parameters","trial_counts","inputs","observations"))["inputs"]
+                expected_x=np.concatenate([
+                    inp.uniform(-1.0,1.0,size=(int(t),model.n_input_features))
+                    for t in ds.trial_counts
+                ])
+                np.testing.assert_array_equal(ds.x,expected_x)
+
+    def test_cr4_x_is_exactly_classic_trialwise_single_rng_scenario(self):
         from types import SimpleNamespace
         from scipy.special import expit
-        from modrot4.model_specs import get_spec
+        from modrot4.model_specs import (get_spec,CR4_X_LOW,CR4_X_HIGH,
+                                         CR4_X_POLICY)
+        from modlearn_rot.utils.seeds import make_rng_streams
         from s0_s1_cr4 import logits as three_logits
         args=SimpleNamespace(subjects=4,data_seed=20261028,design_seed=20261023)
         generated=get_spec("CR4").generate(args)
-        xx=sample_subject_x(4,seed=20261028+2004)
-        theta=sample_theta(4,np.random.default_rng(20261028+4))
-        prob=expit(three_logits(xx,theta[:,None,:]))
-        choice=(np.random.default_rng(20261028+1004).random(prob.shape)<prob).astype(np.int64)
-        np.testing.assert_array_equal(generated.parameters,theta)
-        np.testing.assert_array_equal(generated.x,xx.reshape(-1,6))
-        np.testing.assert_array_equal(generated.predictive_true,prob.reshape(-1,1))
-        np.testing.assert_array_equal(generated.y,choice.reshape(-1,1))
+        input_rng=make_rng_streams(
+            args.data_seed,("parameters","trial_counts","inputs","observations"))["inputs"]
+        # Direct independent NumPy oracle: one *single* RNG, one
+        # rng.uniform(low,high,size=(500,6)) call PER SUBJECT.
+        expected_x=np.concatenate([
+            input_rng.uniform(CR4_X_LOW,CR4_X_HIGH,size=(500,6))
+            for _ in range(args.subjects)
+        ])
+        np.testing.assert_array_equal(generated.x,expected_x)
+        np.testing.assert_array_equal(generated.trial_counts,
+                                      np.full(4,500,dtype=np.int64))
+        self.assertEqual(generated.y.ndim,1)
+        self.assertEqual(generated.predictive_true.ndim,1)
+        self.assertFalse(np.array_equal(generated.x[:500],generated.x[500:1000]))
+        self.assertFalse(np.array_equal(generated.x[0],generated.x[1]))
+        np.testing.assert_array_equal(
+            generated.parameters,sample_theta(4,np.random.default_rng(20261028+4)))
+        theta=generated.parameters
+        probability=expit(three_logits(expected_x.reshape(4,500,6),theta[:,None,:]))
+        expected_choices=(np.random.default_rng(20261028+1004).random(probability.shape)
+                          < probability).astype(np.int64)
+        np.testing.assert_array_equal(generated.predictive_true,probability.reshape(-1))
+        np.testing.assert_array_equal(generated.y,expected_choices.reshape(-1))
+        self.assertEqual(CR4_X_POLICY,"iid_uniform_single_inputs_seedsequence_v2")
+
+    def test_cr4_legacy_dataset_cannot_be_silently_reused(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            sandbox=Path(tmp)
+            shutil.copytree(ROOT/"models",sandbox/"models",
+                            ignore=shutil.ignore_patterns("__pycache__","*.pyc"))
+            s1=sandbox/"models"/"s1_generate.py"
+            s2=sandbox/"models"/"s2_precheck.py"
+            args=[sys.executable,str(s1),"--model","CR4","--subjects","5"]
+            created=subprocess.run(args,cwd=sandbox,capture_output=True,text=True)
+            self.assertEqual(created.returncode,0,created.stderr)
+            location=sandbox/"outputs"/"models"/"generate"/"CR4"
+            dataset_file=location/"s1_generate__dataset.npz"
+            manifest_file=location/"s1_generate__manifest.json"
+            with np.load(dataset_file) as d:
+                original_x=d["x"].copy()
+            manifest=json.loads(manifest_file.read_text(encoding="utf-8"))
+            self.assertEqual(manifest["x_sampling_policy"],
+                             "iid_uniform_single_inputs_seedsequence_v2")
+            manifest["x_sampling_policy"]="iid_subject_trial_uniform_v1"
+            manifest_file.write_text(json.dumps(manifest),encoding="utf-8")
+            refused=subprocess.run(args,cwd=sandbox,capture_output=True,text=True)
+            self.assertNotEqual(refused.returncode,0)
+            self.assertIn("OLD two-stream X generation",refused.stderr)
+            precheck=subprocess.run([sys.executable,str(s2),"--model","CR4"],
+                                    cwd=sandbox,capture_output=True,text=True)
+            self.assertNotEqual(precheck.returncode,0)
+            self.assertIn("Old CR4 X sampling stream",precheck.stderr)
+            with np.load(dataset_file) as d:
+                np.testing.assert_array_equal(d["x"],original_x)
 
     def test_model_spec_generation_retains_cr3_cr5_sampling(self):
         from types import SimpleNamespace
