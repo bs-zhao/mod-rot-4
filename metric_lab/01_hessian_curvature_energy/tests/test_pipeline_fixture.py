@@ -58,8 +58,13 @@ class PipelineFixture(unittest.TestCase):
                 ("s9_2","s9_2_rotation_sweep","s8_2_supervised_rotation")):
                 s8=run_dir/oracle
                 s8.mkdir(parents=True)
-                np.savez_compressed(s8/"rotation.npz",R_star=np.eye(4),
+                oracle_data=dict(R_star=np.eye(4),
                     t_train_mean=np.zeros(4),t_train_std=np.ones(4))
+                if variant=="s9_2":
+                    # Real S8_2 stores its all-subject standardizer here.
+                    oracle_data.update(global_z_mean=z.mean(0),
+                                       global_z_std=z.std(0,ddof=0))
+                np.savez_compressed(s8/"rotation.npz",**oracle_data)
                 stage_dir=run_dir/stage
                 (stage_dir/"rotations"/"baseline").mkdir(parents=True)
                 (stage_dir/"rotations"/"k02").mkdir(parents=True)
@@ -71,10 +76,18 @@ class PipelineFixture(unittest.TestCase):
                     ("sweep","1,2",15,givens,"rotations/k02/axes_01_02__deg_015.npz"),
                 ]
                 for candidate_type,axes,angle,r,path in cases:
-                    np.savez_compressed(stage_dir/path,R=r,delta_R=r,
-                        global_z_mean=mean,global_z_std=std)
-                    rows.append(dict(candidate_type=candidate_type,axes_1based=axes,
-                        angle_degrees=angle,rotation_file=path))
+                    if variant=="s9":
+                        # Historical pre-baseline, pre-normalizer S9 artifact:
+                        # only sweep candidates were indexed.
+                        np.savez_compressed(stage_dir/path,R=r,delta_R=r)
+                        if candidate_type=="sweep":
+                            rows.append(dict(axes_1based=axes,
+                                angle_degrees=angle,rotation_file=path))
+                    else:
+                        np.savez_compressed(stage_dir/path,R=r,delta_R=r,
+                            global_z_mean=mean,global_z_std=std)
+                        rows.append(dict(candidate_type=candidate_type,axes_1based=axes,
+                            angle_degrees=angle,rotation_file=path))
                 with (stage_dir/"rotation_index.csv").open("w",newline="") as f:
                     writer=csv.DictWriter(f,fieldnames=list(rows[0]))
                     writer.writeheader()
