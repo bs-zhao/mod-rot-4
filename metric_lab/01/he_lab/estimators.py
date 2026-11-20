@@ -159,5 +159,6 @@ def estimate_wy(method, rotation, src, prepared, eval_points, y_name,
                     np.ones(m.shape, bool), {
                         "training_rows":len(idx), "evaluation_rows":len(w_eval),
                         "binary":binary, "y_name":y_name,
+                        "evaluation_meta":eval_points.meta,
                         "choice_fit": ("logistic polynomial" if binary and method=="wy_polynomial"
                                        else "smooth probability WLS/KRR" if binary else None)})

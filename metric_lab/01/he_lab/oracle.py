@@ -6,7 +6,7 @@ p=0/1. Those matrix cells are explicitly masked, never silently 'fixed'.
 import numpy as np
 import torch
 from .energy import moment_from_hessians
-from .derivatives import hessians
+from .derivatives import moment_hessians
 from .sources import get_spec
 
 def _basis(model, x):
@@ -96,10 +96,9 @@ def oracle_base_moment(src, points, target, chunk=64, boundary_policy="mask"):
         weights = points.weights
         coverage = legal.all(axis=0)
     fn = lambda v: oracle_scalar(src.model, v, target=target)
-    hh = hessians(fn, selected_points, chunk=chunk)
+    moment = moment_hessians(fn, selected_points, weights=weights, chunk=chunk)
     # A boundary continuation is only used for numerical differentiability;
     # affected physical-X cells are NEVER declared oracle-valid.
-    moment = moment_from_hessians(hh, weights)
     return moment, coverage, {
         "source": "generating_formula", "target": target,
         "points": len(selected_points), "boundary_policy": boundary_policy,

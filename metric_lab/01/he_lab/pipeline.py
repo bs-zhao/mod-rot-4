@@ -7,11 +7,11 @@ from pathlib import Path
 import time
 import numpy as np
 from .sources import load_sources, load_rotations, output_base, sha256
-from .measures import evaluation_points, training_indices
+from .measures import evaluation_points, training_indices, PointSet
 from .energy import HEResult, result_from_moment, moment_from_hessians
-from .oracle import oracle_base_moment
+from .oracle import oracle_base_moment, validity
 from .decoder import Decoder, finite_difference_hessians
-from .derivatives import hessians
+from .derivatives import hessians, moment_hessians
 from .estimators import REGISTRY, estimate_wy
 from .metrics import compute_metrics
 
@@ -33,7 +33,8 @@ def _read_json(path):
 
 def _id(args, src):
     config = {k: getattr(args,k) for k in ("n_eval","latent_draws","fit_rows",
-              "seed","boundary_policy","degree","max_centers","neighbors","measure")}
+              "seed","boundary_policy","degree","max_centers","neighbors","measure",
+              "finite_step","chunk","max_rotations")}
     config.update(dataset_sha=sha256(src.dataset_file),
                   latent_sha=sha256(src.latent_file),
                   checkpoint_sha=sha256(src.checkpoint_file))
@@ -65,8 +66,19 @@ def _rotations(src,args,variant):
 
 
 def _points(src,args,source):
-    return evaluation_points(src,source=source,measure=args.measure,
+    pts = evaluation_points(src,source=source,measure=args.measure,
             n_eval=args.n_eval,seed=args.seed+111,latent_draws=args.latent_draws)
+    if args.boundary_policy == "interior" and src.model.startswith("CR"):
+        # The same domain restriction MUST apply to Oracle and inference.
+        # Filtering only the oracle would compare different target measures.
+        keep = validity(src.model, pts).all(axis=(1, 2))
+        if not np.any(keep):
+            raise ValueError("No fully interior CPT evaluation points")
+        pts = PointSet(pts.latent[keep],pts.x[keep],pts.weights[keep],
+                       pts.name,pts.source,
+                       {**pts.meta,"boundary_policy":"interior",
+                        "kept":int(keep.sum()),"removed":int((~keep).sum())})
+    return pts
 
 
 def _base_cache(root,source,method,target,args):
@@ -97,14 +109,19 @@ def _get_nn_moment(root,src,args,decoder,method,target):
     base=np.column_stack((pts.latent,pts.x))
     fn=lambda v: decoder.scalar(v,target)
     if method=="nn_autograd":
-        hh=hessians(fn,base,chunk=args.chunk)
+        moment=moment_hessians(fn,base,weights=pts.weights,chunk=args.chunk)
     elif method=="nn_finite_difference":
         typical=np.r_[np.maximum(src.z.std(0),1e-5),src.x_std]
-        hh=finite_difference_hessians(fn,base,
-                        steps=args.finite_step*np.maximum(typical,1e-5))
+        steps=args.finite_step*np.maximum(typical,1e-5)
+        d=base.shape[1]
+        accumulation=np.zeros((d*d,d*d),dtype=float)
+        for start in range(0,len(base),args.chunk):
+            hh=finite_difference_hessians(fn,base[start:start+args.chunk],steps)
+            hf=hh.reshape(len(hh),d*d)
+            accumulation += hf.T @ (pts.weights[start:start+len(hh),None]*hf)
+        moment=accumulation/pts.weights.sum()
     else:
         raise ValueError(method)
-    moment=moment_from_hessians(hh,pts.weights)
     cache.parent.mkdir(parents=True,exist_ok=True)
     np.savez_compressed(cache,moment=moment)
     meta={"source":"frozen_decoder","measure":args.measure,

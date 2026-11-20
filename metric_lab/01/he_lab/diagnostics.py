@@ -62,14 +62,19 @@ def diagnose(root,variant,rotations,selected_metrics):
             sr=float(spearmanr(a,b).statistic)
         else:
             pr=sr=float("nan")
+        good_ids=[x for x,valid in zip(overlap,good) if valid]
+        # Energy totals are descriptive, not inherently "smaller is better".
+        maximizing=metric.endswith((".hoyer",".hhi",".top_k_mass"))
+        directed=(maximizing or metric.endswith((".entropy",".effective_n",
+                   ".tail_l1",".tail_l2",".self_tail_q1")))
+        pick=(np.argmax if maximizing else np.argmin)
+        oracle_best=(good_ids[int(pick(a))] if directed and len(a) else "")
+        inference_best=(good_ids[int(pick(b))] if directed and len(b) else "")
         correlations.append(dict(method=method,y_name=y_name,metric=metric,
             target=target,n_unique_rotations=len(a),pearson_r=pr,spearman_r=sr,
             rmse=float(np.sqrt(np.mean((a-b)**2))) if len(a) else float("nan"),
             mae=float(np.mean(abs(a-b))) if len(a) else float("nan"),
-            oracle_best_id=(overlap[int(np.nanargmin(np.array([truth[x] for x in overlap])))]
-                            if overlap and all(np.isfinite(truth[x]) for x in overlap) else ""),
-            inference_best_id=(overlap[int(np.nanargmin(np.array([vals[x] for x in overlap])))]
-                               if overlap and all(np.isfinite(vals[x]) for x in overlap) else "")))
+            oracle_best_id=oracle_best,inference_best_id=inference_best))
     dest=root/"diagnostics"/variant
     cols=("method","y_name","metric","target","n_unique_rotations","pearson_r",
           "spearman_r","rmse","mae","oracle_best_id","inference_best_id")
