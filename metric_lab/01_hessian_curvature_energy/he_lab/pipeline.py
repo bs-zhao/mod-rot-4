@@ -222,6 +222,7 @@ def run_infer(args):
                                 dim_u=src.latent_dim,target=target,
                                 rotation_id=rotation.name,measure=args.measure,
                                 chunk=args.chunk,relative_step=args.finite_step,
+                                degree=args.degree,binary=binary,
                                 reference_moment=reference_moment,
                                 reference_jacobian=full_jacobian(
                                     rotation.jacobian("nn"),src.x_dim))

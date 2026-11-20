@@ -137,13 +137,15 @@ result = infer_he("nn_autograd",W,Y,mlp,
                   target="probability")
 ```
 
-Algorithm files: `autograd.py`, `finite_difference.py`.
+Algorithm files: `autograd.py`, `finite_difference.py`, `residual_polynomial.py`.
 `adapter.py` maps W=[U,Xraw] to the S3 frozen decoder's inputs.
 `reference_moments.py` optionally amortizes exact Hessian moments across
 the entire R sweep; direct W-space estimation also works without cache.
-**Current MLP methods do not retrain on Y**: Y is included in the uniform
-function signature for later methods that may use W,Y+MLP jointly. This is
-recorded in metadata, not hidden.
+Autograd and finite differences do **not** refit to Y. By contrast,
+`nn_residual_polynomial` uses W,Y and the frozen MLP: it fits a polynomial
+correction to MLP predictions (logistic correction for choice), differentiates
+the corrected smooth function and returns its HE. The original MLP weights
+remain frozen in every method.
 
 ### C. `he_lab/he_metrics/` — HE matrix to scalar indices
 

@@ -4,10 +4,11 @@ Each method file exposes estimate_he(W,Y,mlp,*,eval_W,weights,dim_u,target,...)
 returning an HEResult. Functions may use Y to fit a calibrated residual model;
 current autograd/finite-difference algorithms intentionally do NOT refit Y.
 """
-from . import autograd,finite_difference
+from . import autograd,finite_difference,residual_polynomial
 METHODS={
  "nn_autograd":autograd.estimate_he,
  "nn_finite_difference":finite_difference.estimate_he,
+ "nn_residual_polynomial":residual_polynomial.estimate_he,
 }
 def register_method(name,fn):
     if not name.startswith("nn_") or name in METHODS or not callable(fn):

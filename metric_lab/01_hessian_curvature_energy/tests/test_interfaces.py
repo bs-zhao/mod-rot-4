@@ -28,7 +28,7 @@ class Contracts(unittest.TestCase):
 
     def test_every_family_algorithm_is_a_function(self):
         self.assertEqual(set(WY),{"wy_polynomial","wy_local_quadratic","wy_kernel_ridge"})
-        self.assertEqual(set(MLP),{"nn_autograd","nn_finite_difference"})
+        self.assertEqual(set(MLP),{"nn_autograd","nn_finite_difference","nn_residual_polynomial"})
         for fn in (*WY.values(),*MLP.values()):
             self.assertTrue(callable(fn))
 
@@ -55,6 +55,19 @@ class Contracts(unittest.TestCase):
                         relative_step=1e-3)
             np.testing.assert_allclose(x.M,[[1,1],[1,0]],atol=1e-5)
             self.assertFalse(x.meta["uses_Y_for_fit"])
+
+    def test_residual_mlp_actually_uses_y(self):
+        """Unlike autograd, this method should change HE when Y changes."""
+        model=QuadraticFrozenMLP()
+        x=infer_mlp("nn_residual_polynomial",self.W,self.Y,model,
+                    eval_W=self.eval,weights=self.weights,dim_u=1,
+                    target="logit",degree=2,alpha=1e-6)
+        modified_y=self.Y+0.8*self.W[:,0]**2
+        y=infer_mlp("nn_residual_polynomial",self.W,modified_y,model,
+                    eval_W=self.eval,weights=self.weights,dim_u=1,
+                    target="logit",degree=2,alpha=1e-6)
+        self.assertGreater(float(y.M[0,0]),float(x.M[0,0])+0.5)
+        self.assertTrue(x.meta["uses_Y_for_fit"])
 
     def test_metric_is_an_independent_function_with_registry(self):
         scores=compute_metrics(np.array([[1.,2.],[2.,0.]]),1,top_k=1)
