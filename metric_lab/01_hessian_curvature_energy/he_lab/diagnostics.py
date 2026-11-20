@@ -5,6 +5,7 @@ import math
 from pathlib import Path
 import numpy as np
 from scipy.stats import pearsonr, spearmanr
+from .he_metrics.registry import metric_direction
 
 
 def _rows(path):
@@ -64,9 +65,9 @@ def diagnose(root,variant,rotations,selected_metrics):
             pr=sr=float("nan")
         good_ids=[x for x,valid in zip(overlap,good) if valid]
         # Energy totals are descriptive, not inherently "smaller is better".
-        maximizing=metric.endswith((".hoyer",".hhi",".top_k_mass"))
-        directed=(maximizing or metric.endswith((".entropy",".effective_n",
-                   ".tail_l1",".tail_l2",".self_tail_q1")))
+        direction=metric_direction(metric)
+        maximizing=(direction=="maximize")
+        directed=(direction!="descriptive")
         pick=(np.argmax if maximizing else np.argmin)
         oracle_best=(good_ids[int(pick(a))] if directed and len(a) else "")
         inference_best=(good_ids[int(pick(b))] if directed and len(b) else "")

@@ -150,4 +150,4 @@ def load_rotations(src, variant):
 
 def output_base(src):
     # Use the existing complete NN run-relative path; no re-computation of conditions.
-    return ROOT / "outputs" / "metric_lab" / "01" / src.model / src.run_dir.parent.name / src.run_dir.name
+    return ROOT / "outputs" / "metric_lab" / "01_hessian_curvature_energy" / src.model / src.run_dir.parent.name / src.run_dir.name

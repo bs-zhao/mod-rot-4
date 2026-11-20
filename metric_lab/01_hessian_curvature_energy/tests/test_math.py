@@ -10,8 +10,8 @@ from he_lab.coordinates import Rotation,full_jacobian
 from he_lab.energy import moment_from_hessians,transform_moment,result_from_moment
 from he_lab.oracle import oracle_scalar
 from he_lab.derivatives import hessians
-from he_lab.metrics import compute_metrics
-from he_lab.estimators import _poly_terms,polynomial_hessians
+from he_lab.he_metrics import compute_metrics
+from he_lab.inference_wy.polynomial import _poly_terms,polynomial_hessians
 
 
 def rotation(k=2):
