@@ -58,8 +58,13 @@ class PipelineFixture(unittest.TestCase):
                 ("s9_2","s9_2_rotation_sweep","s8_2_supervised_rotation")):
                 s8=run_dir/oracle
                 s8.mkdir(parents=True)
-                np.savez_compressed(s8/"rotation.npz",R_star=np.eye(4),
+                oracle_data=dict(R_star=np.eye(4),
                     t_train_mean=np.zeros(4),t_train_std=np.ones(4))
+                if variant=="s9_2":
+                    # Real S8_2 stores its all-subject standardizer here.
+                    oracle_data.update(global_z_mean=z.mean(0),
+                                       global_z_std=z.std(0,ddof=0))
+                np.savez_compressed(s8/"rotation.npz",**oracle_data)
                 stage_dir=run_dir/stage
                 (stage_dir/"rotations"/"baseline").mkdir(parents=True)
                 (stage_dir/"rotations"/"k02").mkdir(parents=True)
