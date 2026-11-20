@@ -71,10 +71,18 @@ class PipelineFixture(unittest.TestCase):
                     ("sweep","1,2",15,givens,"rotations/k02/axes_01_02__deg_015.npz"),
                 ]
                 for candidate_type,axes,angle,r,path in cases:
-                    np.savez_compressed(stage_dir/path,R=r,delta_R=r,
-                        global_z_mean=mean,global_z_std=std)
-                    rows.append(dict(candidate_type=candidate_type,axes_1based=axes,
-                        angle_degrees=angle,rotation_file=path))
+                    if variant=="s9":
+                        # Historical pre-baseline, pre-normalizer S9 artifact:
+                        # only sweep candidates were indexed.
+                        np.savez_compressed(stage_dir/path,R=r,delta_R=r)
+                        if candidate_type=="sweep":
+                            rows.append(dict(axes_1based=axes,
+                                angle_degrees=angle,rotation_file=path))
+                    else:
+                        np.savez_compressed(stage_dir/path,R=r,delta_R=r,
+                            global_z_mean=mean,global_z_std=std)
+                        rows.append(dict(candidate_type=candidate_type,axes_1based=axes,
+                            angle_degrees=angle,rotation_file=path))
                 with (stage_dir/"rotation_index.csv").open("w",newline="") as f:
                     writer=csv.DictWriter(f,fieldnames=list(rows[0]))
                     writer.writeheader()

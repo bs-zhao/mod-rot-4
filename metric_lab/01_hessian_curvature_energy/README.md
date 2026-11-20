@@ -162,3 +162,18 @@ function registration in `registry.py`.
 The pipeline dispatches ONLY through the two HE registries and the one metric
 registry. **Oracle remains outside both inference families**. All old
 `metric_lab/01` implementation files are removed after this migration.
+
+## Backward-compatible S9/S9_2 loading (legacy artifact fix)
+
+`sources.load_rotations()` detects original S9 outputs produced before
+`candidate_type` and the `baseline_unswept` index row existed. If absent,
+it adds a first-class baseline R* **in memory** (no upstream writes). Original
+S9 is always raw-Z (`mu_Z=0, sd_Z=1`), even when the legacy sweep NPZ omits
+these fields. In contrast, S9_2 always loads its actual mean and std from the
+corresponding S8_2 `rotation.npz`, checks them against S5 subject Z, and
+rejects incompatible stored values. Existing modern sweep files remain valid.
+
+Legacy detection prints a `[ROTATION COMPAT]` line. It does **not** silently
+replace an unknown S9_2 normalizer with identity, nor does it change any S9
+rotations or rewrite original files. Regression tests include an end-to-end
+pipeline using a pre-baseline legacy S9 index and modern S9_2 artifacts.
