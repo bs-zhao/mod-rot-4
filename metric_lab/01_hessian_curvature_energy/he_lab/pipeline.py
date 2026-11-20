@@ -8,15 +8,17 @@ import time
 import numpy as np
 from .sources import load_sources, load_rotations, output_base, sha256
 from .measures import evaluation_points, training_indices, PointSet
-from .energy import HEResult, result_from_moment, moment_from_hessians
+from .energy import HEResult, result_from_moment
 from .oracle import oracle_base_moment, validity
-from .decoder import Decoder, finite_difference_hessians
-from .derivatives import hessians, moment_hessians
-from .estimators import REGISTRY, estimate_wy
-from .metrics import compute_metrics
+from .decoder import Decoder
+from .coordinates import full_jacobian
+from .inference_wy import METHODS as WY_METHODS, infer_he as infer_wy
+from .inference_wy_mlp import METHODS as MLP_METHODS, infer_he as infer_mlp, FrozenWMLP
+from .inference_wy_mlp.reference_moments import estimate_reference_moment
+from .he_metrics import compute_metrics
 
 Y_NAMES = ("true_choice", "nn_choice", "nn_probability", "nn_logit")
-METHODS = ("nn_autograd", "nn_finite_difference", *REGISTRY.keys())
+METHODS = (*MLP_METHODS.keys(), *WY_METHODS.keys())
 
 
 def _json(path, data):
@@ -47,7 +49,7 @@ def _context(args):
     tag, cfg = _id(args,src)
     root = output_base(src)/tag
     _json(root/"run_config.json",dict(config=cfg,run_dir=str(src.run_dir),
-          model=args.model,version="metric_lab_01_v1",
+          model=args.model,version="metric_lab_01_modular_v2",
           note="S1-S9 artifacts are read-only; ideal T-space oracle vs actual learned U"))
     return src,root
 
@@ -101,31 +103,19 @@ def _get_oracle_moment(root,src,args,target):
 
 
 def _get_nn_moment(root,src,args,decoder,method,target):
+    """Cache original Z/X Hessian moments, never a pre-squared rotated HE."""
     cache=_base_cache(root,"nn",method,target,args)
     if cache.exists():
         with np.load(cache,allow_pickle=False) as f:
             return f["moment"],{"cached":True}
     pts=_points(src,args,"nn")
-    base=np.column_stack((pts.latent,pts.x))
-    fn=lambda v: decoder.scalar(v,target)
-    if method=="nn_autograd":
-        moment=moment_hessians(fn,base,weights=pts.weights,chunk=args.chunk)
-    elif method=="nn_finite_difference":
-        typical=np.r_[np.maximum(src.z.std(0),1e-5),src.x_std]
-        steps=args.finite_step*np.maximum(typical,1e-5)
-        d=base.shape[1]
-        accumulation=np.zeros((d*d,d*d),dtype=float)
-        for start in range(0,len(base),args.chunk):
-            hh=finite_difference_hessians(fn,base[start:start+args.chunk],steps)
-            hf=hh.reshape(len(hh),d*d)
-            accumulation += hf.T @ (pts.weights[start:start+len(hh),None]*hf)
-        moment=accumulation/pts.weights.sum()
-    else:
-        raise ValueError(method)
+    moment=estimate_reference_moment(decoder,pts,method=method,target=target,
+        chunk=args.chunk,step=args.finite_step,
+        z_scale=np.maximum(src.z.std(axis=0),1e-5),x_scale=src.x_std)
     cache.parent.mkdir(parents=True,exist_ok=True)
     np.savez_compressed(cache,moment=moment)
     meta={"source":"frozen_decoder","measure":args.measure,
-          "target":target,"pointset":pts.meta,"n":len(base),"method":method}
+          "target":target,"pointset":pts.meta,"n":len(pts.latent),"method":method}
     _json(cache.with_suffix(".json"),meta)
     return moment,meta
 
@@ -192,55 +182,80 @@ def _prepared(root):
 
 
 def run_infer(args):
+    """Pass only W,Y (plus frozen MLP for that family) to independent registries."""
     src,root=_context(args)
     prepared=_prepared(root)
-    methods=METHODS if args.methods=="all" else tuple(s.strip() for s in args.methods.split(","))
-    unknown=set(methods)-set(METHODS)
+    all_methods=(*MLP_METHODS.keys(),*WY_METHODS.keys())
+    methods=all_methods if args.methods=="all" else tuple(
+        m.strip() for m in args.methods.split(",") if m.strip())
+    unknown=set(methods)-set(all_methods)
     if unknown:
         raise ValueError(f"Unknown inference methods: {unknown}")
     if not methods:
         raise ValueError("No inference methods specified")
-    needs_decoder=any(m.startswith("nn_") for m in methods)
-    decoder=Decoder(src) if needs_decoder else None
+    decoder=Decoder(src) if any(m in MLP_METHODS for m in methods) else None
     eval_nn=_points(src,args,"nn")
+    idx=prepared["row_index"]
     errors=[]
     for variant in _variants(args):
         rotations=_rotations(src,args,variant)
-        # Shared NN base Hessian moment: independently calculated per target,
-        # rotated algebraically for every R. No true generating T is read.
         nn_cache={}
+        # Only two methods are exact reference-moment transforms. A fitted
+        # W,Y+MLP correction is rotation-specific and must evaluate directly.
         for method in methods:
-            if method.startswith("nn_"):
+            if method in ("nn_autograd","nn_finite_difference"):
                 for target in ("logit","probability"):
                     nn_cache[(method,target)]=_get_nn_moment(
                         root,src,args,decoder,method,target)
-        total=len(rotations)*len(Y_NAMES)*len(methods)
-        done=0
-        for rotation in rotations:
+        for n,rotation in enumerate(rotations,1):
+            W=np.column_stack((rotation.z_to_u(src.z[src.subject_ids[idx]]),src.x[idx]))
+            eval_W=np.column_stack((rotation.z_to_u(eval_nn.latent),eval_nn.x))
+            trained=FrozenWMLP(decoder,rotation) if decoder is not None else None
             for method in methods:
                 for y_name in Y_NAMES:
+                    Y=prepared[y_name]
                     target="logit" if y_name=="nn_logit" else "probability"
+                    binary=y_name.endswith("choice")
                     try:
-                        if method.startswith("nn_"):
-                            moment,meta=nn_cache[(method,target)]
-                            result=result_from_moment(moment,rotation,src.x_dim,
-                                "nn",target,args.measure,method,
-                                meta={**meta, "y_name":y_name,
-                                      "warning":"Frozen pretrained decoder does not refit to the selected Y variant"})
+                        if method in MLP_METHODS:
+                            optional={}
+                            if method in ("nn_autograd","nn_finite_difference"):
+                                reference_moment,meta=nn_cache[(method,target)]
+                                optional["reference_moment"]=reference_moment
+                                optional["reference_jacobian"]=full_jacobian(
+                                    rotation.jacobian("nn"),src.x_dim)
+                            else:
+                                meta={"source":"frozen_decoder_plus_WY",
+                                      "method":method,"y_name":y_name}
+                            result=infer_mlp(method,W,Y,trained,
+                                eval_W=eval_W,weights=eval_nn.weights,
+                                dim_u=src.latent_dim,target=target,
+                                rotation_id=rotation.name,measure=args.measure,
+                                chunk=args.chunk,relative_step=args.finite_step,
+                                degree=args.degree,binary=binary,
+                                **optional)
+                            result.meta.update(meta)
+                            result.meta["y_name"]=y_name
+                            if method in ("nn_autograd","nn_finite_difference"):
+                                result.meta["warning"]="Frozen MLP not refit to Y"
                         else:
-                            result=estimate_wy(method,rotation,src,prepared,
-                                eval_nn,y_name,args.measure,
-                                degree=args.degree,max_centers=args.max_centers,
-                                neighbors=args.neighbors,seed=args.seed)
-                        _save_he(root,variant,"inference",method,y_name,
-                                 rotation,result)
+                            result=infer_wy(method,W,Y,
+                                eval_W=eval_W,weights=eval_nn.weights,
+                                dim_u=src.latent_dim,target=target,
+                                binary=binary,degree=args.degree,
+                                max_centers=args.max_centers,
+                                neighbors=args.neighbors,seed=args.seed,
+                                rotation_id=rotation.name,measure=args.measure)
+                            result.meta["y_name"]=y_name
+                            result.meta["evaluation_meta"]=eval_nn.meta
+                        _save_he(root,variant,"inference",method,y_name,rotation,result)
                     except (ValueError,ArithmeticError,np.linalg.LinAlgError) as exc:
-                        errors.append(dict(variant=variant,method=method,y_name=y_name,
-                                      rotation=rotation.name,error=str(exc)))
-                    done+=1
-            print(f"[INFER] {variant} rotation {rotation.name}: {done}/{total}",flush=True)
-        print(f"[INFER] {variant}: {done} attempted, {len(errors)} cumulative failures")
+                        errors.append(dict(variant=variant,method=method,
+                            y_name=y_name,rotation=rotation.name,error=str(exc)))
+            print(f"[INFER] {variant}: {n}/{len(rotations)} rotations",flush=True)
     _json(root/"inference_failures.json",errors)
+    if errors:
+        print(f"[INFER] {len(errors)} errors recorded in inference_failures.json",flush=True)
     return root
 
 

@@ -1,4 +1,4 @@
-"""CLI for independent metric_lab/01 experiment; run from repo root."""
+"""CLI for independent metric_lab/01_hessian_curvature_energy experiment; run from repo root."""
 import argparse
 from he_lab.pipeline import run, METHODS
 

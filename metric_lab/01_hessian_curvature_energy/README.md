@@ -1,6 +1,6 @@
 # Metric Lab 01 — Mean-Squared Hessian Curvature Energy (HE)
 
-Independent experiment for [mod-rot-4](../../README.md) and the [HE mathematical specification](../../docs/01_metrics/01_hessian_mean_squared_curvature_energy.md). This code reads upstream assets; **it never modifies S1–S9**, or saves into their directories. Outputs are written to `outputs/metric_lab/01/<MODEL>/<NN condition>/<repeat>/<experiment tag>/`.
+Independent experiment for [mod-rot-4](../../README.md) and the [HE mathematical specification](../../docs/01_metrics/01_hessian_mean_squared_curvature_energy.md). This code reads upstream assets; **it never modifies S1–S9**, or saves into their directories. Outputs are written to `outputs/metric_lab/01_hessian_curvature_energy/<MODEL>/<NN condition>/<repeat>/<experiment tag>/`.
 
 ## Two *strictly separate* scientific paths
 
@@ -49,30 +49,30 @@ Install in your existing `py11` environment:
 ```bat
 conda activate py11
 cd /d D:\Projects\rotation\mod-rot-4
-python -m pip install -r metric_lab/01/requirements.txt
+python -m pip install -r metric_lab/01_hessian_curvature_energy/requirements.txt
 ```
 
 Use the **exact** existing NN run directory (its condition string is hashed by S3; do not guess it):
 
 ```bat
-python metric_lab/01/run.py --model CR3 --run-dir "outputs/nn/CR3/YOUR_CONDITION/repeat01" --stage validate --variant s9
-python metric_lab/01/run.py --model CR3 --run-dir "outputs/nn/CR3/YOUR_CONDITION/repeat01" --stage all --variant both --methods nn_autograd,wy_polynomial,wy_kernel_ridge
+python metric_lab/01_hessian_curvature_energy/run.py --model CR3 --run-dir "outputs/nn/CR3/YOUR_CONDITION/repeat01" --stage validate --variant s9
+python metric_lab/01_hessian_curvature_energy/run.py --model CR3 --run-dir "outputs/nn/CR3/YOUR_CONDITION/repeat01" --stage all --variant both --methods nn_autograd,wy_polynomial,wy_kernel_ridge
 ```
 
 Separate stages can be rerun:
 
 ```bat
-python metric_lab/01/run.py --model C1 --run-dir "outputs/nn/C1/YOUR_CONDITION/repeat01" --stage oracle
-python metric_lab/01/run.py --model C1 --run-dir "outputs/nn/C1/YOUR_CONDITION/repeat01" --stage prepare
-python metric_lab/01/run.py --model C1 --run-dir "outputs/nn/C1/YOUR_CONDITION/repeat01" --stage infer --methods all
-python metric_lab/01/run.py --model C1 --run-dir "outputs/nn/C1/YOUR_CONDITION/repeat01" --stage metrics
-python metric_lab/01/run.py --model C1 --run-dir "outputs/nn/C1/YOUR_CONDITION/repeat01" --stage diagnose
+python metric_lab/01_hessian_curvature_energy/run.py --model C1 --run-dir "outputs/nn/C1/YOUR_CONDITION/repeat01" --stage oracle
+python metric_lab/01_hessian_curvature_energy/run.py --model C1 --run-dir "outputs/nn/C1/YOUR_CONDITION/repeat01" --stage prepare
+python metric_lab/01_hessian_curvature_energy/run.py --model C1 --run-dir "outputs/nn/C1/YOUR_CONDITION/repeat01" --stage infer --methods all
+python metric_lab/01_hessian_curvature_energy/run.py --model C1 --run-dir "outputs/nn/C1/YOUR_CONDITION/repeat01" --stage metrics
+python metric_lab/01_hessian_curvature_energy/run.py --model C1 --run-dir "outputs/nn/C1/YOUR_CONDITION/repeat01" --stage diagnose
 ```
 
 **All S9/S9_2 rotations**, including the independent unswept baseline, are analyzed by default. A cheap initial end-to-end smoke run:
 
 ```bat
-python metric_lab/01/run.py --model C1 --run-dir "outputs/nn/C1/YOUR_CONDITION/repeat01" --stage all --variant s9 --max-rotations 4 --fit-rows 256 --n-eval 32 --latent-draws 2 --methods nn_autograd,wy_polynomial
+python metric_lab/01_hessian_curvature_energy/run.py --model C1 --run-dir "outputs/nn/C1/YOUR_CONDITION/repeat01" --stage all --variant s9 --max-rotations 4 --fit-rows 256 --n-eval 32 --latent-draws 2 --methods nn_autograd,wy_polynomial
 ```
 
 For CR3/CR5 with `--measure theory_x`, `--latent-draws 16` evaluates 16×500 = 8,000 paired input points **in both** the ideal T prior and Gaussian Z measures; torch Hessians on such grids can take substantial CPU/GPU time. Start with `--latent-draws 2`, use `--chunk 16` to bound memory, then increase to test convergence. Use `--boundary-policy interior` only when your research question explicitly changes to the interior-domain estimand.
@@ -82,7 +82,7 @@ For CR3/CR5 with `--measure theory_x`, `--latent-draws 16` evaluates 16×500 = 8
 ## Output format
 
 ```text
-outputs/metric_lab/01/<MODEL>/<condition>/<repeat>/<eval+fit+hash>/
+outputs/metric_lab/01_hessian_curvature_energy/<MODEL>/<condition>/<repeat>/<eval+fit+hash>/
   run_config.json
   validation/smoke.json
   prepared/responses.npz + responses.json
@@ -104,3 +104,61 @@ HE NPZ includes M, M_UU, M_UX, M_XX, RMS, valid mask and dim_u. Each has matchin
 - Changing evaluation measure changes the estimand. Do not regard Gaussian Z with fitted covariance as an exact representation of T's true prior; or marginally re-fit independent U distributions per angle.
 - An estimator fitting W,Y does not have access to T, the analytical generator or oracle H. This implementation intentionally does not auto-tune hyperparameters using oracle results. The immediate goal is descriptive metric-landscape comparison, not leakage-free claims about generalization.
 - Add new W,Y estimators to `he_lab/estimators.py:REGISTRY`, new metrics to `he_lab/metrics.py`, and preserve the common HEResult interface. Add independent future experiments as `metric_lab/02`, not by importing implementation from `01`.
+
+
+## Three independently extensible function modules
+
+The HE pipeline now has three **real algorithm folders**, each with a registry
+and **one named function per algorithm**, rather than the previous monolithic
+`estimators.py` and `metrics.py`.
+
+### A. `he_lab/inference_wy/` — only W,Y
+
+```python
+from he_lab.inference_wy import infer_he,register_method
+result = infer_he("wy_polynomial", W, Y,
+                  eval_W=W_eval, weights=q_weights, dim_u=dim_u,
+                  target="probability", binary=True, degree=3)
+# result.M is [dimW,dimW], in W=[U,Xraw] physical coordinates
+```
+
+Method files: `polynomial.py`, `kernel_ridge.py`, `local_quadratic.py`.
+Each defines `estimate_he(W,Y, *, eval_W,weights,dim_u,target,...)->HEResult`.
+Neither a generating formula nor a trained MLP can be accessed by this API.
+A new method is a new file plus `register_method(name, function)`.
+
+### B. `he_lab/inference_wy_mlp/` — W,Y + frozen trained MLP
+
+```python
+from he_lab.inference_wy_mlp import infer_he,FrozenWMLP
+mlp = FrozenWMLP(frozen_decoder,rotation)
+result = infer_he("nn_autograd",W,Y,mlp,
+                  eval_W=W_eval,weights=q_weights,dim_u=dim_u,
+                  target="probability")
+```
+
+Algorithm files: `autograd.py`, `finite_difference.py`, `residual_polynomial.py`.
+`adapter.py` maps W=[U,Xraw] to the S3 frozen decoder's inputs.
+`reference_moments.py` optionally amortizes exact Hessian moments across
+the entire R sweep; direct W-space estimation also works without cache.
+Autograd and finite differences do **not** refit to Y. By contrast,
+`nn_residual_polynomial` uses W,Y and the frozen MLP: it fits a polynomial
+correction to MLP predictions (logistic correction for choice), differentiates
+the corrected smooth function and returns its HE. The original MLP weights
+remain frozen in every method.
+
+### C. `he_lab/he_metrics/` — HE matrix to scalar indices
+
+```python
+from he_lab.he_metrics import compute_metrics,register_metric
+scores = compute_metrics(result.M,dim_u=dim_u,top_k=1)
+register_metric("my_index",my_metric_function,direction="minimize")
+```
+
+Individual functions are in `energy.py`, `sparsity.py`, and
+`structure.py`, with shared named UU/UX/XX scopes in `scopes.py` and
+function registration in `registry.py`.
+
+The pipeline dispatches ONLY through the two HE registries and the one metric
+registry. **Oracle remains outside both inference families**. All old
+`metric_lab/01` implementation files are removed after this migration.
