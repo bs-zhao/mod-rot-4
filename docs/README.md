@@ -1,4 +1,4 @@
-# 平均平方 Hessian 曲率能量：数学定义与仅从输入–输出数据估计的算法综述
+# 平均平方 Hessian 曲率能量：数学定义、三大类估计方法与结构指标
 
 **研究对象：** 逐元素平均平方 Hessian（elementwise expected squared Hessian / mean-squared second-derivative energy）
 
@@ -10,7 +10,7 @@ $$
 \right]}
 $$
 
-**文档定位：** 研究备忘录 / 文献综述 / 后续盲矩阵实验的设计依据；**不是已实现的 S1–S9 模块**。这里的 *infer* 指只能使用给定输入矩阵与输出向量拟合或直接估计此泛函，而不是读取真实解析函数或 oracle Hessian。
+**文档定位：** 研究备忘录 / 文献综述 / 后续盲矩阵实验的设计依据；**不是已实现的 S1–S9 模块**。这里的 *infer* 现分为三种信息条件：①已有训练好的 MLP；②仅有 WY，先拟合近似函数；③仅有 WY，直接构造能量统计量，不拟合任何函数。任何类别都不得将真实生成解析函数或 oracle Hessian 当成盲估计输入。
 
 **项目关联：** [项目总览](../README.md)；[模型定义与 S1–S2](../models/README.md)；[NP、S5 的 Z 和 S8/S9 旋转](../nn/README.md)。
 
@@ -186,271 +186,67 @@ $$
 
 ---
 
-# Part II. 仅凭输入–输出矩阵推断 $M_{ij}$ 的方法综述
+# Part II. 三大类：已有 MLP、WY 拟合近似函数、WY 直接估计能量
 
-## 7. 问题分类与通用估计模板
+本部分严格按照**是否拥有训练好的网络**、**仅有 WY 时是否还需要拟合函数**来分类。三类共享 Part I 的指标定义，但信息条件和估计误差不同：
 
-设唯一可用信息是 $W\in\mathbb R^{N\times d}$、$Y\in\mathbb R^N$ 或 $Y\in\{0,1\}^N$、被试/组 ID（如果存在）。没有真函数、oracle 参数或可额外调用的生成器。
+| 大类 | 输入与访问权限 | 要不要先拟合函数？ | 实际对象 |
+|---|---|---|---|
+| **1. 基于已有 MLP** | 已训练好的、可前向查询/可微分的 $\widehat f_\theta(W)$ | B1–B10 **不需要重新拟合**（B11/B12 是可选训练扩展） | 网络本身的 $\mathbb E[(\partial_{ij}\widehat f_\theta)^2]$；真函数仍需验证 |
+| **2. 仅有 WY，先拟合近似函数** | 固定的 $W,Y$，无现成可调用网络 | **需要**：局部曲面、样条、GP、KRR、从头训练 MLP、sieve 等 | 通过拟合函数的导数间接估计条件均值函数的曲率 |
+| **3. 仅有 WY，直接算能量** | 固定的 $W,Y$，无现成网络 | **严格不拟合任何 $\widehat f$ 或函数系数** | 基于成对样本、已知测度/测试函数或严格匹配设计的二次泛函 |
 
-最一般的 **plug-in 路线** 是：
+**界线：** “不显式输出函数曲线”并不等于“没有拟合函数”。拟合 $\widehat\beta$ 构造 $\widehat f=\sum_k\widehat\beta_k\phi_k$，即使直接计算 $\widehat\beta^\top G\widehat\beta$，仍属于**第二类**。若用独立观测对直接形成 U-statistic，不拟合 $\widehat f$ 或 $\widehat\beta$，才是**第三类**。
 
-$$
-\mathcal D_{\mathrm{fit}}\longrightarrow\widehat f
-\longrightarrow
-\widehat H_{ij}(w)
-\longrightarrow
-\widehat M_{ij}^{\mathrm{plug}}
-=\frac{\sum_{n\in\mathcal E}\omega_n[\partial_{ij}\widehat f(w_n)]^2}
-{\sum_{n\in\mathcal E}\omega_n},
-\tag{8}
-$$
+这三类都必须说明输出是连续条件均值、二元选择概率还是 logit。固定样本 $Y\in\{0,1\}$ 对应可推断的基本目标是 $q(W)=P(Y=1\mid W)$；logit Hessian 是不同的非线性目标。数据区域存在边界和稀疏联合支持时，不能把函数在训练域外可计算等同于真实函数导数可识别。
 
-其中 $\mathcal E$ 是评估点集合，最好与训练样本分开，权重 $\omega_n$ 实现指定 $P_W$。严格说数据中只有带噪声 Y 时，$\widehat f$ 的二阶导数一般存在系统误差。
+## 7. 三类共同的比较规则与项目接口
 
-如果 $\widehat H_{ij}=H_{ij}+b_{ij}+\xi_{ij}$，那么
+### 7.1 通用误差验证 / oracle-blind 隔离
 
-$$
-\mathbb E[\widehat H_{ij}^2]
-=(H_{ij}+b_{ij})^2+\mathrm{Var}(\xi_{ij}),
-\tag{9}
-$$
+**合成数据的 oracle 导数与解析函数只用于最终评价；第二类和第三类不允许读取 oracle 来拟合或挑选方法。**
 
-因此 **“先估计导数再平方”通常有平方偏差和方差膨胀**。良好的 Y 预测不保证 $\widehat M$ 准确；尤其高频、局部和边界曲率可能被平滑惩罚抹掉。
+1. **固定目标：** 明确 $f$ 是 logit、概率还是其它连续输出；固定 $P_W$、坐标尺度、样本划分、积分权重。
+2. **构造 oracle：** 仅在合成模型有真函数时，先用解析 Hessian + 足够多的独立积分点算 $M_{ij}^{\mathrm{oracle}}$；对 CR4/CR5 遵守各自 X 分布。
+3. **严格区分路径：** 第一类冻结已有 MLP；第二类只能用 WY 拟合代理；第三类只能计算预先规定的直接统计量，不能训练函数/基函数系数。所有方法都不向 blind 路线泄露真 T/Hessian。
+4. **共同评估点：** 全算法在同一套参考 $W_{\mathrm{eval}}$ 估计 $\hat M$，避免采样误差伪装为算法差异。若选用训练之外的外部分布，必须检查 extrapolation/support。
+5. **原始矩阵准确度：** 记录 $\|\hat M-M\|_F$、逐元素绝对和相对误差、$\hat D=\sqrt{\max(\hat M,0)}$（若直接统计有负值，另留原始结果）、非零排序、对结构零单元的误报率。接近零的真实元素不能用相对误差除以零。
+6. **稀疏性保真：** 比较每行 top-$k$、tail-$L_2$、熵或归一化能量分布；矩阵整体相关高不等于零模式恢复得好。
+7. **rotation test：** 固定被试、固定物理函数与评估点，扫描二维 Givens 及一般 $k$ 维正交旋转；比较 oracle loss 曲线和 blind loss 曲线、排序一致性、最优解的角度误差；特别检查 UU 的 45° 双线性反例。
+8. **统计不确定性：** 对被试层做 bootstrap / grouped cross-fitting；不要把同一被试重复试次误认为独立个体 Z。报告种子和重复次数。
+9. **超参数稳定性：** 测试 spline df、核带宽、局部多项式带宽、多项式阶数、MLP 平滑、样本数与每人试次数；对 derivative metric 而不是仅 Y 预测作 sensitivity analysis。
+10. **复杂度和内存：** 记录 wall time、GPU/CPU 与峰值内存；在 $d=k+p$ 下完整 Hessian 是 $d\times d$，每种方法都必须给出可扩展方案。
 
-### 7.1 方法路线总表
+### 7.2 项目数据接口
 
-| ID | 算法家族 | 只给固定 W,Y 可用？ | 导数从何而来 | 主要优点 | 主要风险 |
-|---|---|---|---|---|---|
-| A1 | 局部二次 / 更高阶多项式回归 | 是 | 局部拟合的二次项 | 不假设全局解析式；局部直观 | 高维邻域稀疏、带宽敏感 |
-| A2 | 局部似然 / 局部 logistic 回归 | 是（choice） | 局部 logit 的二次项 | 直接针对 Bernoulli 的 logit Hessian | 分离、平滑和边界问题 |
-| A3 | Smoothing spline / tensor-product GAM / SS-ANOVA | 是 | 可微基函数解析导数 | 可正则化、可稀疏分解 | 基函数数目、交互截断偏差 |
-| A4 | 正交级数 / 多项式 sieve / PCE | 是 | 多项式解析导数 | 易生成矩阵与二次型 | 高阶多项式爆炸、分布错配 |
-| A5 | Kernel Ridge Regression (KRR) | 是 | 核的混合二阶导数 | 多维导数已有理论 | 核与正则化参数敏感 |
-| A6 | Gaussian Process regression / classification | 是 | 核导数的后验分布 | 有不确定性量化 | 高计算开销、先验敏感 |
-| A7 | Smooth MLP + 自动微分 | 是 | $\nabla^2\widehat f_\theta$ | 适合大量样本、高维非线性 | 函数拟合好不等于曲率拟合好 |
-| A8 | 直接二次泛函估计 / cross-fit sieve | 是，需额外假设 | 用基函数的导数 Gram 矩阵直接估 $M$ | 不必逐点评价全部 Hessian | 光滑度、截断和分布估计难 |
-| A9 | 弱形式 / RKHS 导数估计 | 是，需权重/边界假设 | 线性泛函、核表示或积分分部 | 能避免部分不稳定逐点导数 | 边界项、输入密度估计 |
-| A10 | 差分 / 局部配对估计 | 仅密集、成对或近网格数据才可用 | 有限差分 | 简单、易检验 | 普通稀疏随机设计不能直接用 |
-| A11 | 平滑版本的 MARS / 交互样条 | 是 | 分段多项式导数 | 自适应低阶交互 | 线性 hinge 的二阶导数几乎处处为 0 |
-| A12 | 多点模型查询的随机扰动导数估计 | **否，仅固定数据不够** | 新调用 $f(w+\delta)$ 等 | 有专门误差理论 | 必须另有可查询函数，不是盲矩阵估计 |
+根据项目根 README，目前 S1 保存真 T、原始 X、logit、p、choice；S5 提取每个被试固定潜变量 Z；S8/S8_2 在不同坐标规范下搜索监督旋转，并有 S9/S9_2 的 Givens sweep。
 
-表中“是”只表示无需已知真函数即可**定义并尝试**估计，不表示所有 $P_W$、样本量、维数和噪声分布下均具有可靠一致性。多数文献首先研究函数或逐点导数，并不直接证明 $\widehat M_{ij}$ 的收敛率。
+未来独立实验应 **只读取数据，不污染 S1–S9**。建议输入协议：
 
-## 8. 各种算法：计算原理、公式和适用条件
+| 字段 | 用途 |
+|---|---|
+| $Z_s$ 或 $Z_{z,s}$ | 被试级潜变量；保存其均值、标准差和坐标版本 |
+| $X_{s,t}$ | 试次物理输入或项目指定 X 标准化版本 |
+| $Y_{s,t}$ | 选定的 choice / p / logit 之一；blind 模式只见被批准的一种 |
+| subject_index, trial_index | 正确 split、bootstrap 和复现 |
+| rotation $R$ | 记录对潜变量的正交变换；X 固定不转 |
+| train/validation/evaluation splits | 防止同被试跨集合泄漏 |
+| evaluation distribution $P_W$ | 明确是原数据经验分布、条件分布还是外部参考分布 |
 
-### A1. 局部二次多项式回归（Local polynomial Hessian）
+建议输出逐方法保存：$\hat M^{UU}$、$\hat M^{UX}$、$\hat M^{XX}$，$\hat D$，选择的超参数、坐标规范、积分/评估点指纹、训练主体分组、估计不确定性、失败原因以及与 oracle 的**事后**对比。
 
-在 $w_0$ 附近解局部加权最小二乘：
+不要把 **同一真实函数下改变的输入分布**（CR4/CR5）与 **在同一输入分布下只改变旋转坐标** 混为一谈。
 
-$$
-(\hat a,\hat b,\hat B)
-=\arg\min_{a,b,B=B^\top}
-\sum_n K_h(w_n-w_0)
-\left[y_n-a-b^\top(w_n-w_0)
--\tfrac12(w_n-w_0)^\top B(w_n-w_0)\right]^2.
-\tag{10}
-$$
 
-使用 $\hat H(w_0)=\hat B$，再用式 (8) 汇总。对于 $d=9$，**仅完整二次多项式就有 $1+9+45=55$ 个局部系数**；三阶局部多项式需要更多数据。估计导数通常需要单独选择带宽，不可以仅凭预测 MSE 选平滑强度。[R4,R5]
+---
 
-- 优点：没有全局 CPT 或神经网络结构假设，可以看局部结构。
-- 风险：各方向尺度、边界校正、带宽、局部设计条件数、重复主体 Z 与自相关；高维下常需稀疏交互或局部降维。
-- 重要区别：De Brabanter et al. [R5] 研究非参数导数估计，不等于直接保证本项目全维 Hessian 能量的精度。
+## 8. 第一大类：基于已有训练好的 MLP / 神经网络
 
-### A2. 局部 likelihood / 局部 logistic 模型
+这一类的优势是**不需要重新拟合 $W\to Y$ 函数**，而是利用已训练的 MLP 作为已知的可微/可查询映射；B1–B6 是计算 Hessian 的方法，B7–B9 选择积分测度和边界，B10–B12 处理稳定性或额外训练。原 A12 需额外查询函数，已并入此类，而**不属于只有固定 WY 的情况**。
 
-仅有 choice $y_n\in\{0,1\}$ 时，用局部二次 **logit** $\eta_n(a,b,B)$，优化：
+> **第一类：已有训练好的 MLP / decoder。** B1–B10 是在冻结网络上推断其自身的平均平方输入 Hessian 能量；B11/B12 需要额外训练，作为明显标识的扩展。不允许用真实生成解析式替代已训练模型。
 
-$$
-\arg\min_{a,b,B}\sum_n K_h(w_n-w_0)
-\left[\log(1+e^{\eta_n})-y_n\eta_n\right]
-+\lambda_{\mathrm{reg}}\mathcal P(B).
-\tag{11}
-$$
-
-这里 $\hat B$ 直接估计 $\nabla^2\operatorname{logit}q(w_0)$，而非 $H_q$。局部 Bernoulli MLE 在稀疏区域可能接近完全分离；须有适当正则化、有效样本量限制和选择概率检查。此方法属于局部多项式和局部似然文献的合理延伸，**不是在此声称存在已验证的项目专用 estimator**。[R4,R5]
-
-### A3. Smoothing splines / tensor-product GAM / SS-ANOVA
-
-采用平滑基函数：
-
-$$
-\widehat f(w)=\sum_{k=1}^K\hat\beta_k\phi_k(w),
-\qquad
-\widehat H_{ij}(w)=\sum_k\hat\beta_k\,\partial_{ij}\phi_k(w).
-\tag{12}
-$$
-
-对连续响应可以用平方损失；对 choice 可对 logistic 线性预测器拟合 penalized likelihood。二阶导数惩罚与 Sobolev 粗糙度有直接联系；tensor-product smooths 允许在非同量纲输入上建立主效应和交互项。[R3,R7,R8]
-
-- 适用：较低内禀维度、预计交互作用稀疏、需要可解释项与可调平滑度。
-- 风险：没有包含的高阶交互项永远不可能被发现；平滑度通常按预测或似然选择，不保证最优二阶导数；需要检查张量基数和边界。
-- 额外思路：比较对各轴施加不同 smoothing penalty 的结果，但不要把惩罚强弱误读为真实曲率能量。
-
-### A4. 正交多项式 / sieve / Polynomial Chaos Expansion (PCE)
-
-把函数表示为：
-
-$$
-\widehat f(w)=\sum_{k=1}^K\hat\beta_k\phi_k(w),
-\quad
-G_{ij}[k,l]=
-\mathbb E_{P_W}[
-\partial_{ij}\phi_k(W)\partial_{ij}\phi_l(W)].
-\tag{13}
-$$
-
-于是：
-
-$$
-\boxed{\widehat M_{ij}^{\mathrm{sieve}}=\hat\beta^\top\hat G_{ij}\hat\beta.}
-\tag{14}
-$$
-
-$G_{ij}$ 可从已知参考分布解析积分，或由未参与拟合的 $W$ 评估点近似。PCE 尤其适合独立、已知边缘分布且比较光滑的输入，正交多项式的导数可解析求出。[R10]
-
-- 对 $d=9$，以总次数不超过 4 的全多项式基为例：$\binom{9+4}{4}=715$ 项；正则化、稀疏筛选或交互阶数限制很重要。
-- 适用：低/中度多项式复杂度、变量间平滑性较高、希望对 $M$ 使用精确矩阵代数。
-- 风险：CR3 的复杂非多项式结构可能需要很高阶；固定小阶数的预测能力好并不保证导数能量被恢复。
-
-### A5. Kernel Ridge Regression (KRR)
-
-对足够光滑的核 $k$ 拟合：
-
-$$
-\widehat f(w)=\sum_{n=1}^{N}\alpha_n k(w,w_n),
-\quad
-\widehat H_{ij}(w)=
-\sum_n\alpha_n\partial_{ij}^{(w)}k(w,w_n).
-\tag{15}
-$$
-
-令 $Q_{ij}[n,m]=\mathbb E_{P_W}[
-\partial_{ij}k(W,w_n)\partial_{ij}k(W,w_m)]$，
-则 $\hat M_{ij}=\alpha^\top Q_{ij}\alpha$。
-
-Liu & Li (2023) [R6] 直接研究多维支持上的任意混合偏导数 plug-in KRR 估计，属于本项目最直接、最应优先实验的方案之一。但其逐点导数误差界不自动给出二次泛函的最优误差界。
-
-- 优点：数学结构清晰、导数可解析、相对神经网络更便于控制 smoothness。
-- 风险：RBF 核带宽、核矩阵规模、数值条件数、boundary bias；选 kernel/hyperparameter 时需要 derivative-aware diagnostics。
-
-### A6. Gaussian Process (GP)
-
-对足够光滑的核和合适的回归/分类似然，GP 可推断每个点的导数后验：
-
-$$
-H_{ij}(w)\mid\mathcal D,\mathcal H
-\quad\leadsto\quad
-\mu_{ij}(w),\;v_{ij}(w).
-$$
-
-若这个条件边缘分布具有有限二阶矩，则：
-
-$$
-\mathbb E[H_{ij}(w)^2\mid\mathcal D,\mathcal H]
-=\mu_{ij}(w)^2+v_{ij}(w).
-\tag{16}
-$$
-
-积分后可得到 **posterior expected curvature energy**；也可单独报告 plug-in $\int \mu_{ij}^2\,dP_W$。两者是不同统计量；式 (16) 包含 posterior uncertainty，并**不是自动去偏的真实频率学能量估计量**。[R9]
-
-- 连续高斯回归通常较直接；二元 choice 的 GP classification 后验一般非高斯，需 Laplace/EP/变分或采样等近似。
-- 协方差核需要足够的可微性；估计 Hessian 的方差比估计函数值要求更高。
-- 优点：诊断估计不确定性；缺点：大样本核计算和模型先验成本较高。
-
-### A7. Smooth neural network + automatic differentiation
-
-仅用训练集拟合 $\widehat f_\theta(W)$；对其做精确自动微分：
-
-$$
-\widehat H_{ij}(w)
-=\partial_{ij}\widehat f_\theta(w),\qquad
-\widehat M_{ij}=\frac1{|\mathcal E|}
-\sum_{w\in\mathcal E}\widehat H_{ij}(w)^2.
-\tag{17}
-$$
-
-- 必须使用足够光滑的激活（例如 tanh、SiLU、softplus）才能得到有意义的经典二阶导数。
-- **普通 ReLU MLP 是分段仿射函数，其经典 Hessian 几乎处处为 0，不能直接用它评估曲率能量。**
-- 架构、weight decay、平滑正则化、ensemble、输入尺度、模型容量会影响 Hessian；decoder 的预测 $R^2$ 高不代表导数质量好。
-- 若比较不同 $R$，优先在同一个冻结的可微代理上做坐标变换并解析变换 Hessian；如果每个 $R$ 重新拟合网络，那么 loss 混入了重新训练误差。
-- 本方法为自动微分与光滑代理模型的自然组合；**不要误称神经网络对任意目标 $M$ 已有普遍的统计一致性保证**。
-
-### A8. 直接二次泛函估计 / split-sample 或 cross-fit sieve
-
-这是最接近指标本身的数学统计路线。[R1]
-
-有可微基 $\phi$、$f\approx\beta^\top\phi$ 时定义 $G_{ij}$ 如式 (13)，目标近似为：
-
-$$
-M_{ij}\approx \beta^\top G_{ij}\beta.
-$$
-
-在互不重叠的训练子样本上获得 $\hat\beta_A,\hat\beta_B$，使用：
-
-$$
-\boxed{
-\hat M_{ij}^{\mathrm{split}}
-=\hat\beta_A^\top\hat G_{ij}\hat\beta_B
-}
-\tag{18}
-$$
-
-再在不同 split 上平均，并用独立样本估计 $\hat G_{ij}$。这避免同一系数估计误差在平方时直接出现全部自身方差项；但**并不消除基截断误差、正则化偏差或依赖结构造成的偏差**。
-
-单个 split cross-product 可以是负数，所以必要时的非负化须标注为后处理。对未加独立性或有效平滑度假设的多维非参数问题不能宣称它无偏或达到参数速率。
-
-可进一步研究投影 / U-statistic 型直接二次泛函估计；是否优于 plug-in 取决于光滑度、维数、噪声与目标积分测度。[R1]
-
-### A9. Weak derivatives / RKHS / integration-by-parts 方法
-
-如果 $P_W$ 有足够光滑的密度 $p_W$、边界条件允许，则对测试函数 $\psi$ 可用积分分部得到：
-
-$$
-\int\psi(w)\partial_{ij}f(w)\,dw
-=\int f(w)\partial_{ij}\psi(w)\,dw
-+\text{边界项},
-\tag{19}
-$$
-
-从而用观测值间接估计某些导数投影，而不必在每个点直接求导。配合正交基、RKHS 正则化或弱形式矩条件，可建立导数的投影估计，再构造式 (13) 的能量。
-
-这不是一个无需假设的“直接读出 $M$”公式：**必须处理边界项**；对于带权 $dP_W=p_Wdw$，积分分部会涉及 $p_W$ 的导数，相关输入时更复杂。它主要是可探索的 estimator 设计路线，需就具体设定另行证明适用性。[R3,R6]
-
-### A10. 近邻差分 / 配对设计 / 网格求导
-
-当数据按规则网格采样或真的存在 $w\pm h e_i\pm h e_j$ 的可比较邻点，才可以用：
-
-$$
-\widehat{\partial_{ij}f}(w)
-\approx\frac{
-Y(w+h e_i+h e_j)-Y(w+h e_i-h e_j)
--Y(w-h e_i+h e_j)+Y(w-h e_i-h e_j)
-}{4h^2}
-\quad (i\ne j).
-\tag{20}
-$$
-
-对角项使用对应的二阶中心差分。choice 噪声会在小 $h$ 下被放大；应对条件均值做平滑或有大量重复测量，不能对普通随机高维 W–Y 数据直接应用。CR4 的每试次随机 X **不等于**具有这种精确配对的 factorial grid。差分技术可作为合成的受控 oracle 实验，但不是盲矩阵的默认方案。[R4]
-
-### A11. MARS / 稀疏低阶交互样条
-
-使用自适应选择的分段多项式与低阶交互来拟合输出，可显式控制最高交互阶数。[R12]
-
-**限制：** 单个 piecewise-linear hinge 主效应的自身二阶导数几乎处处为零（折点处不可微）；hinge 的乘积交互项仍可能具有非零混合二阶导数。因此这种非光滑基可能扭曲想研究的连续曲率结构，不能简单把整个 MARS Hessian 说成恒为零。若要用该家族，采用更光滑的 cubic variants，并报告由 knot/平滑方式引起的结构偏差。MARS 在这里是待测试的低阶结构化代理，而不是已经证明有效的 Hessian estimator。
-
-### A12. 需要额外查询函数的随机扰动 / 多点方法（分开存放）
-
-Lamboni (2024) [R11] 研究由多个随机扰动的 **模型函数值查询** 构建混合偏导估计，并用于敏感性分析。该方法很相关，但需要能评价 $f(w+\delta)$ 等新点，不属于“只给一次固定观测矩阵 $W,Y$ 且不允许再调用真函数”的同一信息约束。
-
-同理，已知解析式的自动微分、直接调用冻结真 decoder 或生成新的 oracle 标签，必须视为单独的 **oracle / query-access benchmark**，不能在 blind WY 排名中与 A1–A9 平等比较。
-
-
-## 8B. 神经网络已知时的 Hessian 能量估计：算法分类与训练边界
-
-> **独立信息条件 B：** 本节建立在前述 A1–A12 之外，**不修改“仅凭固定 WY 观测矩阵”的方法**。假设已经有一个训练好的、冻结的 $\widehat f_\theta:W\to Y$ 神经网络，可通过计算图或前向查询访问它。此时可以直接计算**网络函数自身**的二阶导数，而不需要再从 WY 拟合另一个回归函数。它和“从 WY 推断未知真实函数的 Hessian”是两个不同的信息问题。
-
-### 8B.1 首先区分两个统计目标
+### 8.1 首先区分两个统计目标
 
 对冻结网络，定义：
 
@@ -485,7 +281,7 @@ $$
 
 **输出语义：** 如果网络输出两类 logits $a_0(W),a_1(W)$，二元 logit 是 $\eta_\theta=a_1-a_0$，不是单独的 $a_1$。选择概率是 $q_\theta=\sigma(a_1-a_0)$，其 Hessian 与 logit Hessian 不一样。最终采样的 0/1 choice 不属于平滑函数，不能直接求连续 Hessian。先固定 output_kind（logit/probability）、eval mode、latent 表示和网络 stochastic 状态。
 
-### 8B.2 方法地图：三层而非一条路线
+### 8.2 方法地图：三层而非一条路线
 
 | 层次 | 方法 | 网络要求 | 是否重训 | 核心输出与适用范围 |
 |---|---|---|---|---|
@@ -504,7 +300,7 @@ $$
 
 B1–B6 是**导数获取层**；B7–B9 是**积分测度和边界层**；B10–B12 是**模型可信度/改造层**。例如 B1+B7 与 B1+B8+B9 是两套完整而不同的估计方案，不应把 B7、B8 误称为替代自动微分的“求导算法”。
 
-### 8B.3 B1：冻结网络的完整自动微分
+### 8.3 B1：冻结网络的完整自动微分
 
 在给定积分点 $w_n$ 上计算：
 
@@ -522,7 +318,7 @@ $$
 
 **激活函数问题：** 对纯 ReLU 分段仿射 MLP，经典 Hessian 几乎处处为零，即使预测准确也无法表示平滑真函数的曲率；GELU、SiLU、tanh、softplus 等允许非零、连续的二阶导数。但“网络光滑”仍不等于“网络已学到真曲率”。
 
-### 8B.4 B2/B3：HVP、随机投影与无需完整 H 的直接能量
+### 8.4 B2/B3：HVP、随机投影与无需完整 H 的直接能量
 
 对任意方向 $v$：
 
@@ -556,7 +352,7 @@ $$
 
 对 UX 的行总能量，可只在 X 子空间取 probe；但行总和不等于完整逐元素 $M^{UX}$。对于本项目的低输入维数，B1 一般更简洁可靠。
 
-### 8B.5 B4：显式传播网络层的 Hessian
+### 8.5 B4：显式传播网络层的 Hessian
 
 对 $a=A h+b$，$h_{\rm new}=\phi(a)$：
 
@@ -575,7 +371,7 @@ $$
 
 逐层递推得到输出 Hessian，不用知道真实生成公式。适合作为 GELU MLP 的数学独立校验。若包含 attention、LayerNorm、mask、softmax 等算子，需要额外推导对应导数；不能直接把简单 MLP 公式用于整个 NP encoder。
 
-### 8B.6 B5/B6：只有 forward API 时的数值差分与直接能量
+### 8.6 B5/B6：只有 forward API 时的数值差分与直接能量
 
 对 $i\ne j$ 用混合二阶差分：
 
@@ -602,7 +398,7 @@ $$
 
 若差分点超出训练支持，其数值可能精准反映 NN 的**外推**却未必反映真实生成函数。边界处应优先使用 AD 计算网络导数；如只允许 forward，应区分：(i) 仅评估完整中心 stencil 留在域内的内点，(ii) 采用单侧差分/局部拟合并接受不同误差阶，(iii) 明确标记外推差分。**把越界输入直接裁剪回边界再代入中心差分公式，不是有效的无偏边界修正。**
 
-### 8B.7 B7/B8：经验点与已知分布积分
+### 8.7 B7/B8：经验点与已知分布积分
 
 **B7：经验 W 积分（首选支持内 baseline）。** 对原始合法的被试–试次配对 $(Z_s,X_{s,t})$ 直接求网络 Hessian：
 
@@ -633,7 +429,7 @@ $$
 
 对截断高斯应按**正确归一化后的截断分布**采样；将越界值 clip 到边界会产生点质量、改变 $P_W$，不能当作原期望。对于需要重新定义的外部参考分布，应在结果中明确标识，而不是混写成训练分布期望。
 
-### 8B.8 B9：训练数据有边界——最需要单独评估的一部分
+### 8.8 B9：训练数据有边界——最需要单独评估的一部分
 
 神经网络可以在训练支持外输出有数值的函数和导数，但：
 
@@ -687,7 +483,7 @@ $$
 
 若联合 Z/X 支持不是矩形，不能对其简单采用坐标 min–max 作为真实可信域。可以补充 kNN 距离、局部密度、条件约束、到已观测流形的距离等**诊断指标**，但它们也需阈值校准、不能保证真实导数正确。AD 在 NN 数学上求边界处导数，不需要先从边界两侧取观测；**这种网络导数可计算性**并不能弥补真实函数一侧无观测数据所造成的不可识别性。[N7,N8]
 
-### 8B.9 B10–B12：不确定性、蒸馏和导数增强
+### 8.9 B10–B12：不确定性、蒸馏和导数增强
 
 **B10：固定评估点上的多网络 ensemble。** 对 $B$ 个独立训练 checkpoint 分别求 $M^{(b)}$，输出：
 
@@ -703,7 +499,7 @@ $$
 
 **B12：允许重训时的 Sobolev/derivative-enhanced training。** 若真正有额外可监督的梯度、导数约束或解析 toy oracle，可把输出误差与导数误差共同加入训练，改善 curvature fidelity；Czarnecki et al. (2017) 是相关经典研究。[N5] 但用原 NN 可能错误的自身导数作为唯一 teacher，并不能创造额外真实信息；高频/局部曲率还可能受到网络频率偏差影响。[N6]
 
-### 8B.10 mod-rot-4 的冻结 NP decoder 接口、旋转及评估推荐
+### 8.10 mod-rot-4 的冻结 NP decoder 接口、旋转及评估推荐
 
 基于仓库当前源代码：
 
@@ -738,7 +534,13 @@ $$
 
 建议新实验输出：checkpoint 与数据集 hash、decoder 输入列顺序、output kind、Z 版本与均值/SD、X scaler、P_W、被试/试次权重、support kind、boundary delta、OOD diagnostics、求导方法与精度、$M^{UU}$/$M^{UX}$/$M^{XX}$、内部/边界完整三套 $M$、积分 seed 与样本数、稳定性/旋转元数据。以上均为设计建议，**不意味着现有 S1–S9 代码已经实现 B 类模块**。
 
-### 8B.11 神经网络曲率推断专题文献（与原 A 类文献分开）
+### 8.11 需要额外模型函数查询的随机扰动（原 A12）
+
+Lamboni (2024) [R11] 研究由多个随机扰动的 **模型函数值查询** 构建混合偏导估计，并用于敏感性分析。该方法很相关，但需要能评价 $f(w+\delta)$ 等新点，不属于“只给一次固定观测矩阵 $W,Y$ 且不允许再调用真函数”的同一信息约束。
+
+同理，已知解析式的自动微分、直接调用冻结真 decoder 或生成新的 oracle 标签，必须视为单独的 **oracle / query-access benchmark**，不能在 blind WY 排名中与 A1–A9 平等比较。
+
+### 8.12 神经网络曲率推断专题文献（与原 A 类文献分开）
 
 - **[N1] PyTorch Contributors.** [Jacobians, Hessians, hvp, vhp, and more: composing function transforms](https://docs.pytorch.org/tutorials/intermediate/jacobians_hessians.html). 标准自动微分、Hessian、HVP 实现参考。
 - **[N2] Pearlmutter, B. A. (1994).** Fast exact multiplication by the Hessian. *Neural Computation, 6*(1), 147–160. [DOI](https://doi.org/10.1162/neco.1994.6.1.147). HVP 的基础。
@@ -750,56 +552,356 @@ $$
 - **[N8] Extrapolating from neural network models: a cautionary tale (2021).** [DOI](https://doi.org/10.1088/1361-6471/abf08a). 训练域外外推的风险。
 - **[N9] Lakshminarayanan, B., Pritzel, A., & Blundell, C. (2017).** Simple and scalable predictive uncertainty estimation using deep ensembles. *NeurIPS*. [Proceedings](https://papers.nips.cc/paper_files/paper/2017/hash/9ef2ed4b7fd2c810847ffa5fa85bce38-Abstract.html). 多网络不确定性。
 
+## 9. 第二大类：只有 WY，先拟合一个近似函数
 
-## 9. 只比较预测误差是不够的：推荐评估协议
+**信息条件：** 只有 $(W,Y)$，不知道真实 $f^\star$、没有预训练 MLP。先拟合可以微分的代理函数 $\widehat f$，再通过代数二阶导数、自动微分或数值差分和期望积分获得：
 
-**Ground truth 仅用于最终评价，而不用于 blind 估计或超参数选择。**
+$$
+\widehat M_{ij}^{\mathrm{plug}}
+=\frac{\sum_{n\in\mathcal E}\omega_n[\partial_{ij}\widehat f(W_n)]^2}
+{\sum_{n\in\mathcal E}\omega_n}.
+\tag{8}
+$$
 
-1. **固定目标：** 明确 $f$ 是 logit、概率还是其它连续输出；固定 $P_W$、坐标尺度、样本划分、积分权重。
-2. **构造 oracle：** 仅在合成模型有真函数时，先用解析 Hessian + 足够多的独立积分点算 $M_{ij}^{\mathrm{oracle}}$；对 CR4/CR5 遵守各自 X 分布。
-3. **blind 拟合：** 只给每种算法 $W_{\mathrm{train}},Y_{\mathrm{train}}$；由主体分组的 validation 选择超参数，不向方法泄露真 T/Hessian。
-4. **共同评估点：** 全算法在同一套参考 $W_{\mathrm{eval}}$ 估计 $\hat M$，避免采样误差伪装为算法差异。若选用训练之外的外部分布，必须检查 extrapolation/support。
-5. **原始矩阵准确度：** 记录 $\|\hat M-M\|_F$、逐元素绝对和相对误差、$\hat D=\sqrt{\hat M}$、非零排序、对结构零单元的误报率。接近零的真实元素不能用相对误差除以零。
-6. **稀疏性保真：** 比较每行 top-$k$、tail-$L_2$、熵或归一化能量分布；矩阵整体相关高不等于零模式恢复得好。
-7. **rotation test：** 固定被试、固定物理函数与评估点，扫描二维 Givens 及一般 $k$ 维正交旋转；比较 oracle loss 曲线和 blind loss 曲线、排序一致性、最优解的角度误差；特别检查 UU 的 45° 双线性反例。
-8. **统计不确定性：** 对被试层做 bootstrap / grouped cross-fitting；不要把同一被试重复试次误认为独立个体 Z。报告种子和重复次数。
-9. **超参数稳定性：** 测试 spline df、核带宽、局部多项式带宽、多项式阶数、MLP 平滑、样本数与每人试次数；对 derivative metric 而不是仅 Y 预测作 sensitivity analysis。
-10. **复杂度和内存：** 记录 wall time、GPU/CPU 与峰值内存；在 $d=k+p$ 下完整 Hessian 是 $d\times d$，每种方法都必须给出可扩展方案。
+若 $\widehat H_{ij}=H_{ij}+b_{ij}+\xi_{ij}$ 且 $\mathbb E[\xi_{ij}]=0$：
 
-### 9.1 首轮推荐优先级
+$$
+\mathbb E[\widehat H_{ij}^2]=(H_{ij}+b_{ij})^2+\operatorname{Var}(\xi_{ij}).
+\tag{9}
+$$
 
-| 优先级 | 方法 | 主要原因 |
+因此**准确预测 Y 并不充分保证准确估计二阶曲率**；平滑偏差、拟合误差、高维局部数据不足和边界同样重要。
+
+| 方法 | 需要先拟合的对象 | 数值估计途径 |
 |---|---|---|
-| P0 | A1 局部多项式 | 可解释的非参数基线，检验局部可辨识性 |
-| P0 | A4 正交多项式 / sparse sieve | 二阶导数和积分 Gram 可解析化；可设计 cross-fit |
-| P0 | A5 KRR | 多维混合偏导的专门理论支撑 [R6] |
-| P1 | A3 tensor GAM / SS-ANOVA | 检查可分性、低阶交互和局部光滑结构 |
-| P1 | A6 GP | 为导数不确定性和模型偏差提供对照 |
-| P1 | A7 smooth MLP | 衡量灵活黑盒代理在二阶导数目标上的成败 |
-| Research | A8 直接二次泛函 | 值得发展，但需对具体高维/重复测量形式进行证明 |
-| 非 blind | A12 函数查询型随机扰动 | 只能作为外部参照，不能算仅凭一次 WY 观测的推断 |
+| A1/A2 局部多项式 / local logistic | 每个局部位置的二次多项式或局部 logit | 局部二次系数 $\to$ 积分 |
+| A3 tensor-product spline / GAM | 样条基函数系数 | 求导 $\to$ 积分 |
+| A4 多项式 sieve / PCE | 全局投影系数 | 可微基函数和导数 Gram 矩阵 |
+| A5 Kernel Ridge | 核展开系数 | 对核函数求混合二阶导数 |
+| A6 Gaussian Process | 后验函数 | 导数后验均值/方差 |
+| A7 Smooth MLP | **从 WY 新训练一个 MLP** | 对新网络作 AD；不同于第一类已有冻结 MLP |
+| A8 cross-fit sieve | 两个数据子集拟合的 $\widehat\beta_A,\widehat\beta_B$ | 二次型 $\widehat\beta_A^\top G\widehat\beta_B$ |
+| A11 MARS / 交互样条 | 交互样条项与系数 | 平滑版本的二阶导数 |
 
-**特别建议：** 先验证 $M_{ij}$ 的估计是否可靠，再验证它被稀疏化后是否真的识别真实参数轴。这是两个逻辑上独立的检验；某一种 estimator 在矩阵层面恢复得准，不意味着由其构造的 rotation loss 一定合理。
+### 9.1 各算法的公式、优缺点
 
-## 10. 与 mod-rot-4 当前数据接口的衔接
+#### A1. 局部二次多项式回归（Local polynomial Hessian）
 
-根据项目根 README，目前 S1 保存真 T、原始 X、logit、p、choice；S5 提取每个被试固定潜变量 Z；S8/S8_2 在不同坐标规范下搜索监督旋转，并有 S9/S9_2 的 Givens sweep。
+在 $w_0$ 附近解局部加权最小二乘：
 
-未来独立实验应 **只读取数据，不污染 S1–S9**。建议输入协议：
+$$
+(\hat a,\hat b,\hat B)
+=\arg\min_{a,b,B=B^\top}
+\sum_n K_h(w_n-w_0)
+\left[y_n-a-b^\top(w_n-w_0)
+-\tfrac12(w_n-w_0)^\top B(w_n-w_0)\right]^2.
+\tag{10}
+$$
 
-| 字段 | 用途 |
-|---|---|
-| $Z_s$ 或 $Z_{z,s}$ | 被试级潜变量；保存其均值、标准差和坐标版本 |
-| $X_{s,t}$ | 试次物理输入或项目指定 X 标准化版本 |
-| $Y_{s,t}$ | 选定的 choice / p / logit 之一；blind 模式只见被批准的一种 |
-| subject_index, trial_index | 正确 split、bootstrap 和复现 |
-| rotation $R$ | 记录对潜变量的正交变换；X 固定不转 |
-| train/validation/evaluation splits | 防止同被试跨集合泄漏 |
-| evaluation distribution $P_W$ | 明确是原数据经验分布、条件分布还是外部参考分布 |
+使用 $\hat H(w_0)=\hat B$，再用式 (8) 汇总。对于 $d=9$，**仅完整二次多项式就有 $1+9+45=55$ 个局部系数**；三阶局部多项式需要更多数据。估计导数通常需要单独选择带宽，不可以仅凭预测 MSE 选平滑强度。[R4,R5]
 
-建议输出逐方法保存：$\hat M^{UU}$、$\hat M^{UX}$、$\hat M^{XX}$，$\hat D$，选择的超参数、坐标规范、积分/评估点指纹、训练主体分组、估计不确定性、失败原因以及与 oracle 的**事后**对比。
+- 优点：没有全局 CPT 或神经网络结构假设，可以看局部结构。
+- 风险：各方向尺度、边界校正、带宽、局部设计条件数、重复主体 Z 与自相关；高维下常需稀疏交互或局部降维。
+- 重要区别：De Brabanter et al. [R5] 研究非参数导数估计，不等于直接保证本项目全维 Hessian 能量的精度。
 
-不要把 **同一真实函数下改变的输入分布**（CR4/CR5）与 **在同一输入分布下只改变旋转坐标** 混为一谈。
+#### A2. 局部 likelihood / 局部 logistic 模型
+
+仅有 choice $y_n\in\{0,1\}$ 时，用局部二次 **logit** $\eta_n(a,b,B)$，优化：
+
+$$
+\arg\min_{a,b,B}\sum_n K_h(w_n-w_0)
+\left[\log(1+e^{\eta_n})-y_n\eta_n\right]
++\lambda_{\mathrm{reg}}\mathcal P(B).
+\tag{11}
+$$
+
+这里 $\hat B$ 直接估计 $\nabla^2\operatorname{logit}q(w_0)$，而非 $H_q$。局部 Bernoulli MLE 在稀疏区域可能接近完全分离；须有适当正则化、有效样本量限制和选择概率检查。此方法属于局部多项式和局部似然文献的合理延伸，**不是在此声称存在已验证的项目专用 estimator**。[R4,R5]
+
+#### A3. Smoothing splines / tensor-product GAM / SS-ANOVA
+
+采用平滑基函数：
+
+$$
+\widehat f(w)=\sum_{k=1}^K\hat\beta_k\phi_k(w),
+\qquad
+\widehat H_{ij}(w)=\sum_k\hat\beta_k\,\partial_{ij}\phi_k(w).
+\tag{12}
+$$
+
+对连续响应可以用平方损失；对 choice 可对 logistic 线性预测器拟合 penalized likelihood。二阶导数惩罚与 Sobolev 粗糙度有直接联系；tensor-product smooths 允许在非同量纲输入上建立主效应和交互项。[R3,R7,R8]
+
+- 适用：较低内禀维度、预计交互作用稀疏、需要可解释项与可调平滑度。
+- 风险：没有包含的高阶交互项永远不可能被发现；平滑度通常按预测或似然选择，不保证最优二阶导数；需要检查张量基数和边界。
+- 额外思路：比较对各轴施加不同 smoothing penalty 的结果，但不要把惩罚强弱误读为真实曲率能量。
+
+#### A4. 正交多项式 / sieve / Polynomial Chaos Expansion (PCE)
+
+把函数表示为：
+
+$$
+\widehat f(w)=\sum_{k=1}^K\hat\beta_k\phi_k(w),
+\quad
+G_{ij}[k,l]=
+\mathbb E_{P_W}[
+\partial_{ij}\phi_k(W)\partial_{ij}\phi_l(W)].
+\tag{13}
+$$
+
+于是：
+
+$$
+\boxed{\widehat M_{ij}^{\mathrm{sieve}}=\hat\beta^\top\hat G_{ij}\hat\beta.}
+\tag{14}
+$$
+
+$G_{ij}$ 可从已知参考分布解析积分，或由未参与拟合的 $W$ 评估点近似。PCE 尤其适合独立、已知边缘分布且比较光滑的输入，正交多项式的导数可解析求出。[R10]
+
+- 对 $d=9$，以总次数不超过 4 的全多项式基为例：$\binom{9+4}{4}=715$ 项；正则化、稀疏筛选或交互阶数限制很重要。
+- 适用：低/中度多项式复杂度、变量间平滑性较高、希望对 $M$ 使用精确矩阵代数。
+- 风险：CR3 的复杂非多项式结构可能需要很高阶；固定小阶数的预测能力好并不保证导数能量被恢复。
+
+#### A5. Kernel Ridge Regression (KRR)
+
+对足够光滑的核 $k$ 拟合：
+
+$$
+\widehat f(w)=\sum_{n=1}^{N}\alpha_n k(w,w_n),
+\quad
+\widehat H_{ij}(w)=
+\sum_n\alpha_n\partial_{ij}^{(w)}k(w,w_n).
+\tag{15}
+$$
+
+令 $Q_{ij}[n,m]=\mathbb E_{P_W}[
+\partial_{ij}k(W,w_n)\partial_{ij}k(W,w_m)]$，
+则 $\hat M_{ij}=\alpha^\top Q_{ij}\alpha$。
+
+Liu & Li (2023) [R6] 直接研究多维支持上的任意混合偏导数 plug-in KRR 估计，属于本项目最直接、最应优先实验的方案之一。但其逐点导数误差界不自动给出二次泛函的最优误差界。
+
+- 优点：数学结构清晰、导数可解析、相对神经网络更便于控制 smoothness。
+- 风险：RBF 核带宽、核矩阵规模、数值条件数、boundary bias；选 kernel/hyperparameter 时需要 derivative-aware diagnostics。
+
+#### A6. Gaussian Process (GP)
+
+对足够光滑的核和合适的回归/分类似然，GP 可推断每个点的导数后验：
+
+$$
+H_{ij}(w)\mid\mathcal D,\mathcal H
+\quad\leadsto\quad
+\mu_{ij}(w),\;v_{ij}(w).
+$$
+
+若这个条件边缘分布具有有限二阶矩，则：
+
+$$
+\mathbb E[H_{ij}(w)^2\mid\mathcal D,\mathcal H]
+=\mu_{ij}(w)^2+v_{ij}(w).
+\tag{16}
+$$
+
+积分后可得到 **posterior expected curvature energy**；也可单独报告 plug-in $\int \mu_{ij}^2\,dP_W$。两者是不同统计量；式 (16) 包含 posterior uncertainty，并**不是自动去偏的真实频率学能量估计量**。[R9]
+
+- 连续高斯回归通常较直接；二元 choice 的 GP classification 后验一般非高斯，需 Laplace/EP/变分或采样等近似。
+- 协方差核需要足够的可微性；估计 Hessian 的方差比估计函数值要求更高。
+- 优点：诊断估计不确定性；缺点：大样本核计算和模型先验成本较高。
+
+#### A7. Smooth neural network + automatic differentiation
+
+仅用训练集拟合 $\widehat f_\theta(W)$；对其做精确自动微分：
+
+$$
+\widehat H_{ij}(w)
+=\partial_{ij}\widehat f_\theta(w),\qquad
+\widehat M_{ij}=\frac1{|\mathcal E|}
+\sum_{w\in\mathcal E}\widehat H_{ij}(w)^2.
+\tag{17}
+$$
+
+- 必须使用足够光滑的激活（例如 tanh、SiLU、softplus）才能得到有意义的经典二阶导数。
+- **普通 ReLU MLP 是分段仿射函数，其经典 Hessian 几乎处处为 0，不能直接用它评估曲率能量。**
+- 架构、weight decay、平滑正则化、ensemble、输入尺度、模型容量会影响 Hessian；decoder 的预测 $R^2$ 高不代表导数质量好。
+- 若比较不同 $R$，优先在同一个冻结的可微代理上做坐标变换并解析变换 Hessian；如果每个 $R$ 重新拟合网络，那么 loss 混入了重新训练误差。
+- 本方法为自动微分与光滑代理模型的自然组合；**不要误称神经网络对任意目标 $M$ 已有普遍的统计一致性保证**。
+
+#### A8. Cross-fit sieve / 基函数系数拟合后计算二次型（**归第二类**）
+
+该版本虽然不逐点输出 Hessian，但仍**用 WY 拟合 $\hat\beta$ 对应的函数投影**，故归入第二类。[R1]
+
+有可微基 $\phi$、$f\approx\beta^\top\phi$ 时定义 $G_{ij}$ 如式 (13)，目标近似为：
+
+$$
+M_{ij}\approx \beta^\top G_{ij}\beta.
+$$
+
+在互不重叠的训练子样本上获得 $\hat\beta_A,\hat\beta_B$，使用：
+
+$$
+\boxed{
+\hat M_{ij}^{\mathrm{split}}
+=\hat\beta_A^\top\hat G_{ij}\hat\beta_B
+}
+\tag{18}
+$$
+
+再在不同 split 上平均，并用独立样本估计 $\hat G_{ij}$。这避免同一系数估计误差在平方时直接出现全部自身方差项；但**并不消除基截断误差、正则化偏差或依赖结构造成的偏差**。
+
+单个 split cross-product 可以是负数，所以必要时的非负化须标注为后处理。对未加独立性或有效平滑度假设的多维非参数问题不能宣称它无偏或达到参数速率。
+
+可进一步研究投影 / U-statistic 型直接二次泛函估计；是否优于 plug-in 取决于光滑度、维数、噪声与目标积分测度。[R1]
+
+#### A11. MARS / 稀疏低阶交互样条
+
+使用自适应选择的分段多项式与低阶交互来拟合输出，可显式控制最高交互阶数。[R12]
+
+**限制：** 单个 piecewise-linear hinge 主效应的自身二阶导数几乎处处为零（折点处不可微）；hinge 的乘积交互项仍可能具有非零混合二阶导数。因此这种非光滑基可能扭曲想研究的连续曲率结构，不能简单把整个 MARS Hessian 说成恒为零。若要用该家族，采用更光滑的 cubic variants，并报告由 knot/平滑方式引起的结构偏差。MARS 在这里是待测试的低阶结构化代理，而不是已经证明有效的 Hessian estimator。
+
+### 9.2 A8 与真正“不拟合函数”的区别
+
+在这里的 A8，虽然可以只计算 $\widehat\beta_A^\top G\widehat\beta_B$ 而不保存逐点 Hessian，但 $\widehat\beta$ 仍是由 WY 拟合的**函数展开系数**。所以它仍属于第二类。
+
+如果不拟合 $\widehat\beta$，直接用独立样本对 $Y_nY_m$ 与预先确定的核来构造无对角的 U-statistic，则属于下面的第三类 D1/D3；二者的偏差、方差以及数学假设必须分别研究。
+
+## 10. 第三大类：只有 WY，直接算平均平方曲率能量，也不拟合任何函数
+
+**严格定义：** 只从已给定的 $(W_n,Y_n)$ 构造样本统计量；不训练/拟合 $\widehat f$、不拟合 $\widehat\beta$、不逐点重建 Hessian。可以使用**事先固定**的基函数、测试函数、核以及已知的输入测度；这仍然有正则性、截断阶数与设计要求。
+
+**前提性限制：** 在完全无平滑性假设、无支持条件的有限 WY 中，真实完整的 $M_{ij}=\mathbb E[(\partial_{ij}f)^2]$ 一般不可识别。第三类方法主要直接估计**二阶导数能量的有限投影/正则化版本**，或真实配对设计下的差分曲率平方。不能承诺“只凭任意矩阵就精确得到真 Hessian 能量”。
+
+| ID | 直接方法 | 是否拟合函数？ | 直接输出与限制 |
+|---|---|---|---|
+| D1 | 正交级数的 quadratic-functional U-statistic | **完全不拟合** | 投影函数二阶导数的能量；已知 $P_W$、独立观测对 |
+| D2 | Weak derivatives + 积分分部后的导数矩估计 | **完全不拟合**（若输入密度及 score 已知） | 导数自身在已知测试函数空间的投影能量 |
+| D3 | 预定核的 pairwise quadratic U-statistic | **完全不拟合** | 直接 $Y^\top K(W,W)Y$ 去对角型统计量 |
+| D4 | 严格重复的网格有限差分与双重复乘积 | **完全不拟合** | 差分导数平方；需要配对与独立重复/已知噪声方差 |
+
+### D1. Orthogonal-series quadratic U-statistic（首选直接统计方案）
+
+设 $(W_n,Y_n)$ 是**独立样本单位**，$Y=f(W)+\varepsilon$ 且 $\mathbb E[\varepsilon\mid W]=0$，已知输入分布 $P_W$ 及其正交归一基 $\{\phi_k\}$：
+
+$$
+\mathbb E[\phi_k(W)\phi_\ell(W)]=\mathbf1[k=\ell],
+\quad
+\beta_k=\mathbb E[Y\phi_k(W)].
+\tag{D1}
+$$
+
+这里只在理论中定义 $\beta_k$，**计算中不拟合或输出 $\widehat\beta$**。设 $f_K=\sum_{k=1}^K\beta_k\phi_k$；其二阶曲率能量为：
+
+$$
+M^{(K)}_{ij}
+=\boldsymbol\beta^\top G_{ij}\boldsymbol\beta,\quad
+G_{ij}[k,\ell]=\mathbb E[\partial_{ij}\phi_k(W)\partial_{ij}\phi_\ell(W)].
+\tag{D2}
+$$
+
+直接用所有独立观测对：
+
+$$
+\boxed{
+\widehat M^{(K)}_{ij,U}
+=\frac{1}{N(N-1)}\sum_{n\ne m}
+Y_nY_m\sum_{k,\ell=1}^{K}
+G_{ij}[k,\ell]\phi_k(W_n)\phi_\ell(W_m).
+}
+\tag{D3}
+$$
+
+独立、已知 $P_W$、正确条件均值及有限二阶矩下，其期望是**投影目标** $M^{(K)}_{ij}$，不一定是完整 $M_{ij}$；$K$ 截断、正交系选择、二阶导数放大噪声和高维数据稀疏仍决定统计效率。对于同被试多试次，不能简单将主体内两行视为独立 $n\ne m$，应使用跨独立被试的配对或发展明确的 cluster 修正。[R1]
+
+对二元 choice，此方法直接估计 $q(W)=P(Y=1\mid W)$ 的投影能量，**不直接估计 logit Hessian 能量**；非线性 logit 变换需要新的估计设计或额外模型结构。
+
+### D2. Weak-form / integration by parts 直接导数投影
+
+选择 $L_2(P_W)$ 下正交归一测试函数 $\psi_k$；假设 $P_W$ 具有已知正的可微密度 $p(w)$，且函数、测试函数满足积分分部所需的**全部边界条件**：
+
+$$
+\alpha_{ij,k}=\mathbb E[\partial_{ij}f(W)\psi_k(W)]
+=\mathbb E\left[Y\,\frac{\partial_{ij}(\psi_k p)(W)}{p(W)}\right].
+\tag{D4}
+$$
+
+记 $r_{ij,k}(w)=\partial_{ij}(\psi_kp)(w)/p(w)$。因为 $\psi_k$ 正交，二阶导数在其前 $K$ 个测试函数上的平方投影满足：
+
+$$
+M_{ij,\mathrm{weak}}^{(K)}=\sum_{k=1}^K\alpha_{ij,k}^2\ \le\ M_{ij}.
+\tag{D5}
+$$
+
+不用拟合函数，直接从独立样本对构造：
+
+$$
+\boxed{
+\widehat M_{ij,\mathrm{weak}}^{(K)}
+=\frac1{N(N-1)}\sum_{n\ne m}
+Y_nY_m\sum_{k=1}^K r_{ij,k}(W_n)r_{ij,k}(W_m).
+}
+\tag{D6}
+$$
+
+若**还需从 WY 或 W 另拟合密度/score**，严格说已另拟合一个函数，不应再声称“完全不拟合任何函数”；它只能标记为直接曲率泛函 + 额外密度模型。特别地，CR4 有界均匀 X 在盒边界的密度并不自然为 0，积分分部的边界项**不能自动忽略**；若测试函数只在内部有效，那么估计的是有限测试空间覆盖的投影而非无条件全域能量。[R1,R3]
+
+### D3. 直接 quadratic-kernel U-statistic 的矩阵计算
+
+给定事先定义、无需拟合的二元核 $K_{ij}(w,w')$：
+
+$$
+\boxed{
+\widehat M^{\mathrm{quad}}_{ij}
+=\frac1{N(N-1)}\sum_{n\ne m}
+Y_nY_m\,K_{ij}(W_n,W_m).
+}
+\tag{D7}
+$$
+
+D1 的核可设 $K_{ij}(w,w')=\sum_{k,\ell}G_{ij}[k,\ell]\phi_k(w)\phi_\ell(w')$；D2 可设 $K_{ij}=\sum_kr_{ij,k}(w)r_{ij,k}(w')$。这是一种**计算组织方式**，不代表任意选定核都能无偏估计完整目标；核的截断/平滑决定 estimand。剔除对角项可避免最直接的平方噪声膨胀，但不能消除投影截断偏差。计算成本可通过分块或低秩核降低。[R1]
+
+### D4. 有真实配对和重复响应的差分能量
+
+若输入确实构成 $w\pm h_ie_i\pm h_je_j$ 的精确匹配网格，混合二阶差分商为：
+
+$$
+\widehat D_{ij,h}(w)
+=\frac{Y_{++}-Y_{+-}-Y_{-+}+Y_{--}}{4h_ih_j},\quad i\ne j.
+\tag{D8}
+$$
+
+若上述四点各有两套**条件独立响应重复** $r=1,2$，直接使用交叉乘积：
+
+$$
+\boxed{
+\widehat M^{\mathrm{diff}}_{ij}
+=\frac1K\sum_{k=1}^K
+\widehat D^{(1)}_{ij,h}(w_k)
+\widehat D^{(2)}_{ij,h}(w_k).
+}
+\tag{D9}
+$$
+
+其条件期望是**有限步长差分近似的平方**；在平滑性与 $h\to0$ 的合理极限下才趋向真实二阶能量。单次 $\widehat D^2$ 带有额外观测噪声方差；若噪声方差已知，也可先推导去偏估计。对角项换成二阶中心差分。
+
+**CR4 的独立随机连续 X 和 CR5 的有限 500-bank 一般不提供所需的严格配对网格。** 随机稀疏邻居不能直接当成等步长的差分角点；否则相当于隐藏的局部拟合/插值步骤，已改变信息与统计假设。[R4,R5]
+
+### 10.1 第三类为什么不能无条件替代第二类？
+
+- **维数与截断。** 9–10 维全变量正交级数阶数爆炸，且二阶导数对高频估计更敏感；直接估计整体泛函可能高效，但需要具体平滑度/维数条件，而不是天生免疫维数灾难。
+- **边界/密度。** 弱形式 D2 要正确处理支持域边界项；已知平滑密度不是所有情形都成立，固定离散 X 时由 WY **无法无模型假设识别连续 X 方向的真实局部导数**。
+- **独立性与方差。** 同被试重复试次共享 Z；独立观测对不能无条件跨所有 trial 拼接。直接 U-stat 有时出现负值，虽然真实 $M\ge0$，要保留原始估计而非静默 clip。
+- **输出语义。** 如果只观测 choice，则 D1–D4 针对条件概率 $q$ 的导数；不能声称自动得到 logit Hessian。
+- **近似目标诚实性。** D1 是投影函数的 Hessian 能量，D2 是 Hessian 自身的有限测试空间投影能量；**它们不是同一个有限维近似，也都不是未经证明的完整 $M$**。
+
+### 10.2 建议三类方法的首轮实验顺序
+
+| 顺序 | 方法 | 实验目标 |
+|---|---|---|
+| P0 | **第一类 B1+B7** 冻结 GELU decoder AD + 经验支持积分 | 网络自身的完整 $M^{UU},M^{UX},M^{XX}$ 基准 |
+| P0 | **第一类 B9** 连续/离散 X 的边界与支持诊断 | 区分 CR4 合法盒、CR5 固定题库、Z 联合支持 |
+| P0 | **第二类 A1/A4/A5** 局部多项式、sieve、KRR | 仅 WY 时的函数拟合 + 二阶导数保真 |
+| P1 | **第二类 A3/A6/A7** GAM、GP、从 WY 训练 smooth MLP | 比较模型平滑偏差和预测/导数准确性的差距 |
+| Research | **第三类 D1/D3** 直接 U-stat / quadratic-kernel | 已知连续分布与独立样本单位条件下直接估能量 |
+| Research | **第三类 D2** weak-form | 先解决有界 X 的边界和已知密度要求 |
+| Design-only | **第三类 D4** 配对差分 | 仅在真正网格/重复设计满足时使用 |
+
+**对旋转的共同原则：** 三类方法都应在固定物理输入支持、同一参考测度、同一坐标/输出语义下比较。先评价 $\widehat M_{ij}$ 是否接近对应的 oracle $M_{ij}$，再评价 Part III 的稀疏性损失能否恢复参数轴；两道检验不可混为一谈。
 
 
 ---
