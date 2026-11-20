@@ -82,7 +82,7 @@ class PipelineFixture(unittest.TestCase):
             args=SimpleNamespace(model="C1",run_dir=str(run_dir),stage="all",
                 variant="both",measure="theory_x",n_eval=8,latent_draws=2,
                 fit_rows=60,seed=10,chunk=4,boundary_policy="mask",
-                methods="nn_autograd,wy_polynomial",degree=2,
+                methods="nn_autograd,nn_residual_polynomial,wy_polynomial",degree=2,
                 max_centers=50,neighbors=20,finite_step=.005,top_k=1,
                 plot_metrics="UU.diagonal.hoyer",max_rotations=0,overwrite=False)
             with patch.object(sources,"ROOT",root):
@@ -93,6 +93,8 @@ class PipelineFixture(unittest.TestCase):
                 self.assertTrue((result/"oracle"/variant/"theory_x"/"analytic_oracle"/
                                 "true_logit"/"baseline_unswept.npz").exists())
                 self.assertTrue((result/"inference"/variant/"theory_x"/"nn_autograd"/
+                                "nn_probability"/"baseline_unswept.npz").exists())
+                self.assertTrue((result/"inference"/variant/"theory_x"/"nn_residual_polynomial"/
                                 "nn_probability"/"baseline_unswept.npz").exists())
                 self.assertTrue((result/"inference"/variant/"theory_x"/"wy_polynomial"/
                                 "true_choice"/"axes_01_02__deg_015.npz").exists())

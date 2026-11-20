@@ -200,8 +200,10 @@ def run_infer(args):
     for variant in _variants(args):
         rotations=_rotations(src,args,variant)
         nn_cache={}
+        # Only two methods are exact reference-moment transforms. A fitted
+        # W,Y+MLP correction is rotation-specific and must evaluate directly.
         for method in methods:
-            if method in MLP_METHODS:
+            if method in ("nn_autograd","nn_finite_difference"):
                 for target in ("logit","probability"):
                     nn_cache[(method,target)]=_get_nn_moment(
                         root,src,args,decoder,method,target)
@@ -216,19 +218,26 @@ def run_infer(args):
                     binary=y_name.endswith("choice")
                     try:
                         if method in MLP_METHODS:
-                            reference_moment,meta=nn_cache[(method,target)]
+                            optional={}
+                            if method in ("nn_autograd","nn_finite_difference"):
+                                reference_moment,meta=nn_cache[(method,target)]
+                                optional["reference_moment"]=reference_moment
+                                optional["reference_jacobian"]=full_jacobian(
+                                    rotation.jacobian("nn"),src.x_dim)
+                            else:
+                                meta={"source":"frozen_decoder_plus_WY",
+                                      "method":method,"y_name":y_name}
                             result=infer_mlp(method,W,Y,trained,
                                 eval_W=eval_W,weights=eval_nn.weights,
                                 dim_u=src.latent_dim,target=target,
                                 rotation_id=rotation.name,measure=args.measure,
                                 chunk=args.chunk,relative_step=args.finite_step,
                                 degree=args.degree,binary=binary,
-                                reference_moment=reference_moment,
-                                reference_jacobian=full_jacobian(
-                                    rotation.jacobian("nn"),src.x_dim))
+                                **optional)
                             result.meta.update(meta)
                             result.meta["y_name"]=y_name
-                            result.meta["warning"]="Frozen MLP not refit to Y"
+                            if method in ("nn_autograd","nn_finite_difference"):
+                                result.meta["warning"]="Frozen MLP not refit to Y"
                         else:
                             result=infer_wy(method,W,Y,
                                 eval_W=eval_W,weights=eval_nn.weights,
