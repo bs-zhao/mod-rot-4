@@ -146,3 +146,7 @@ The branches are not exclusive and can be combined. Every combination is an infe
 Last comes the search algorithm. A rotation `R` is proposed, the inference of Part 3 turns `Z`, `R`, `X`, `Y` and `d'` into the number `l`, and the search looks for the `R` for which `l` is smallest. The goal is that, at the smallest `l`, the resulting `U = R Z` is in one-to-one correspondence with `T`, i.e. the **Search Success Criterion** of note 01 is met.
 
 If Gap 1 and Gap 2 hold, a failure of this step would most likely be a failure of the optimisation and search algorithm (note 03).
+
+---
+
+**Note.** Earlier work already tried a number of simplicity metrics and inference methods in a rather unsystematic way. Those attempts are for reference only; this note does not rely on them. The metric library is in [`docs/01_metrics/01_hessian_mean_squared_curvature_energy.md`](../01_metrics/01_hessian_mean_squared_curvature_energy.md).
