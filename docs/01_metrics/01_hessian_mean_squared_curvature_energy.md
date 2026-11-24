@@ -1120,6 +1120,179 @@ $
 
 任何带有 $k,\delta,\delta_p,c,\alpha,\epsilon$ 的指标都要先记录超参数，不可观察 oracle $R$ 之后再反向挑选对该模型最有利的值。
 
+### 13.3 “有没有”：软支持度（Soft Support / Soft-$L_0$）（S20–S22）
+
+**动机。** 如果关心的不是交互作用的强弱，而是稀疏性——“有没有”，思路应该改变：**不再直接把 Hessian 的大小当成简单性，而是把每个 Hessian 元素看作一条潜在的连接，判断这条连接是否存在。** 也就是把连续的能量矩阵转换成一张近似的 0–1 结构矩阵（Soft Support Matrix），然后最小化非零连接的数量。这比直接最小化平均绝对曲率或平均平方曲率更接近“用尽可能少的非零二阶项描述函数”这一目标（见项目文档 03 的简单性原则）。
+
+理想情形下想定义的是 Support（非零结构），而不是 Magnitude（强度）：
+
+$
+S_{ij}=\begin{cases}0,&H_{ij}(W)\equiv0\\ 1,&H_{ij}(W)\not\equiv0\end{cases}
+$
+
+- $H_{ij}\equiv0$：这两个变量之间不存在对应的二阶作用；
+- $H_{ij}\not\equiv0$：存在二阶作用，不管强度是 0.1 还是 100。
+
+但严格的 0–1 指标不连续，难以用于优化旋转矩阵 $R$（S16、S17 的硬阈值计数同理）。因此需要一个连续近似。**平均平方 Hessian 能量 $M_{ij}$ 只作中间统计量；最终损失应尽可能近似非零连接的数量。**
+
+#### S20. Soft-$L_0$（单一阈值 $\epsilon$）
+
+对每个元素的均平方能量 $M_{ij}(R)=\mathbb E_W[H^{(R)}_{ij}(W)^2]$，用饱和函数映射到 $[0,1]$：
+
+$
+\boxed{S^{(\epsilon)}_{ij}(R)=\frac{M_{ij}(R)}{M_{ij}(R)+\epsilon^2}}
+\qquad\Longrightarrow\qquad
+\boxed{L_{\mathrm{support}}(R)=\sum_{i\le j}S^{(\epsilon)}_{ij}(R)}
+\tag{S20}
+$
+
+$\epsilon>0$ 是“曲率小到什么程度算没有”的尺度参数。三条性质：
+
+$
+M_{ij}=0\Rightarrow S_{ij}=0,\qquad
+M_{ij}\gg\epsilon^2\Rightarrow S_{ij}\approx1,\qquad
+M_{ij}\ll\epsilon^2\Rightarrow S_{ij}\approx0.
+$
+
+当 $\sqrt{M_{ij}}=\epsilon$ 时恰好 $S_{ij}=0.5$，所以 $\epsilon$ 决定连续曲率到近似 0–1 的转换尺度。$\epsilon=0.10$ 时（曲率已标准化）：
+
+| RMS 曲率 $\sqrt{M_{ij}}$ | 0.00 | 0.01 | 0.03 | 0.10 | 0.30 | 1.00 | 3.00 |
+|---|---|---|---|---|---|---|---|
+| Soft support | 0.000 | 0.010 | 0.083 | 0.500 | 0.900 | 0.990 | 0.999 |
+
+对称 Hessian 只统计上三角，避免重复计数（见 §11.1）；$UX$ 块是矩形，取全部 $kp$ 个元素。**统计哪一组独立元素 $\mathcal I$ 是方法配置的一部分，必须记录**：UU 取上三角（含对角），UX 取全部。
+
+**与强度类指标的区别：** 设两个旋转得到下面的 RMS 矩阵（只看独立元素，即上三角）。
+
+| | RMS 矩阵 | 独立元素的总平方能量 | $L_{\mathrm{support}}$（$\epsilon$ 很小） |
+|---|---|---|---|
+| 旋转 A | $\begin{pmatrix}0&2&0\\2&0&0\\0&0&0\end{pmatrix}$：一个非零交互项 | $2^2=4$ | $\approx1$ |
+| 旋转 B | $\begin{pmatrix}\sqrt2&0&0\\0&\sqrt2&0\\0&0&0\end{pmatrix}$：两个非零自曲率项 | $2+2=4$ | $\approx2$ |
+
+两者的总平方能量相等，最小化总体均方 Hessian 能量无法区分它们；Soft-$L_0$ 偏好 A，因为它问的是“需要多少个非零二阶项来描述函数”，而不是交互作用有多强。（注意计数约定：若 A 的对称位置双计数，A 的矩阵总能量是 8，而 B 是 4。比较时必须使用同一约定，见 §11.1。）
+
+#### 整条连接是否存在，还是只在部分试次存在？（方法 A / 方法 B）
+
+两个问题并不相同：
+
+$
+\boxed{S^{A}_{ij}=\frac{\mathbb E[H_{ij}^2]}{\mathbb E[H_{ij}^2]+\epsilon^2}}
+\qquad\qquad
+\boxed{S^{B}_{ij}=\mathbb E\!\left[\frac{H_{ij}(W)^2}{H_{ij}(W)^2+\epsilon^2}\right]}
+$
+
+| 特点 | 方法 A：先求期望，再近似二值化 | 方法 B：先近似二值化，再求期望 |
+|---|---|---|
+| 含义 | 这个 Hessian 元素作为函数，是否总体上存在非零作用 | 在多大比例的输入条件下，该元素有明显的非零作用 |
+| 关注 | 函数是否存在该二阶作用 | 该二阶作用在多少输入点活跃 |
+| 少量极大曲率 | 可能接近 1 | 仍可能较小 |
+| 结构识别 | 更合适 | 次选 |
+| 条件性作用 | 不能直接反映出现比例 | 更合适 |
+| 旋转计算 | 可以预计算二阶矩张量（§17.1） | 通常需要逐点计算 |
+
+**S20 默认用方法 A。** 但对 CR5 的 gain-only、loss-only、gamma-neutral 等试次子集，方法 B 值得另外测试，因为某些二阶作用可能只在特定刺激条件中出现。
+
+#### 标准化：先统一量纲，再对区块做相对尺度归一化
+
+不能直接拿原始 Hessian 比较，因为 $\lambda,\gamma,\tau$ 与 $X$ 的量纲不一致（§11.4）。步骤：
+
+1. 对真实参数 $T$（或 $Z$）先标准化，再旋转；$X$ 的导数也使用固定的标准化尺度。CR4 与 CR5 采用相同的尺度定义，以便比较。
+2. 计算每个旋转的 RMS：$D_{ij}(R)=\sqrt{\mathbb E[H^{(R)}_{ij}(W)^2]}$。
+3. 对每个区块（UU、UX 分别）作相对尺度归一化：
+
+$
+\widetilde M_{ij}(R)=\frac{M_{ij}(R)}{E_{\mathrm{blk}}},\qquad
+E_{\mathrm{blk}}=\mathbb E\big[\|H_{\mathrm{blk}}(W)\|_F^2\big]=\sum_{(i,j)\in\mathrm{blk}}M_{ij}.
+$
+
+由 §17，在固定输入分布且只对 $U$ 作正交旋转时，$E_{UU}$、$E_{UX}$ 各自不随 $R$ 变化，所以分母不随旋转变化，不会因为旋转本身改变归一化标准。
+
+4. 用 $\widetilde M_{ij}$ 代替 $M_{ij}$ 代入 S20：
+
+$
+\boxed{L(R)=\sum_{(i,j)\in\mathcal I}\frac{\widetilde M_{ij}(R)}{\widetilde M_{ij}(R)+\epsilon^2}}
+$
+
+#### 为什么 $\epsilon$ 不能与 $R$ 一起优化
+
+若损失为 $L(R,\epsilon)=\sum_{i\le j}\frac{M_{ij}(R)}{M_{ij}(R)+\epsilon^2}$ 并允许同时优化 $R$ 和 $\epsilon$，只要存在正的 $M_{ij}$，就有 $\partial L/\partial\epsilon<0$；算法会不断增大 $\epsilon$，当 $\epsilon\to\infty$ 时 $L\to0$，与旋转无关。所以 $\epsilon$ 必须固定、约束，或者改变指标定义。区分两件事：
+
+- $\epsilon$：定义什么程度的二阶作用可以视为不存在；
+- $R$：真正要优化的旋转，使非零二阶作用尽可能少。
+
+三种选择 $\epsilon$ 的方法：
+
+| 方法 | 原理 | 评价 |
+|---|---|---|
+| 固定阈值 | 例如 $\epsilon=0.05$ | 最简单，但可能任意 |
+| 相对阈值 | 先按区块总能量标准化（见上） | 推荐作为基础 |
+| 多阈值积分 | 在多个 $\epsilon$ 上评估并整合稀疏性 | 最值得研究 |
+
+**固定标准化阈值的扫描。** 在标准化之后系统测试 $\epsilon\in\{0.01,0.03,0.05,0.1,0.2\}$。这些只是候选值，不是经过证明的最优值。如果真实参数方向在所有这些阈值下都表现良好，说明指标有一定稳健性；如果只在某个极其精确的阈值下成功，就值得怀疑。
+
+#### S21. 多阈值 Soft-$L_0$
+
+不选择单个 $\epsilon$，而在一个范围内对 Soft-$L_0$ 按 $\log\epsilon$ 平均：
+
+$
+\overline S_{ij}(R)=\frac{1}{\log(\epsilon_{\max}/\epsilon_{\min})}\int_{\epsilon_{\min}}^{\epsilon_{\max}}\frac{M_{ij}(R)}{M_{ij}(R)+\epsilon^2}\,d\log\epsilon .
+$
+
+该积分有解析解。令 $m=M_{ij}(R)$：
+
+$
+\boxed{\overline S_{ij}(R)=1-\frac{\log\!\left(\dfrac{m+\epsilon_{\max}^2}{m+\epsilon_{\min}^2}\right)}{2\log(\epsilon_{\max}/\epsilon_{\min})}}
+\tag{S21}
+$
+
+仍满足 $\overline S_{ij}(0)=0$ 与 $\lim_{m\to\infty}\overline S_{ij}(m)=1$。优势：不必把“有没有”的判定完全押在单一阈值上。局限：仍需规定 $\epsilon_{\min},\epsilon_{\max}$，并没有彻底消除超参数。它依然可微，可用于优化 $R$。最值得优先尝试。
+
+#### S22. 完全不用 $\epsilon$：有效支持度（Effective Support）
+
+令 $m_k$ 表示展平后的各个 Hessian 平方曲率能量：
+
+$
+N_{\mathrm{eff}}=\frac{(\sum_km_k)^2}{\sum_km_k^2}
+$
+
+等价于 S04（$N_2=1/\sum p_e^2$）。只有一个元素非零时为 1；五个完全相等的非零元素时为 5；但若五个元素强度差距很大，它也可能接近 1。因此它衡量**有效能量集中度**，并不等价于真实非零元素数量。作无需 $\epsilon$ 的对照指标。
+
+#### $\epsilon$ 过小或过大的取舍
+
+对 $S(m)=m/(m+\epsilon^2)$，$\dfrac{dS}{dm}=\dfrac{\epsilon^2}{(m+\epsilon^2)^2}$。
+
+- 当所有非零的 $m$ 都远大于 $\epsilon^2$ 时，Soft-$L_0$ 接近 1，梯度趋于平坦。
+- 当所有 $m$ 都远小于 $\epsilon^2$ 时，$S(m)\approx m/\epsilon^2$，退化为近似线性的曲率能量指标；若把整个 UU 或 UX 块的能量相加，损失就接近旋转不变量（§17），无法选择 $R$。
+
+所以不能只选择非常小或非常大的阈值。
+
+#### 一个必须承认的数学事实
+
+在 CR4 这类解析函数中，一个 Hessian 元素通常要么恒等于 0，要么在连续输入分布下几乎处处非零。严格的 0–1 支持度会使优化目标极不连续。因此，Soft-$L_0$ **不是数学上精确的结构计数**，而是在指定曲率尺度下的近似结构计数。
+
+#### Oracle 层面的实验设计与旋转优化
+
+1. **预计算 Hessian 二阶矩张量**（原 §17.1）：$K^{UU}_{abcd}=\mathbb E[H_{ab}H_{cd}]$；UX 块对每个刺激坐标 $\ell$：$K^{UX,\ell}_{ab}=\mathbb E[H_{a\ell}H_{b\ell}]$。对原始解析函数只需积分一次。
+2. **用张量运算快速计算任意旋转的 $M(R)$：** $M_{ij}(R)=\sum_{abcd}R_{ia}R_{jb}R_{ic}R_{jd}K_{abcd}$，不必每次优化都重新积分。
+3. **应用 S20 或 S21**，得到稀疏性损失 $L(R)$。
+4. **多初始点优化。** $R$ 用平面旋转（Givens）参数化；例如 3 维（CR4/CR5 的 3 个参数）：$R(\theta_1,\theta_2,\theta_3)=R_{12}(\theta_1)R_{13}(\theta_2)R_{23}(\theta_3)$，一般 $k$ 维有 $k(k-1)/2$ 个角。用 L-BFGS-B 等优化器，多个随机起点以降低局部最优风险：$R^\ast=\arg\min_{R^\top R=I}L_{\mathrm{support}}(R)$。
+5. **与真实参数方向比较**，允许参数轴的排列与正负号变化。
+6. **扫描多个阈值**（如 $\epsilon=0.01,0.03,0.1$），观察真实坐标是否在一系列阈值下都保持优势，而非只在一个精心挑选的阈值下成功。
+
+#### 三类指标的优先级与原则
+
+| 指标 | 目的 | 优先级 |
+|---|---|---|
+| Soft-$L_0$（S20/S21） | 近似计算非零 Hessian 元素的数量 | 最高 |
+| $L_p$，$0<p<1$（S14） | 用非凸准范数鼓励稀疏性 | 第二 |
+| Hoyer / Gini / effective support（S08、S09、S22） | 衡量曲率能量集中于多少元素 | 第三 |
+
+三者并不等价：Hoyer 与 Gini 更强调**能量集中**，Soft-$L_0$ 更接近“有没有”。
+
+对 CR4/CR5，应把 **logit Hessian** 放在第一优先级：概率输出的 sigmoid 链式法则（式 (3)）会引入大量额外的非零交叉项，可能掩盖生成模型本身的简单结构。
+
+**原则：不能为了让 CR4/CR5 的真实参数旋转获胜，反过来挑选最有利的 $\epsilon$。** 应事先固定阈值选择规则，并检查该规则能否在 C1、C2、C3、CR3、CR4、CR5 上共同成立。
+
 ## 14. 第三类：逐轴、变量对、分组与交互结构（G01–G18）
 
 以 $B=M^{UX}\in\mathbb R_+^{k\times p}$ 为例，定义：
@@ -1262,6 +1435,16 @@ $
 
 定义 $\mathbf L(R)=(L_{\mathrm{self}},L_{UX,\mathrm{rows}},L_{UU,\mathrm{off}},L_{\mathrm{block}},\ldots)$，先独立比较这些分量的解析 oracle landscape、轴识别性和假极值，再考虑基于固定规则的加权/字典序/Pareto。不要只因某个 CR4 旋转角成功就反向调节指标权重。
 
+### L09. 软支持度损失（Soft-$L_0$ support）
+
+在 §13.3 标准化（UU、UX 各按区块总能量归一化）之后：
+
+$
+\boxed{L_{\mathrm{support}}(R)=\sum_{(i,j)\in\mathcal I}S_{ij}(R),}
+$
+
+其中 $S_{ij}$ 取 S20（固定 $\epsilon$，须事先固定并扫描 $\epsilon\in\{0.01,0.03,0.05,0.1,0.2\}$ 检查稳健性）或 S21（多阈值）；$\mathcal I$ 对 UU 取上三角，对 UX 取全部元素。意思是：直接近似“非零二阶作用项的个数”，而不是它们的强度。$\epsilon$ 不与 $R$ 一起优化；不得观察 oracle $R$ 之后挑选对真实坐标最有利的 $\epsilon$。
+
 ## 17. 旋转不变量与一个关键的数学限制
 
 在固定物理函数、固定分布和固定 X 的前提下，$U=RZ$、$R^\top R=I$：
@@ -1325,6 +1508,7 @@ $
 | UX 各行 | G03、G07–G10、G12、L05 | 每轴分工是否明确 |
 | UX 属性组 | G14、G15、L06 | 结构在收益/损失/概率组是否集中 |
 | 条件试次组 | G18、L07 | 不同 stimulus subsets 能否联合约束 |
+| UX 全矩阵 / UU 上三角（“有没有”） | S20、S21、L09；对照 S14、S22 | 在多个 $\epsilon$ 下真实坐标是否保持最优；规则能否在 C1/C2/C3/CR3/CR4/CR5 上共同成立 |
 | UX 谱 | R02、R03、R06 | 补充低维模式诊断，不作为主要 loss |
 | 全矩阵 | E01、E03 | 旋转不变性 sanity check |
 
