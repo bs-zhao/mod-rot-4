@@ -58,7 +58,49 @@ The constraint on the algorithm is the core difficulty of the project:
 
 `T` and `f` are used only after the fact, to evaluate whether the rotation found by the algorithm gives a one-to-one correspondence.
 
-## 4. Search Success Criterion
+## 4. The current NP: architecture and training
+
+The same NP design is used for both observation types. Only the output layer and the reconstruction loss differ.
+
+| | Binary Y | Continuous Y |
+|---|---|---|
+| Decoder output | 2 class logits; the decoder logit is `class1 − class0` | 1 real number (the predicted logit) |
+| Reconstruction loss | cross-entropy | mean squared error |
+
+### Encoder (subject trials → Z)
+
+1. **Input.** Each trial is the vector `[X, Y]`. The inputs are standardised per dimension with the mean and SD of the training subjects (for `Y` as well).
+2. **Trial embedding.** A two-layer MLP maps each trial to 32 dimensions.
+3. **Set Transformer.** Two self-attention blocks over the set of trials (4 heads, residual connection, layer norm, a feed-forward layer). They are followed by one attention-pooling layer (PMA) with a single learned seed vector. The result is one vector per subject. A linear layer maps it to a 64-dimensional summary. The trials are an unordered set, so the output does not depend on trial order, and trial numbers can differ between subjects.
+4. **Gaussian latent.** Two linear heads map the summary to a mean `μ` and a log-variance for a diagonal Gaussian `q(Z | trials)`. The latent dimension equals `dim(T)` for each test bed (4, 4, 6, 4, 3 for C1, C2, C3, CR3, CR4).
+
+### Decoder `d` (Z, X → Y)
+
+The decoder is an MLP on `[X standardised, Z]`: `dim(X)+dim(Z) → 128 → 256 → 128 → output`, with GELU between the layers. It is applied to each trial separately. It is this network that is frozen after training and offered to the search as the optional `d`. For the continuous version its output is in standardised units and is converted back to logit units with the training mean and SD of `Y`.
+
+### Training
+
+- **Data split.** Subjects are split 70% / 15% / 15% into train / validation / test (seed 31). The split is by subject, never by trial.
+- **Context.** In every training step, the encoder sees only a random subset of each subject's trials. The size is a fraction drawn uniformly from 25% to 80% of that subject's trials. The decoder predicts the responses of all trials of the subject. Validation and test use context subsets that are drawn once and kept fixed.
+- **Sampling.** In training, `Z = μ + σ·ε` with the reparameterisation trick.
+- **Loss.** `reconstruction + β · KL`, where the KL term is between `q(Z | trials)` and a standard normal. The runs use `β = 5e-4`. The reconstruction term is cross-entropy for binary Y and MSE for continuous Y.
+- **Optimiser.** Adam, learning rate `5e-4`, no weight decay, batch of 128 subjects, gradient norm clipped at 1.0.
+- **Stopping.** At most 500 epochs, with early stopping on the validation loss (patience 50). The checkpoint with the best validation loss is kept.
+
+### After training
+
+The network is frozen. Each subject's `Z` is the posterior mean `μ`, computed with **all** of the subject's observed trials as context. All later steps work with this `Z` and, optionally, the frozen decoder.
+
+### Premise check for Stage A
+
+Before an NP is used in Stage B, `Z` is regressed linearly on each `T` component (fit on the training subjects, `R²` on the test subjects). The NP goes on to Stage B only if every parameter reaches the threshold:
+
+- C1, C2, C3: `R² ≥ 0.70` for every parameter.
+- CR3, CR4: `R² ≥ 0.65` for every parameter.
+
+`T` is used here only to decide whether an NP is valid. It is not used to choose methods or metrics. The KL weight `β` is a training setting that affects this check. For the continuous CR4 replicate, `β = 5e-4` did not pass the check, and the replicate was retrained with `β = 5e-5`.
+
+## 5. Search Success Criterion
 
 > **Search Success Criterion.** A search is *successful* when, using only `Z`, `X`, `Y` and optionally the frozen decoder `d` (and never `T` or `f`), it finds a rotation matrix `R` such that `U = R Z` is in **one-to-one correspondence** with `T`.
 
@@ -69,7 +111,7 @@ This is a fixed term. Later notes refer to it as the **Search Success Criterion*
 - **Where `T` is used.** Only after the search, to judge whether the `R` that was found meets the criterion. `T` never enters the search itself.
 - **Quantitative form.** This note fixes only the meaning of the term. The numbers used to decide "high" and "low" will be set in a later note.
 
-## 5. Summary
+## 6. Summary
 
 | Item | Known to the algorithm? |
 |---|---|
@@ -79,4 +121,4 @@ This is a fixed term. Later notes refer to it as the **Search Success Criterion*
 | Generating function `f` | no (evaluation only) |
 | Individual-difference parameters `T` | no (evaluation only) |
 
-**Project goal.** From `(X, Y)` alone, and optionally the frozen decoder `d`, find a rotation `R` so that every axis of `U = R Z` corresponds one-to-one to a parameter in `T`. A search that does this meets the **Search Success Criterion** (section 4).
+**Project goal.** From `(X, Y)` alone, and optionally the frozen decoder `d`, find a rotation `R` so that every axis of `U = R Z` corresponds one-to-one to a parameter in `T`. A search that does this meets the **Search Success Criterion** (section 5).
