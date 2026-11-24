@@ -1,0 +1,13 @@
+
+## CR4 d=3 p=6 per-point H (4096, 9, 9)
+  ceiling (supervised R*)        : MCC 0.845 (min 0.813) | leak mean 0.046 max 0.071 | err 0.0deg
+  A rowsp (reference)            : MCC 0.841 (min 0.808) | leak mean 0.068 max 0.126 | err 6.5deg
+  F1 per-axis rank-1 X-coupling  : MCC 0.713 (min 0.608) | leak mean 0.301 max 0.510 | err 39.9deg
+      at R*: f=0.1321; local min from R*: f=0.1297 -> MCC 0.713 err 39.9deg
+  F2 per-point L1/L2 sparsity    : MCC 0.666 (min 0.549) | leak mean 0.334 max 0.615 | err 46.4deg
+      at R*: f=0.1818; local min from R*: f=0.1498 -> MCC 0.666 err 46.4deg
+  A+F1 (equal wts)               : MCC 0.733 (min 0.625) | leak mean 0.193 max 0.554 | err 36.5deg
+      at R*: f=247.3903; local min from R*: f=246.3841 -> MCC 0.588 err 58.0deg
+  A+F2 (equal wts)               : MCC 0.633 (min 0.587) | leak mean 0.352 max 0.601 | err 50.4deg
+      at R*: f=167.7881; local min from R*: f=167.5048 -> MCC 0.840 err 8.0deg
+HEAT CR4  [16s]

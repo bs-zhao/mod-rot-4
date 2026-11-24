@@ -1,0 +1,91 @@
+
+## C1 d=4 p=3   ceiling (supervised): MCC 0.972 (min 0.972) | leak mean 0.008 max 0.012 | err 0.0deg
+  a=0    q=0.1 instability   0.2deg  rel.drop 0.161  | post-hoc: MCC 0.837 (min 0.699) | leak mean 0.119 max 0.681 | err 43.8deg
+  a=0    q=0.5 instability   0.3deg  rel.drop 0.268  | post-hoc: MCC 0.840 (min 0.705) | leak mean 0.118 max 0.676 | err 43.3deg
+  a=0.25 q=0.1 instability   0.1deg  rel.drop 0.161  | post-hoc: MCC 0.834 (min 0.694) | leak mean 0.120 max 0.687 | err 44.3deg
+  a=0.25 q=0.5 instability   0.2deg  rel.drop 0.267  | post-hoc: MCC 0.839 (min 0.703) | leak mean 0.118 max 0.678 | err 43.5deg
+  a=0.5  q=0.1 instability   0.1deg  rel.drop 0.166  | post-hoc: MCC 0.972 (min 0.972) | leak mean 0.009 max 0.021 | err 0.9deg
+  a=0.5  q=0.5 instability   0.1deg  rel.drop 0.268  | post-hoc: MCC 0.836 (min 0.697) | leak mean 0.119 max 0.683 | err 44.0deg
+  a=0.75 q=0.1 instability   0.1deg  rel.drop 0.171  | post-hoc: MCC 0.972 (min 0.971) | leak mean 0.011 max 0.028 | err 1.6deg
+  a=0.75 q=0.5 instability   0.1deg  rel.drop 0.273  | post-hoc: MCC 0.972 (min 0.972) | leak mean 0.009 max 0.021 | err 0.9deg
+  a=1.0  q=0.1 instability   0.4deg  rel.drop 0.172  | post-hoc: MCC 0.971 (min 0.969) | leak mean 0.021 max 0.056 | err 3.8deg
+  a=1.0  q=0.5 instability   0.2deg  rel.drop 0.274  | post-hoc: MCC 0.972 (min 0.971) | leak mean 0.011 max 0.030 | err 1.7deg
+  SELECTED (T-free rule): a=1.0 q=0.5  -> MCC 0.972 (min 0.971) | leak mean 0.011 max 0.030 | err 1.7deg
+  (old T-picked a=0.5,q=0.1 in the new R*-free frame: MCC 0.972 (min 0.972) | leak mean 0.009 max 0.021 | err 0.9deg)
+HEAT C1  [470s]
+
+## C2 d=4 p=4   ceiling (supervised): MCC 0.977 (min 0.968) | leak mean 0.014 max 0.033 | err 0.0deg
+  a=0    q=0.1 instability   3.3deg  rel.drop 0.094  | post-hoc: MCC 0.783 (min 0.631) | leak mean 0.213 max 0.632 | err 53.0deg
+  a=0    q=0.5 instability   5.3deg  rel.drop 0.147  | post-hoc: MCC 0.783 (min 0.627) | leak mean 0.216 max 0.621 | err 53.0deg
+  a=0.25 q=0.1 instability   2.9deg  rel.drop 0.092  | post-hoc: MCC 0.783 (min 0.633) | leak mean 0.212 max 0.644 | err 53.1deg
+  a=0.25 q=0.5 instability   4.9deg  rel.drop 0.145  | post-hoc: MCC 0.782 (min 0.630) | leak mean 0.214 max 0.633 | err 53.2deg
+  a=0.5  q=0.1 instability   3.6deg  rel.drop 0.089  | post-hoc: MCC 0.791 (min 0.652) | leak mean 0.206 max 0.645 | err 51.3deg
+  a=0.5  q=0.5 instability   4.7deg  rel.drop 0.140  | post-hoc: MCC 0.780 (min 0.633) | leak mean 0.212 max 0.651 | err 53.4deg
+  a=0.75 q=0.1 instability   3.9deg  rel.drop 0.093  | post-hoc: MCC 0.975 (min 0.968) | leak mean 0.031 max 0.087 | err 5.2deg
+  a=0.75 q=0.5 instability   0.9deg  rel.drop 0.135  | post-hoc: MCC 0.839 (min 0.703) | leak mean 0.129 max 0.694 | err 44.0deg
+  a=1.0  q=0.1 instability   1.1deg  rel.drop 0.095  | post-hoc: MCC 0.977 (min 0.968) | leak mean 0.020 max 0.051 | err 2.1deg
+  a=1.0  q=0.5 instability   0.9deg  rel.drop 0.130  | post-hoc: MCC 0.977 (min 0.968) | leak mean 0.021 max 0.053 | err 2.1deg
+  SELECTED (T-free rule): a=0.75 q=0.5  -> MCC 0.839 (min 0.703) | leak mean 0.129 max 0.694 | err 44.0deg
+  (old T-picked a=0.5,q=0.1 in the new R*-free frame: MCC 0.791 (min 0.652) | leak mean 0.206 max 0.645 | err 51.3deg)
+HEAT C2  [722s]
+
+## CR3 d=4 p=6   ceiling (supervised): MCC 0.872 (min 0.840) | leak mean 0.031 max 0.055 | err 0.0deg
+  a=0    q=0.1 instability   3.4deg  rel.drop 0.016  | post-hoc: MCC 0.726 (min 0.616) | leak mean 0.193 max 0.596 | err 47.8deg
+  a=0    q=0.5 instability   1.5deg  rel.drop 0.037  | post-hoc: MCC 0.642 (min 0.496) | leak mean 0.285 max 0.536 | err 58.3deg
+  a=0.25 q=0.1 instability   2.8deg  rel.drop 0.012  | post-hoc: MCC 0.800 (min 0.721) | leak mean 0.145 max 0.476 | err 33.2deg
+  a=0.25 q=0.5 instability   1.6deg  rel.drop 0.030  | post-hoc: MCC 0.642 (min 0.495) | leak mean 0.284 max 0.547 | err 58.3deg
+  a=0.5  q=0.1 instability   2.4deg  rel.drop 0.011  | post-hoc: MCC 0.864 (min 0.834) | leak mean 0.062 max 0.161 | err 9.5deg
+  a=0.5  q=0.5 instability  12.0deg  rel.drop 0.023  | post-hoc: MCC 0.666 (min 0.520) | leak mean 0.252 max 0.553 | err 55.7deg
+  a=0.75 q=0.1 instability   1.7deg  rel.drop 0.013  | post-hoc: MCC 0.849 (min 0.803) | leak mean 0.090 max 0.264 | err 18.6deg
+  a=0.75 q=0.5 instability   0.7deg  rel.drop 0.020  | post-hoc: MCC 0.783 (min 0.684) | leak mean 0.140 max 0.513 | err 35.6deg
+  a=1.0  q=0.1 instability   2.4deg  rel.drop 0.018  | post-hoc: MCC 0.719 (min 0.561) | leak mean 0.207 max 0.517 | err 49.2deg
+  a=1.0  q=0.5 instability   3.7deg  rel.drop 0.025  | post-hoc: MCC 0.790 (min 0.693) | leak mean 0.175 max 0.362 | err 34.8deg
+  SELECTED (T-free rule): a=0 q=0.5  -> MCC 0.642 (min 0.496) | leak mean 0.285 max 0.536 | err 58.3deg
+  (old T-picked a=0.5,q=0.1 in the new R*-free frame: MCC 0.864 (min 0.834) | leak mean 0.062 max 0.161 | err 9.5deg)
+HEAT CR3  [764s]
+
+## CR4 d=3 p=6   ceiling (supervised): MCC 0.845 (min 0.813) | leak mean 0.046 max 0.071 | err 0.0deg
+  a=0    q=0.1 instability   0.4deg  rel.drop 0.018  | post-hoc: MCC 0.754 (min 0.683) | leak mean 0.205 max 0.491 | err 33.0deg
+  a=0    q=0.5 instability   0.3deg  rel.drop 0.045  | post-hoc: MCC 0.599 (min 0.560) | leak mean 0.376 max 0.630 | err 54.7deg
+  a=0.25 q=0.1 instability   0.4deg  rel.drop 0.013  | post-hoc: MCC 0.758 (min 0.688) | leak mean 0.203 max 0.478 | err 32.2deg
+  a=0.25 q=0.5 instability   0.3deg  rel.drop 0.036  | post-hoc: MCC 0.598 (min 0.562) | leak mean 0.378 max 0.625 | err 54.7deg
+  a=0.5  q=0.1 instability   0.4deg  rel.drop 0.010  | post-hoc: MCC 0.841 (min 0.808) | leak mean 0.068 max 0.126 | err 6.5deg
+  a=0.5  q=0.5 instability   0.3deg  rel.drop 0.026  | post-hoc: MCC 0.599 (min 0.559) | leak mean 0.381 max 0.611 | err 54.5deg
+  a=0.75 q=0.1 instability   0.4deg  rel.drop 0.010  | post-hoc: MCC 0.755 (min 0.661) | leak mean 0.200 max 0.473 | err 33.2deg
+  a=0.75 q=0.5 instability   0.3deg  rel.drop 0.019  | post-hoc: MCC 0.609 (min 0.567) | leak mean 0.377 max 0.572 | err 53.2deg
+  a=1.0  q=0.1 instability   0.5deg  rel.drop 0.013  | post-hoc: MCC 0.703 (min 0.586) | leak mean 0.251 max 0.551 | err 41.9deg
+  a=1.0  q=0.5 instability   0.6deg  rel.drop 0.016  | post-hoc: MCC 0.738 (min 0.630) | leak mean 0.255 max 0.432 | err 35.9deg
+  SELECTED (T-free rule): a=0 q=0.5  -> MCC 0.599 (min 0.560) | leak mean 0.376 max 0.630 | err 54.7deg
+  (old T-picked a=0.5,q=0.1 in the new R*-free frame: MCC 0.841 (min 0.808) | leak mean 0.068 max 0.126 | err 6.5deg)
+HEAT CR4  [129s]
+
+## CR5 d=3 p=6   ceiling (supervised): MCC 0.892 (min 0.860) | leak mean 0.021 max 0.040 | err 0.0deg
+  a=0    q=0.1 instability   0.4deg  rel.drop 0.018  | post-hoc: MCC 0.753 (min 0.672) | leak mean 0.223 max 0.594 | err 39.9deg
+  a=0    q=0.5 instability   0.5deg  rel.drop 0.034  | post-hoc: MCC 0.647 (min 0.553) | leak mean 0.400 max 0.552 | err 53.5deg
+  a=0.25 q=0.1 instability   0.5deg  rel.drop 0.015  | post-hoc: MCC 0.793 (min 0.729) | leak mean 0.216 max 0.496 | err 33.3deg
+  a=0.25 q=0.5 instability   0.5deg  rel.drop 0.029  | post-hoc: MCC 0.641 (min 0.544) | leak mean 0.405 max 0.540 | err 54.2deg
+  a=0.5  q=0.1 instability  23.6deg  rel.drop 0.015  | post-hoc: MCC 0.882 (min 0.852) | leak mean 0.087 max 0.146 | err 10.6deg
+  a=0.5  q=0.5 instability   0.6deg  rel.drop 0.024  | post-hoc: MCC 0.637 (min 0.539) | leak mean 0.407 max 0.535 | err 54.7deg
+  a=0.75 q=0.1 instability   1.5deg  rel.drop 0.018  | post-hoc: MCC 0.864 (min 0.830) | leak mean 0.140 max 0.245 | err 17.9deg
+  a=0.75 q=0.5 instability   0.6deg  rel.drop 0.022  | post-hoc: MCC 0.777 (min 0.714) | leak mean 0.220 max 0.538 | err 35.7deg
+  a=1.0  q=0.1 instability   0.7deg  rel.drop 0.022  | post-hoc: MCC 0.781 (min 0.712) | leak mean 0.237 max 0.506 | err 36.0deg
+  a=1.0  q=0.5 instability   0.9deg  rel.drop 0.027  | post-hoc: MCC 0.801 (min 0.745) | leak mean 0.240 max 0.392 | err 32.2deg
+  SELECTED (T-free rule): a=0 q=0.5  -> MCC 0.647 (min 0.553) | leak mean 0.400 max 0.552 | err 53.5deg
+  (old T-picked a=0.5,q=0.1 in the new R*-free frame: MCC 0.882 (min 0.852) | leak mean 0.087 max 0.146 | err 10.6deg)
+HEAT CR5  [122s]
+
+## C3 d=6 p=4   ceiling (supervised): MCC 0.970 (min 0.961) | leak mean 0.007 max 0.017 | err 0.0deg
+  a=0    q=0.1 instability  39.8deg  rel.drop 0.075  | post-hoc: MCC 0.766 (min 0.588) | leak mean 0.141 max 0.647 | err 54.4deg
+  a=0    q=0.5 instability  45.4deg  rel.drop 0.134  | post-hoc: MCC 0.817 (min 0.717) | leak mean 0.127 max 0.588 | err 46.5deg
+  a=0.25 q=0.1 instability  41.8deg  rel.drop 0.074  | post-hoc: MCC 0.861 (min 0.725) | leak mean 0.096 max 0.625 | err 41.3deg
+  a=0.25 q=0.5 instability  47.4deg  rel.drop 0.129  | post-hoc: MCC 0.828 (min 0.706) | leak mean 0.136 max 0.617 | err 46.3deg
+  a=0.5  q=0.1 instability  48.5deg  rel.drop 0.075  | post-hoc: MCC 0.864 (min 0.767) | leak mean 0.092 max 0.588 | err 36.9deg
+  a=0.5  q=0.5 instability  56.2deg  rel.drop 0.135  | post-hoc: MCC 0.766 (min 0.532) | leak mean 0.138 max 0.684 | err 58.8deg
+  a=0.75 q=0.1 instability  45.5deg  rel.drop 0.076  | post-hoc: MCC 0.858 (min 0.708) | leak mean 0.094 max 0.670 | err 43.7deg
+  a=0.75 q=0.5 instability  50.7deg  rel.drop 0.135  | post-hoc: MCC 0.856 (min 0.672) | leak mean 0.096 max 0.676 | err 45.5deg
+  a=1.0  q=0.1 instability  31.7deg  rel.drop 0.081  | post-hoc: MCC 0.922 (min 0.870) | leak mean 0.088 max 0.360 | err 28.1deg
+  a=1.0  q=0.5 instability  38.0deg  rel.drop 0.140  | post-hoc: MCC 0.949 (min 0.916) | leak mean 0.062 max 0.235 | err 17.5deg
+  SELECTED (T-free rule): a=1.0 q=0.1  -> MCC 0.922 (min 0.870) | leak mean 0.088 max 0.360 | err 28.1deg
+  (old T-picked a=0.5,q=0.1 in the new R*-free frame: MCC 0.864 (min 0.767) | leak mean 0.092 max 0.588 | err 36.9deg)
+HEAT C3  [2877s]
+ALLDONE 10:13:36

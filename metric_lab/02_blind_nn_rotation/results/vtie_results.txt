@@ -1,0 +1,29 @@
+
+## C2 d=4 p=4   ceiling: MCC 0.977 (min 0.968) | leak mean 0.014 max 0.033 | err 0.0deg
+  stage1 rowsp min: f=0.7465  MCC 0.791 (min 0.652) | leak mean 0.206 max 0.645 | err 51.3deg
+  tau=0.00074  (Haar SD 0.0170; tau/SD=0.044)
+  V1 (valley + UU tie-break): f_rowsp=0.7473 feasible=False udshare=0.4876 (at Q0 0.5247) -> MCC 0.893 (min 0.783) | leak mean 0.113 max 0.569 | err 34.2deg | moved 24.9deg from rowsp-min
+  [diag] at supervised R*: rowsp=0.7495 (v0+tau=0.7472) udshare=0.4919
+HEAT C2  [72s]
+
+## CR4 d=3 p=6   ceiling: MCC 0.845 (min 0.813) | leak mean 0.046 max 0.071 | err 0.0deg
+  stage1 rowsp min: f=0.7841  MCC 0.841 (min 0.808) | leak mean 0.068 max 0.126 | err 6.5deg
+  tau=0.00037  (Haar SD 0.0052; tau/SD=0.071)
+  V1 (valley + UU tie-break): f_rowsp=0.7845 feasible=False udshare=0.4182 (at Q0 0.4450) -> MCC 0.833 (min 0.797) | leak mean 0.101 max 0.162 | err 11.7deg | moved 6.4deg from rowsp-min
+  [diag] at supervised R*: rowsp=0.7852 (v0+tau=0.7845) udshare=0.4566
+HEAT CR4  [18s]
+
+## C3 d=6 p=4   ceiling: MCC 0.970 (min 0.961) | leak mean 0.007 max 0.017 | err 0.0deg
+  stage1 rowsp min: f=0.7910  MCC 0.864 (min 0.767) | leak mean 0.092 max 0.588 | err 36.9deg
+  tau=0.00078  (Haar SD 0.0082; tau/SD=0.095)
+  V1 (valley + UU tie-break): f_rowsp=0.7922 feasible=False udshare=0.3978 (at Q0 0.4278) -> MCC 0.868 (min 0.663) | leak mean 0.092 max 0.660 | err 45.1deg | moved 63.8deg from rowsp-min
+  [diag] at supervised R*: rowsp=0.7932 (v0+tau=0.7918) udshare=0.4109
+HEAT C3  [191s]
+
+## C1 d=4 p=3   ceiling: MCC 0.972 (min 0.972) | leak mean 0.008 max 0.012 | err 0.0deg
+  stage1 rowsp min: f=0.7032  MCC 0.972 (min 0.972) | leak mean 0.009 max 0.021 | err 0.9deg
+  tau=0.00083  (Haar SD 0.0242; tau/SD=0.034)
+  V1 (valley + UU tie-break): f_rowsp=0.7040 feasible=False udshare=0.4336 (at Q0 0.4390) -> MCC 0.972 (min 0.971) | leak mean 0.012 max 0.036 | err 2.0deg | moved 2.9deg from rowsp-min
+  [diag] at supervised R*: rowsp=0.7034 (v0+tau=0.7040) udshare=0.4372
+HEAT C1  [62s]
+ALLDONE 10:19:37

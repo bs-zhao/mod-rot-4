@@ -1,0 +1,45 @@
+
+## [new] CR4 d=3 p=6 ceiling MCC 0.845 (min 0.813) leak 0.046/0.071
+  colH (column concentration) : MCC 0.677 (min 0.565) leak 0.270/0.626
+  L07-A (3 X-regions)         : MCC 0.833 (min 0.791) leak 0.099/0.164
+  L07-B (3 X-regions)         : MCC 0.661 (min 0.556) leak 0.327/0.629
+  A+colH                      : MCC 0.684 (min 0.581) leak 0.283/0.611
+  B+colH                      : MCC 0.677 (min 0.565) leak 0.272/0.626
+  A+B+colH                    : MCC 0.680 (min 0.575) leak 0.288/0.617
+  zA+zB+zcol                  : MCC 0.655 (min 0.601) leak 0.330/0.583
+  L07-A+L07-B                 : MCC 0.677 (min 0.583) leak 0.296/0.610
+HEAT new CR4 [61s]
+
+## [new] C2 d=4 p=4 ceiling MCC 0.977 (min 0.968) leak 0.014/0.033
+  colH (column concentration) : MCC 0.977 (min 0.967) leak 0.019/0.057
+  L07-A (3 X-regions)         : MCC 0.775 (min 0.571) leak 0.219/0.650
+  L07-B (3 X-regions)         : MCC 0.977 (min 0.967) leak 0.018/0.057
+  A+colH                      : MCC 0.977 (min 0.967) leak 0.018/0.055
+  B+colH                      : MCC 0.977 (min 0.967) leak 0.019/0.057
+  A+B+colH                    : MCC 0.977 (min 0.967) leak 0.018/0.056
+  zA+zB+zcol                  : MCC 0.977 (min 0.967) leak 0.018/0.054
+  L07-A+L07-B                 : MCC 0.977 (min 0.967) leak 0.017/0.056
+HEAT new C2 [142s]
+
+## [new] C1 d=4 p=3 ceiling MCC 0.972 (min 0.972) leak 0.008/0.012
+  colH (column concentration) : MCC 0.972 (min 0.972) leak 0.008/0.019
+  L07-A (3 X-regions)         : MCC 0.972 (min 0.972) leak 0.009/0.021
+  L07-B (3 X-regions)         : MCC 0.972 (min 0.972) leak 0.008/0.019
+  A+colH                      : MCC 0.972 (min 0.972) leak 0.008/0.020
+  B+colH                      : MCC 0.972 (min 0.972) leak 0.008/0.019
+  A+B+colH                    : MCC 0.972 (min 0.972) leak 0.008/0.019
+  zA+zB+zcol                  : MCC 0.972 (min 0.972) leak 0.009/0.020
+  L07-A+L07-B                 : MCC 0.972 (min 0.972) leak 0.008/0.020
+HEAT new C1 [106s]
+
+## [new] C3 d=6 p=4 ceiling MCC 0.970 (min 0.961) leak 0.007/0.017
+  colH (column concentration) : MCC 0.932 (min 0.879) leak 0.065/0.360
+  L07-A (3 X-regions)         : MCC 0.796 (min 0.720) leak 0.132/0.648
+  L07-B (3 X-regions)         : MCC 0.895 (min 0.805) leak 0.103/0.499
+  A+colH                      : MCC 0.956 (min 0.929) leak 0.050/0.189
+  B+colH                      : MCC 0.965 (min 0.944) leak 0.028/0.156
+  A+B+colH                    : MCC 0.927 (min 0.838) leak 0.078/0.341
+  zA+zB+zcol                  : MCC 0.952 (min 0.931) leak 0.053/0.211
+  L07-A+L07-B                 : MCC 0.882 (min 0.720) leak 0.084/0.624
+HEAT new C3 [1067s]
+ALLDONE 12:07:05

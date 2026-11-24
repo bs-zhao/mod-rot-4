@@ -1,0 +1,25 @@
+
+## [F3 vs a] CR4 d=3 p=6
+  F3 with a=0.0 : MCC 0.841 (min 0.806) leak 0.068/0.133
+  F3 with a=0.5 : MCC 0.836 (min 0.812) leak 0.083/0.207
+  F3 with a=1.0 : MCC 0.713 (min 0.609) leak 0.256/0.538
+DONE CR4 [81s]
+
+## [F3 vs a] C2 d=4 p=4
+  F3 with a=0.0 : MCC 0.957 (min 0.927) leak 0.071/0.262
+  F3 with a=0.5 : MCC 0.976 (min 0.967) leak 0.025/0.066
+  F3 with a=1.0 : MCC 0.975 (min 0.966) leak 0.029/0.080
+DONE C2 [156s]
+
+## [F3 vs a] C1 d=4 p=3
+  F3 with a=0.0 : MCC 0.960 (min 0.946) leak 0.042/0.225
+  F3 with a=0.5 : MCC 0.970 (min 0.969) leak 0.028/0.072
+  F3 with a=1.0 : MCC 0.968 (min 0.967) leak 0.039/0.086
+DONE C1 [128s]
+
+## [F3 vs a] C3 d=6 p=4
+  F3 with a=0.0 : MCC 0.885 (min 0.725) leak 0.078/0.657
+  F3 with a=0.5 : MCC 0.935 (min 0.886) leak 0.074/0.336
+  F3 with a=1.0 : MCC 0.875 (min 0.686) leak 0.109/0.604
+DONE C3 [560s]
+ALLDONE 12:47:01

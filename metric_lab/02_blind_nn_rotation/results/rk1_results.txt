@@ -1,0 +1,33 @@
+
+## [rk1] CR4 d=3 p=6 ceiling MCC 0.845 (min 0.813) leak 0.046/0.071 | rank-one gradient term removed; share of energy removed 0.356
+  A rowsp               : MCC 0.572 (min 0.518) leak 0.403/0.605
+  B global UX 1-Hoyer   : MCC 0.657 (min 0.539) leak 0.344/0.623
+  F1 = A+B              : MCC 0.678 (min 0.566) leak 0.315/0.612
+  F2 = zA+zB            : MCC 0.630 (min 0.587) leak 0.353/0.604
+  F3 = zA+zB+zC         : MCC 0.719 (min 0.602) leak 0.269/0.497
+HEAT rk1 CR4 [32s]
+
+## [rk1] C2 d=4 p=4 ceiling MCC 0.977 (min 0.968) leak 0.014/0.033 | rank-one gradient term removed; share of energy removed 0.126
+  A rowsp               : MCC 0.782 (min 0.610) leak 0.224/0.629
+  B global UX 1-Hoyer   : MCC 0.976 (min 0.967) leak 0.022/0.070
+  F1 = A+B              : MCC 0.976 (min 0.966) leak 0.021/0.074
+  F2 = zA+zB            : MCC 0.976 (min 0.966) leak 0.023/0.082
+  F3 = zA+zB+zC         : MCC 0.976 (min 0.965) leak 0.024/0.103
+HEAT rk1 C2 [124s]
+
+## [rk1] C3 d=6 p=4 ceiling MCC 0.970 (min 0.961) leak 0.007/0.017 | rank-one gradient term removed; share of energy removed 0.085
+  A rowsp               : MCC 0.733 (min 0.553) leak 0.150/0.664
+  B global UX 1-Hoyer   : MCC 0.962 (min 0.947) leak 0.041/0.145
+  F1 = A+B              : MCC 0.939 (min 0.860) leak 0.065/0.320
+  F2 = zA+zB            : MCC 0.940 (min 0.860) leak 0.057/0.387
+  F3 = zA+zB+zC         : MCC 0.939 (min 0.886) leak 0.072/0.258
+HEAT rk1 C3 [518s]
+
+## [rk1] C1 d=4 p=3 ceiling MCC 0.972 (min 0.972) leak 0.008/0.012 | rank-one gradient term removed; share of energy removed 0.036
+  A rowsp               : MCC 0.972 (min 0.972) leak 0.009/0.024
+  B global UX 1-Hoyer   : MCC 0.972 (min 0.972) leak 0.008/0.020
+  F1 = A+B              : MCC 0.972 (min 0.972) leak 0.009/0.021
+  F2 = zA+zB            : MCC 0.972 (min 0.972) leak 0.009/0.023
+  F3 = zA+zB+zC         : MCC 0.972 (min 0.972) leak 0.008/0.021
+HEAT rk1 C1 [143s]
+ALLDONE 13:28:20

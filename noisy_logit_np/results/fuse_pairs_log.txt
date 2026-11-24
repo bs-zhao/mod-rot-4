@@ -1,0 +1,12 @@
+base metrics: ['rowsp.a1.0.q0.1', 'UXrow.a1.lq.25', 'rowsp.a0.75.q0.1', 'rowsp.a1.0.q0.5', 'rowsp.a0.5.q0.1', 'UXrow.a0.5.lq.25', 'UXrow.a1.log1e-2', 'rowsp.a0.25.q0.1', 'rowsp.a0.75.q0.5', 'rowsp.a0.5.q0.5', 'UXrow.a0.tail1', 'UXrow.a0.hoy', 'rowsp.a0.q0.1', 'UXcol.a0.hoy', 'UXrow.a0.lq.25', 'UXrow.a0.5.log1e-2', 'UXcol.a0.tail1', 'UXrow.a0.5.tail1', 'AXrow.a0.5.tail1', 'rowsp.a0.25.q0.5']
+950 tasks
+100/950 [89s]
+200/950 [197s]
+300/950 [299s]
+400/950 [433s]
+500/950 [739s]
+600/950 [1004s]
+700/950 [1097s]
+800/950 [1184s]
+900/950 [1220s]
+ALLDONE 1226.8655972480774

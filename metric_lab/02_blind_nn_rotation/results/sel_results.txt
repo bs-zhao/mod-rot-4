@@ -1,0 +1,20 @@
+SEL C1 rep1 seed2: ceiling MCC 0.972 leak 0.008/0.012 | A rowsp MCC 0.972 leak 0.009/0.021 ud/H 0.822 | B UX-Hoyer MCC 0.972 leak 0.008/0.019 ud/H 0.820 | PICK B -> MCC 0.972 leak 0.008/0.019 | best-of-two would be 0.972 [30s]
+HEAT C1
+SEL C2 rep1 seed2: ceiling MCC 0.977 leak 0.014/0.033 | A rowsp MCC 0.791 leak 0.206/0.645 ud/H 1.005 | B UX-Hoyer MCC 0.977 leak 0.019/0.057 ud/H 0.942 | PICK B -> MCC 0.977 leak 0.019/0.057 | best-of-two would be 0.977 [30s]
+HEAT C2
+SEL C3 rep1 seed2: ceiling MCC 0.970 leak 0.007/0.017 | A rowsp MCC 0.864 leak 0.092/0.588 ud/H 1.018 | B UX-Hoyer MCC 0.943 leak 0.055/0.328 ud/H 0.978 | PICK B -> MCC 0.943 leak 0.055/0.328 | best-of-two would be 0.943 [123s]
+HEAT C3
+SEL CR4 rep1 seed2: ceiling MCC 0.845 leak 0.046/0.071 | A rowsp MCC 0.841 leak 0.068/0.126 ud/H 0.831 | B UX-Hoyer MCC 0.655 leak 0.342/0.628 ud/H 1.635 | PICK A -> MCC 0.841 leak 0.068/0.126 | best-of-two would be 0.841 [7s]
+HEAT CR4
+SEL CR4 rep2 seed2: ceiling MCC 0.848 leak 0.045/0.066 | A rowsp MCC 0.845 leak 0.065/0.131 ud/H 0.815 | B UX-Hoyer MCC 0.653 leak 0.340/0.637 ud/H 1.576 | PICK A -> MCC 0.845 leak 0.065/0.131 | best-of-two would be 0.845 [8s]
+SEL CR4 rep2 seed5: ceiling MCC 0.848 leak 0.045/0.066 | A rowsp MCC 0.843 leak 0.075/0.137 ud/H 0.818 | B UX-Hoyer MCC 0.654 leak 0.338/0.636 ud/H 1.574 | PICK A -> MCC 0.843 leak 0.075/0.137 | best-of-two would be 0.843 [7s]
+SEL CR4 rep2 seed8: ceiling MCC 0.848 leak 0.045/0.066 | A rowsp MCC 0.844 leak 0.070/0.134 ud/H 0.815 | B UX-Hoyer MCC 0.652 leak 0.340/0.637 ud/H 1.579 | PICK A -> MCC 0.844 leak 0.070/0.134 | best-of-two would be 0.844 [7s]
+SEL CR4 rep1 seed5: ceiling MCC 0.845 leak 0.046/0.071 | A rowsp MCC 0.840 leak 0.075/0.129 ud/H 0.831 | B UX-Hoyer MCC 0.657 leak 0.339/0.627 ud/H 1.617 | PICK A -> MCC 0.840 leak 0.075/0.129 | best-of-two would be 0.840 [7s]
+SEL CR4 rep1 seed8: ceiling MCC 0.845 leak 0.046/0.071 | A rowsp MCC 0.840 leak 0.075/0.131 ud/H 0.830 | B UX-Hoyer MCC 0.655 leak 0.342/0.629 ud/H 1.629 | PICK A -> MCC 0.840 leak 0.075/0.131 | best-of-two would be 0.840 [7s]
+SEL C1 rep1 seed5: ceiling MCC 0.972 leak 0.008/0.012 | A rowsp MCC 0.972 leak 0.009/0.020 ud/H 0.824 | B UX-Hoyer MCC 0.972 leak 0.008/0.017 ud/H 0.822 | PICK B -> MCC 0.972 leak 0.008/0.017 | best-of-two would be 0.972 [30s]
+SEL C1 rep1 seed8: ceiling MCC 0.972 leak 0.008/0.012 | A rowsp MCC 0.972 leak 0.009/0.021 ud/H 0.827 | B UX-Hoyer MCC 0.972 leak 0.008/0.019 ud/H 0.825 | PICK B -> MCC 0.972 leak 0.008/0.019 | best-of-two would be 0.972 [30s]
+SEL C2 rep1 seed5: ceiling MCC 0.977 leak 0.014/0.033 | A rowsp MCC 0.796 leak 0.203/0.647 ud/H 0.989 | B UX-Hoyer MCC 0.976 leak 0.020/0.057 ud/H 0.924 | PICK B -> MCC 0.976 leak 0.020/0.057 | best-of-two would be 0.976 [37s]
+SEL C2 rep1 seed8: ceiling MCC 0.977 leak 0.014/0.033 | A rowsp MCC 0.791 leak 0.212/0.647 ud/H 1.004 | B UX-Hoyer MCC 0.977 leak 0.019/0.057 ud/H 0.923 | PICK B -> MCC 0.977 leak 0.019/0.057 | best-of-two would be 0.977 [21s]
+SEL C3 rep1 seed5: ceiling MCC 0.970 leak 0.007/0.017 | A rowsp MCC 0.909 leak 0.084/0.483 ud/H 0.992 | B UX-Hoyer MCC 0.965 leak 0.033/0.125 ud/H 0.972 | PICK B -> MCC 0.965 leak 0.033/0.125 | best-of-two would be 0.965 [133s]
+SEL C3 rep1 seed8: ceiling MCC 0.970 leak 0.007/0.017 | A rowsp MCC 0.744 leak 0.145/0.670 ud/H 1.023 | B UX-Hoyer MCC 0.949 leak 0.061/0.233 ud/H 0.976 | PICK B -> MCC 0.949 leak 0.061/0.233 | best-of-two would be 0.949 [130s]
+ALLDONE 10:42:00

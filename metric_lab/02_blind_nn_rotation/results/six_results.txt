@@ -1,0 +1,67 @@
+
+## C1 d=4 p=3 per-point H (4096, 7, 7)
+  ceiling (supervised R*)        : MCC 0.972 (min 0.972) | leak mean 0.008 max 0.012 | err 0.0deg
+  A rowsp                        : MCC 0.972 (min 0.972) | leak mean 0.009 max 0.021 | err 0.9deg
+  C EXP13-form (logit, std X)    : MCC 0.967 (min 0.965) | leak mean 0.054 max 0.101 | err 8.6deg
+  D C+rowsp                      : MCC 0.967 (min 0.963) | leak mean 0.039 max 0.136 | err 8.6deg
+  E EXP13 baseline (p, raw X)    : MCC 0.971 (min 0.971) | leak mean 0.026 max 0.061 | err 4.2deg
+  A+F2 Jacobi+hops               : f=41.6116  MCC 0.972 (min 0.972) | leak mean 0.008 max 0.020 | err 0.7deg   [29s]
+      local min from R* basin    : f=41.6116  MCC 0.972 (min 0.972) | leak mean 0.008 max 0.020 | err 0.7deg  -> search/metric OK (found <= truth basin)
+      distinct per-start minima (f): [41.612] of 16 starts
+HEAT C1  [73s]
+
+## C2 d=4 p=4 per-point H (4096, 8, 8)
+  ceiling (supervised R*)        : MCC 0.977 (min 0.968) | leak mean 0.014 max 0.033 | err 0.0deg
+  A rowsp                        : MCC 0.791 (min 0.652) | leak mean 0.206 max 0.645 | err 51.3deg
+  C EXP13-form (logit, std X)    : MCC 0.970 (min 0.966) | leak mean 0.045 max 0.154 | err 9.4deg
+  D C+rowsp                      : MCC 0.970 (min 0.954) | leak mean 0.042 max 0.180 | err 9.8deg
+  E EXP13 baseline (p, raw X)    : MCC 0.962 (min 0.942) | leak mean 0.067 max 0.224 | err 13.9deg
+  A+F2 Jacobi+hops               : f=56.8938  MCC 0.944 (min 0.911) | leak mean 0.075 max 0.363 | err 21.2deg   [52s]
+      local min from R* basin    : f=56.8976  MCC 0.942 (min 0.901) | leak mean 0.077 max 0.368 | err 21.9deg  -> search/metric OK (found <= truth basin)
+      distinct per-start minima (f): [56.894, 56.898] of 16 starts
+HEAT C2  [97s]
+
+## CR3 d=4 p=6 per-point H (4000, 10, 10)
+  ceiling (supervised R*)        : MCC 0.872 (min 0.840) | leak mean 0.031 max 0.055 | err 0.0deg
+  A rowsp                        : MCC 0.864 (min 0.834) | leak mean 0.062 max 0.161 | err 9.5deg
+  C EXP13-form (logit, std X)    : MCC 0.698 (min 0.552) | leak mean 0.236 max 0.647 | err 51.4deg
+  D C+rowsp                      : MCC 0.856 (min 0.808) | leak mean 0.080 max 0.201 | err 15.2deg
+  E EXP13 baseline (p, raw X)    : MCC 0.736 (min 0.578) | leak mean 0.215 max 0.532 | err 45.6deg
+  A+F2 Jacobi+hops               : f=234.5178  MCC 0.779 (min 0.676) | leak mean 0.130 max 0.542 | err 36.6deg   [65s]
+      local min from R* basin    : f=236.3431  MCC 0.865 (min 0.821) | leak mean 0.056 max 0.135 | err 8.7deg  -> search/metric OK (found <= truth basin)
+      distinct per-start minima (f): [234.518, 234.519] of 16 starts
+HEAT CR3  [115s]
+
+## CR4 d=3 p=6 per-point H (4096, 9, 9)
+  ceiling (supervised R*)        : MCC 0.845 (min 0.813) | leak mean 0.046 max 0.071 | err 0.0deg
+  A rowsp                        : MCC 0.841 (min 0.808) | leak mean 0.068 max 0.126 | err 6.5deg
+  C EXP13-form (logit, std X)    : MCC 0.687 (min 0.544) | leak mean 0.301 max 0.476 | err 43.9deg
+  D C+rowsp                      : MCC 0.737 (min 0.621) | leak mean 0.209 max 0.519 | err 36.9deg
+  E EXP13 baseline (p, raw X)    : MCC 0.563 (min 0.443) | leak mean 0.412 max 0.549 | err 59.3deg
+  A+F2 Jacobi+hops               : f=165.1755  MCC 0.632 (min 0.586) | leak mean 0.352 max 0.601 | err 50.4deg   [32s]
+      local min from R* basin    : f=167.5048  MCC 0.840 (min 0.804) | leak mean 0.061 max 0.143 | err 8.0deg  -> search/metric OK (found <= truth basin)
+      distinct per-start minima (f): [165.176, 165.178, 165.179, 165.181, 165.182, 165.185] of 16 starts
+HEAT CR4  [47s]
+
+## CR5 d=3 p=6 per-point H (4000, 9, 9)
+  ceiling (supervised R*)        : MCC 0.892 (min 0.860) | leak mean 0.021 max 0.040 | err 0.0deg
+  A rowsp                        : MCC 0.882 (min 0.852) | leak mean 0.087 max 0.146 | err 10.6deg
+  C EXP13-form (logit, std X)    : MCC 0.865 (min 0.858) | leak mean 0.101 max 0.302 | err 17.3deg
+  D C+rowsp                      : MCC 0.887 (min 0.857) | leak mean 0.067 max 0.111 | err 7.7deg
+  E EXP13 baseline (p, raw X)    : MCC 0.655 (min 0.619) | leak mean 0.412 max 0.562 | err 52.8deg
+  A+F2 Jacobi+hops               : f=145.8417  MCC 0.770 (min 0.705) | leak mean 0.204 max 0.564 | err 36.8deg   [14s]
+      local min from R* basin    : f=147.7968  MCC 0.887 (min 0.859) | leak mean 0.055 max 0.140 | err 6.9deg  -> search/metric OK (found <= truth basin)
+      distinct per-start minima (f): [145.842] of 16 starts
+HEAT CR5  [27s]
+
+## C3 d=6 p=4 per-point H (4096, 10, 10)
+  ceiling (supervised R*)        : MCC 0.970 (min 0.961) | leak mean 0.007 max 0.017 | err 0.0deg
+  A rowsp                        : MCC 0.821 (min 0.700) | leak mean 0.122 max 0.619 | err 53.0deg
+  C EXP13-form (logit, std X)    : MCC 0.892 (min 0.811) | leak mean 0.121 max 0.479 | err 37.8deg
+  D C+rowsp                      : MCC 0.775 (min 0.500) | leak mean 0.171 max 0.623 | err 63.3deg
+  E EXP13 baseline (p, raw X)    : MCC 0.892 (min 0.769) | leak mean 0.130 max 0.413 | err 39.2deg
+  A+F2 Jacobi+hops               : f=134.9231  MCC 0.933 (min 0.908) | leak mean 0.055 max 0.334 | err 20.0deg   [185s]
+      local min from R* basin    : f=135.6841  MCC 0.960 (min 0.950) | leak mean 0.045 max 0.171 | err 12.5deg  -> search/metric OK (found <= truth basin)
+      distinct per-start minima (f): [134.923] of 16 starts
+HEAT C3  [333s]
+ALLDONE 08:39:16

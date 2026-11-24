@@ -1,0 +1,78 @@
+
+## CR4 d=3 p=6
+  rowsp at truth R*      = 0.7852   (MCC 0.845)
+  local min from truth   = 0.7841   (MCC 0.841, err 6.5deg)
+  global min found       = 0.7841   (MCC 0.841, err 6.5deg)
+  -> truth is (near) the global min
+  UX row-normalised at truth (rows=T axes, cols=X columns):
+[[0.   0.3  0.19 0.   0.31 0.2 ]
+ [0.02 0.05 0.43 0.02 0.06 0.43]
+ [0.04 0.19 0.25 0.05 0.21 0.26]]
+  row energy share: [0.47 0.08 0.45]
+  eff #X cols per row: [3.98 3.25 5.04]
+
+## CR5 d=3 p=6
+  rowsp at truth R*      = 0.7899   (MCC 0.892)
+  local min from truth   = 0.7884   (MCC 0.882, err 10.6deg)
+  global min found       = 0.7884   (MCC 0.882, err 10.6deg)
+  -> truth is (near) the global min
+  UX row-normalised at truth (rows=T axes, cols=X columns):
+[[0.   0.34 0.13 0.   0.35 0.17]
+ [0.05 0.12 0.35 0.04 0.12 0.34]
+ [0.06 0.25 0.17 0.06 0.26 0.2 ]]
+  row energy share: [0.52 0.06 0.42]
+  eff #X cols per row: [3.75 4.47 5.29]
+
+## CR3 d=4 p=6
+  rowsp at truth R*      = 0.7942   (MCC 0.872)
+  local min from truth   = 0.7929   (MCC 0.864, err 9.5deg)
+  global min found       = 0.7929   (MCC 0.864, err 9.5deg)
+  -> truth is (near) the global min
+  UX row-normalised at truth (rows=T axes, cols=X columns):
+[[0.08 0.34 0.07 0.1  0.35 0.07]
+ [0.   0.38 0.12 0.   0.36 0.14]
+ [0.07 0.14 0.34 0.05 0.11 0.3 ]
+ [0.06 0.27 0.15 0.06 0.27 0.18]]
+  row energy share: [0.05 0.5  0.06 0.39]
+  eff #X cols per row: [4.58 3.62 4.76 5.19]
+
+## C1 d=4 p=3
+  rowsp at truth R*      = 0.7034   (MCC 0.972)
+  local min from truth   = 0.7032   (MCC 0.972, err 0.9deg)
+  global min found       = 0.7032   (MCC 0.972, err 0.9deg)
+  -> truth is (near) the global min
+  UX row-normalised at truth (rows=T axes, cols=X columns):
+[[0.48 0.27 0.25]
+ [1.   0.   0.  ]
+ [0.   1.   0.  ]
+ [0.   0.   1.  ]]
+  row energy share: [0.   0.34 0.32 0.33]
+  eff #X cols per row: [2.87 1.03 1.03 1.03]
+
+## C2 d=4 p=4
+  rowsp at truth R*      = 0.7495   (MCC 0.977)
+  local min from truth   = 0.7465   (MCC 0.791, err 51.3deg)
+  global min found       = 0.7465   (MCC 0.791, err 51.3deg)
+  -> truth is (near) the global min
+  UX row-normalised at truth (rows=T axes, cols=X columns):
+[[0.42 0.35 0.11 0.11]
+ [0.49 0.5  0.   0.  ]
+ [0.5  0.5  0.   0.  ]
+ [0.01 0.01 0.49 0.49]]
+  row energy share: [0.   0.16 0.69 0.15]
+  eff #X cols per row: [3.39 2.09 2.03 2.24]
+
+## C3 d=6 p=4
+  rowsp at truth R*      = 0.7932   (MCC 0.970)
+  local min from truth   = 0.7901   (MCC 0.775, err 59.9deg)
+  global min found       = 0.7909   (MCC 0.821, err 53.0deg)
+  -> truth is (near) the global min
+  UX row-normalised at truth (rows=T axes, cols=X columns):
+[[0.21 0.26 0.29 0.23]
+ [0.48 0.49 0.02 0.01]
+ [0.49 0.5  0.01 0.  ]
+ [0.02 0.02 0.48 0.49]
+ [0.01 0.01 0.51 0.48]
+ [0.25 0.25 0.25 0.25]]
+  row energy share: [0.   0.08 0.36 0.07 0.34 0.15]
+  eff #X cols per row: [3.97 2.27 2.11 2.32 2.14 4.  ]

@@ -1,0 +1,31 @@
+
+## [FROZEN] CR4 repeat2 d=3 p=6 ceiling: MCC 0.848 (min 0.820) leak 0.045/0.066
+  A rowsp               : MCC 0.845 (min 0.815) leak 0.065/0.131
+  B global UX 1-Hoyer   : MCC 0.653 (min 0.543) leak 0.340/0.637
+  F3 = zA+zB+zC         : MCC 0.840 (min 0.817) leak 0.072/0.206
+DONE CR4 r2 [19s]
+TRAIN C2 repeat2 start 13:49:53
+== DONE C2 r2 14:39:23
+
+## [FROZEN] C2 repeat2 d=4 p=4 ceiling: MCC 0.976 (min 0.968) leak 0.013/0.026
+  A rowsp               : MCC 0.784 (min 0.601) leak 0.212/0.637
+  B global UX 1-Hoyer   : MCC 0.976 (min 0.968) leak 0.018/0.032
+  F3 = zA+zB+zC         : MCC 0.961 (min 0.934) leak 0.067/0.234
+DONE C2 r2 [103s]
+TRAIN C3 repeat2 start 14:41:09
+== DONE C3 r2 15:49:31
+
+## [FROZEN] C3 repeat2 d=6 p=4 ceiling: MCC 0.972 (min 0.964) leak 0.012/0.039
+  A rowsp               : MCC 0.883 (min 0.758) leak 0.091/0.610
+  B global UX 1-Hoyer   : MCC 0.889 (min 0.772) leak 0.095/0.581
+  F3 = zA+zB+zC         : MCC 0.890 (min 0.699) leak 0.088/0.647
+DONE C3 r2 [355s]
+TRAIN C1 repeat2 start 15:55:29
+== DONE C1 r2 17:50:35
+
+## [FROZEN] C1 repeat2 d=4 p=3 ceiling: MCC 0.972 (min 0.971) leak 0.009/0.011
+  A rowsp               : MCC 0.972 (min 0.971) leak 0.013/0.028
+  B global UX 1-Hoyer   : MCC 0.972 (min 0.971) leak 0.013/0.025
+  F3 = zA+zB+zC         : MCC 0.972 (min 0.971) leak 0.013/0.036
+DONE C1 r2 [59s]
+ALLDONE 17:51:37

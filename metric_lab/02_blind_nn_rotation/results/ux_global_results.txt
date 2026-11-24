@@ -1,0 +1,37 @@
+
+## C2 d=4 p=4   ceiling: MCC 0.977 (min 0.968) | leak mean 0.014 max 0.033 | err 0.0deg
+  rowsp a=.5 (ref)      : MCC 0.791 (min 0.652) | leak mean 0.206 max 0.645 | err 51.3deg | rel.drop 0.092
+  UX entropy (global)   : MCC 0.977 (min 0.967) | leak mean 0.018 max 0.057 | err 1.9deg | rel.drop 0.285
+  UX 1-Hoyer (global)   : MCC 0.977 (min 0.967) | leak mean 0.019 max 0.057 | err 1.9deg | rel.drop 0.419
+HEAT C2  [51s]
+
+## CR4 d=3 p=6   ceiling: MCC 0.845 (min 0.813) | leak mean 0.046 max 0.071 | err 0.0deg
+  rowsp a=.5 (ref)      : MCC 0.841 (min 0.808) | leak mean 0.068 max 0.126 | err 6.5deg | rel.drop 0.012
+  UX entropy (global)   : MCC 0.656 (min 0.550) | leak mean 0.341 max 0.628 | err 47.8deg | rel.drop 0.206
+  UX 1-Hoyer (global)   : MCC 0.655 (min 0.548) | leak mean 0.342 max 0.628 | err 47.8deg | rel.drop 0.326
+HEAT CR4  [12s]
+
+## C3 d=6 p=4   ceiling: MCC 0.970 (min 0.961) | leak mean 0.007 max 0.017 | err 0.0deg
+  rowsp a=.5 (ref)      : MCC 0.864 (min 0.767) | leak mean 0.092 max 0.588 | err 36.9deg | rel.drop 0.077
+  UX entropy (global)   : MCC 0.939 (min 0.882) | leak mean 0.055 max 0.395 | err 25.1deg | rel.drop 0.213
+  UX 1-Hoyer (global)   : MCC 0.943 (min 0.894) | leak mean 0.055 max 0.328 | err 23.6deg | rel.drop 0.409
+HEAT C3  [183s]
+
+## C1 d=4 p=3   ceiling: MCC 0.972 (min 0.972) | leak mean 0.008 max 0.012 | err 0.0deg
+  rowsp a=.5 (ref)      : MCC 0.972 (min 0.972) | leak mean 0.009 max 0.021 | err 0.9deg | rel.drop 0.170
+  UX entropy (global)   : MCC 0.972 (min 0.972) | leak mean 0.008 max 0.019 | err 0.6deg | rel.drop 0.438
+  UX 1-Hoyer (global)   : MCC 0.972 (min 0.972) | leak mean 0.008 max 0.019 | err 0.6deg | rel.drop 0.517
+HEAT C1  [44s]
+
+## CR3 d=4 p=6   ceiling: MCC 0.872 (min 0.840) | leak mean 0.031 max 0.055 | err 0.0deg
+  rowsp a=.5 (ref)      : MCC 0.864 (min 0.834) | leak mean 0.062 max 0.161 | err 9.5deg | rel.drop 0.012
+  UX entropy (global)   : MCC 0.756 (min 0.643) | leak mean 0.178 max 0.568 | err 40.1deg | rel.drop 0.229
+  UX 1-Hoyer (global)   : MCC 0.748 (min 0.627) | leak mean 0.194 max 0.562 | err 41.5deg | rel.drop 0.426
+HEAT CR3  [49s]
+
+## CR5 d=3 p=6   ceiling: MCC 0.892 (min 0.860) | leak mean 0.021 max 0.040 | err 0.0deg
+  rowsp a=.5 (ref)      : MCC 0.882 (min 0.852) | leak mean 0.087 max 0.146 | err 10.6deg | rel.drop 0.014
+  UX entropy (global)   : MCC 0.748 (min 0.676) | leak mean 0.263 max 0.591 | err 40.2deg | rel.drop 0.204
+  UX 1-Hoyer (global)   : MCC 0.743 (min 0.666) | leak mean 0.284 max 0.590 | err 41.1deg | rel.drop 0.354
+HEAT CR5  [6s]
+ALLDONE 10:25:51

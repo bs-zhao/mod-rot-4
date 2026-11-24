@@ -1,0 +1,19 @@
+
+## [N=16384] C3 d=6 p=4
+  A rowsp               : MCC 0.845 (min 0.778) leak 0.115/0.536
+  B global UX 1-Hoyer   : MCC 0.965 (min 0.951) leak 0.028/0.155
+  F3 = zA+zB+zC         : MCC 0.837 (min 0.586) leak 0.137/0.541
+DONE C3 [413s]
+
+## [N=16384] CR4 d=3 p=6
+  A rowsp               : MCC 0.841 (min 0.807) leak 0.072/0.129
+  B global UX 1-Hoyer   : MCC 0.655 (min 0.548) leak 0.342/0.629
+  F3 = zA+zB+zC         : MCC 0.835 (min 0.812) leak 0.087/0.213
+DONE CR4 [36s]
+
+## [N=16384] C2 d=4 p=4
+  A rowsp               : MCC 0.795 (min 0.645) leak 0.206/0.645
+  B global UX 1-Hoyer   : MCC 0.976 (min 0.967) leak 0.020/0.058
+  F3 = zA+zB+zC         : MCC 0.976 (min 0.967) leak 0.026/0.070
+DONE C2 [105s]
+ALLDONE 13:37:42

@@ -1,0 +1,109 @@
+
+## [prob] C2 d=4 p=4 ceiling MCC 0.977 (min 0.968) leak 0.014/0.033 | 
+  A rowsp               : MCC 0.835 (min 0.657) leak 0.143/0.713
+  B global UX 1-Hoyer   : MCC 0.976 (min 0.967) leak 0.022/0.058
+  F1 = A+B              : MCC 0.976 (min 0.967) leak 0.022/0.057
+  F2 = zA+zB            : MCC 0.976 (min 0.968) leak 0.022/0.044
+  F3 = zA+zB+zC         : MCC 0.975 (min 0.963) leak 0.029/0.118
+HEAT prob C2 [128s]
+
+## [prob] CR4 d=3 p=6 ceiling MCC 0.845 (min 0.813) leak 0.046/0.071 | 
+  A rowsp               : MCC 0.713 (min 0.619) leak 0.298/0.444
+  B global UX 1-Hoyer   : MCC 0.660 (min 0.551) leak 0.353/0.586
+  F1 = A+B              : MCC 0.677 (min 0.570) leak 0.334/0.585
+  F2 = zA+zB            : MCC 0.728 (min 0.612) leak 0.244/0.506
+  F3 = zA+zB+zC         : MCC 0.710 (min 0.614) leak 0.300/0.451
+HEAT prob CR4 [42s]
+
+## [prob] C3 d=6 p=4 ceiling MCC 0.970 (min 0.961) leak 0.007/0.017 | 
+  A rowsp               : MCC 0.882 (min 0.739) leak 0.092/0.600
+  B global UX 1-Hoyer   : MCC 0.957 (min 0.949) leak 0.049/0.170
+  F1 = A+B              : MCC 0.929 (min 0.841) leak 0.067/0.341
+  F2 = zA+zB            : MCC 0.953 (min 0.925) leak 0.054/0.248
+  F3 = zA+zB+zC         : MCC 0.930 (min 0.847) leak 0.067/0.435
+HEAT prob C3 [482s]
+
+## [prob] C1 d=4 p=3 ceiling MCC 0.972 (min 0.972) leak 0.008/0.012 | 
+  A rowsp               : MCC 0.972 (min 0.972) leak 0.008/0.020
+  B global UX 1-Hoyer   : MCC 0.972 (min 0.972) leak 0.008/0.020
+  F1 = A+B              : MCC 0.972 (min 0.972) leak 0.008/0.019
+  F2 = zA+zB            : MCC 0.972 (min 0.972) leak 0.008/0.019
+  F3 = zA+zB+zC         : MCC 0.972 (min 0.972) leak 0.008/0.021
+HEAT prob C1 [118s]
+
+## [gauss] C2 d=4 p=4 ceiling MCC 0.977 (min 0.968) leak 0.014/0.033 | Z ~ N(mu,Sigma) fitted
+  A rowsp               : MCC 0.791 (min 0.650) leak 0.206/0.643
+  B global UX 1-Hoyer   : MCC 0.977 (min 0.967) leak 0.019/0.056
+  F1 = A+B              : MCC 0.977 (min 0.967) leak 0.019/0.051
+  F2 = zA+zB            : MCC 0.977 (min 0.967) leak 0.019/0.049
+  F3 = zA+zB+zC         : MCC 0.973 (min 0.962) leak 0.037/0.121
+HEAT gauss C2 [99s]
+
+## [gauss] CR4 d=3 p=6 ceiling MCC 0.845 (min 0.813) leak 0.046/0.071 | Z ~ N(mu,Sigma) fitted
+  A rowsp               : MCC 0.840 (min 0.806) leak 0.075/0.129
+  B global UX 1-Hoyer   : MCC 0.655 (min 0.548) leak 0.341/0.629
+  F1 = A+B              : MCC 0.681 (min 0.581) leak 0.298/0.610
+  F2 = zA+zB            : MCC 0.643 (min 0.599) leak 0.344/0.584
+  F3 = zA+zB+zC         : MCC 0.835 (min 0.812) leak 0.089/0.215
+HEAT gauss CR4 [32s]
+
+## [gauss] C3 d=6 p=4 ceiling MCC 0.970 (min 0.961) leak 0.007/0.017 | Z ~ N(mu,Sigma) fitted
+  A rowsp               : MCC 0.794 (min 0.650) leak 0.129/0.670
+  B global UX 1-Hoyer   : MCC 0.938 (min 0.906) leak 0.069/0.289
+  F1 = A+B              : MCC 0.931 (min 0.850) leak 0.067/0.375
+  F2 = zA+zB            : MCC 0.887 (min 0.742) leak 0.091/0.603
+  F3 = zA+zB+zC         : MCC 0.924 (min 0.847) leak 0.084/0.416
+HEAT gauss C3 [542s]
+
+## [gauss] C1 d=4 p=3 ceiling MCC 0.972 (min 0.972) leak 0.008/0.012 | Z ~ N(mu,Sigma) fitted
+  A rowsp               : MCC 0.972 (min 0.972) leak 0.008/0.018
+  B global UX 1-Hoyer   : MCC 0.972 (min 0.972) leak 0.008/0.016
+  F1 = A+B              : MCC 0.972 (min 0.972) leak 0.008/0.017
+  F2 = zA+zB            : MCC 0.972 (min 0.972) leak 0.008/0.018
+  F3 = zA+zB+zC         : MCC 0.970 (min 0.970) leak 0.027/0.065
+HEAT gauss C1 [105s]
+
+## [fd] C2 d=4 p=4 ceiling MCC 0.977 (min 0.968) leak 0.014/0.033 | FD vs AD moment relative Frobenius error 0.0000
+  A rowsp               : MCC 0.791 (min 0.652) leak 0.206/0.645
+  B global UX 1-Hoyer   : MCC 0.977 (min 0.967) leak 0.019/0.057
+  F1 = A+B              : MCC 0.977 (min 0.967) leak 0.018/0.055
+  F2 = zA+zB            : MCC 0.977 (min 0.967) leak 0.018/0.054
+  F3 = zA+zB+zC         : MCC 0.976 (min 0.967) leak 0.025/0.066
+HEAT fd C2 [133s]
+
+## [fd] CR4 d=3 p=6 ceiling MCC 0.845 (min 0.813) leak 0.046/0.071 | FD vs AD moment relative Frobenius error 0.0000
+  A rowsp               : MCC 0.841 (min 0.808) leak 0.068/0.126
+  B global UX 1-Hoyer   : MCC 0.655 (min 0.548) leak 0.342/0.628
+
+## [poly] C2 d=4 p=4 ceiling MCC 0.977 (min 0.968) leak 0.014/0.033 | poly3 features 165, held-out R2 of logit 0.9955
+  A rowsp               : MCC 0.891 (min 0.795) leak 0.108/0.558
+  B global UX 1-Hoyer   : MCC 0.976 (min 0.967) leak 0.021/0.053
+  F1 = A+B              : MCC 0.976 (min 0.967) leak 0.021/0.054
+  F2 = zA+zB            : MCC 0.976 (min 0.967) leak 0.022/0.054
+  F3 = zA+zB+zC         : MCC 0.958 (min 0.946) leak 0.074/0.249
+HEAT poly C2 [162s]
+
+## [poly] CR4 d=3 p=6 ceiling MCC 0.845 (min 0.813) leak 0.046/0.071 | poly3 features 220, held-out R2 of logit 0.9989
+  A rowsp               : MCC 0.776 (min 0.694) leak 0.183/0.424
+  B global UX 1-Hoyer   : MCC 0.659 (min 0.553) leak 0.338/0.624
+  F1 = A+B              : MCC 0.701 (min 0.604) leak 0.256/0.587
+  F2 = zA+zB            : MCC 0.674 (min 0.619) leak 0.330/0.529
+  F3 = zA+zB+zC         : MCC 0.771 (min 0.688) leak 0.192/0.432
+HEAT poly CR4 [42s]
+
+## [poly] C3 d=6 p=4 ceiling MCC 0.970 (min 0.961) leak 0.007/0.017 | poly3 features 286, held-out R2 of logit 0.9913
+  A rowsp               : MCC 0.821 (min 0.735) leak 0.128/0.600
+  B global UX 1-Hoyer   : MCC 0.952 (min 0.925) leak 0.052/0.270
+  F1 = A+B              : MCC 0.920 (min 0.820) leak 0.071/0.442
+  F2 = zA+zB            : MCC 0.881 (min 0.716) leak 0.106/0.572
+  F3 = zA+zB+zC         : MCC 0.817 (min 0.723) leak 0.120/0.650
+HEAT poly C3 [552s]
+
+## [poly] C1 d=4 p=3 ceiling MCC 0.972 (min 0.972) leak 0.008/0.012 | poly3 features 120, held-out R2 of logit 0.9990
+  A rowsp               : MCC 0.972 (min 0.972) leak 0.009/0.022
+  B global UX 1-Hoyer   : MCC 0.972 (min 0.972) leak 0.008/0.016
+  F1 = A+B              : MCC 0.972 (min 0.972) leak 0.009/0.020
+  F2 = zA+zB            : MCC 0.972 (min 0.972) leak 0.009/0.022
+  F3 = zA+zB+zC         : MCC 0.971 (min 0.971) leak 0.019/0.050
+HEAT poly C1 [150s]
+ALLDONE 11:43:43

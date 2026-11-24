@@ -1,0 +1,21 @@
+
+## C2 d=4 p=4 ceiling MCC 0.977
+  cand A(rowsp): MCC 0.791 bad  | cross-metric regret   2.82 SD | region drift  30.7deg | self-tail/Haar 1.14 | udshare/Haar 1.01 | F2/Haar 0.87
+  cand B(UX 1-Hoyer): MCC 0.977 GOOD | cross-metric regret   0.15 SD | region drift  22.3deg | self-tail/Haar 0.77 | udshare/Haar 0.94 | F2/Haar 0.78
+VAL C2 [39s]
+
+## CR4 d=3 p=6 ceiling MCC 0.845
+  cand A(rowsp): MCC 0.841 GOOD | cross-metric regret   2.79 SD | region drift  14.7deg | self-tail/Haar 1.45 | udshare/Haar 0.83 | F2/Haar 1.03
+  cand B(UX 1-Hoyer): MCC 0.655 bad  | cross-metric regret   2.29 SD | region drift   6.5deg | self-tail/Haar 0.47 | udshare/Haar 1.64 | F2/Haar 0.84
+VAL CR4 [10s]
+
+## C3 d=6 p=4 ceiling MCC 0.970
+  cand A(rowsp): MCC 0.864 bad  | cross-metric regret   1.76 SD | region drift  20.2deg | self-tail/Haar 1.03 | udshare/Haar 1.02 | F2/Haar 0.88
+  cand B(UX 1-Hoyer): MCC 0.943 GOOD | cross-metric regret   1.40 SD | region drift  25.2deg | self-tail/Haar 0.93 | udshare/Haar 0.98 | F2/Haar 0.84
+VAL C3 [148s]
+
+## C1 d=4 p=3 ceiling MCC 0.972
+  cand A(rowsp): MCC 0.972 GOOD | cross-metric regret   0.00 SD | region drift   0.6deg | self-tail/Haar 0.81 | udshare/Haar 0.82 | F2/Haar 0.65
+  cand B(UX 1-Hoyer): MCC 0.972 GOOD | cross-metric regret   0.00 SD | region drift   0.6deg | self-tail/Haar 0.81 | udshare/Haar 0.82 | F2/Haar 0.65
+VAL C1 [36s]
+ALLDONE 10:30:49

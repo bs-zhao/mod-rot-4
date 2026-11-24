@@ -1,0 +1,45 @@
+## [famcluster] CR4 d=3 p=6  null |corr| matrix:
+          A     B     G     K     C     S
+    A  1.00  0.37  0.41  0.35  0.46  0.35
+    B  0.37  1.00  0.99  1.00  0.92  0.80
+    G  0.41  0.99  1.00  0.99  0.94  0.80
+    K  0.35  1.00  0.99  1.00  0.93  0.78
+    C  0.46  0.92  0.94  0.93  1.00  0.65
+    S  0.35  0.80  0.80  0.78  0.65  1.00
+  families (|corr|>=0.8, average linkage): [['A'], ['B', 'G', 'K', 'C'], ['S']]
+  F_cluster (z-mean within family, sum across families): MCC 0.729 (min 0.619) leak 0.198/0.565
+DONE CR4 [32s]
+## [famcluster] C2 d=4 p=4  null |corr| matrix:
+          A     B     G     K     C     S
+    A  1.00  0.41  0.14  0.51  0.21  0.02
+    B  0.41  1.00  0.94  0.99  0.07  0.53
+    G  0.14  0.94  1.00  0.90  0.21  0.64
+    K  0.51  0.99  0.90  1.00  0.05  0.50
+    C  0.21  0.07  0.21  0.05  1.00  0.37
+    S  0.02  0.53  0.64  0.50  0.37  1.00
+  families (|corr|>=0.8, average linkage): [['A'], ['B', 'G', 'K'], ['C'], ['S']]
+  F_cluster (z-mean within family, sum across families): MCC 0.976 (min 0.967) leak 0.022/0.043
+DONE C2 [47s]
+## [famcluster] C1 d=4 p=3  null |corr| matrix:
+          A     B     G     K     C     S
+    A  1.00  0.86  0.08  0.85  0.26  0.05
+    B  0.86  1.00  0.20  0.99  0.47  0.26
+    G  0.08  0.20  1.00  0.22  0.69  0.65
+    K  0.85  0.99  0.22  1.00  0.47  0.26
+    C  0.26  0.47  0.69  0.47  1.00  0.80
+    S  0.05  0.26  0.65  0.26  0.80  1.00
+  families (|corr|>=0.8, average linkage): [['A', 'B', 'K'], ['G'], ['C', 'S']]
+  F_cluster (z-mean within family, sum across families): MCC 0.970 (min 0.969) leak 0.030/0.068
+DONE C1 [45s]
+## [famcluster] C3 d=6 p=4  null |corr| matrix:
+          A     B     G     K     C     S
+    A  1.00  0.79  0.10  0.79  0.09  0.06
+    B  0.79  1.00  0.61  0.99  0.06  0.18
+    G  0.10  0.61  1.00  0.60  0.04  0.37
+    K  0.79  0.99  0.60  1.00  0.07  0.17
+    C  0.09  0.06  0.04  0.07  1.00  0.57
+    S  0.06  0.18  0.37  0.17  0.57  1.00
+  families (|corr|>=0.8, average linkage): [['A'], ['B', 'K'], ['G'], ['C'], ['S']]
+  F_cluster (z-mean within family, sum across families): MCC 0.863 (min 0.639) leak 0.101/0.629
+DONE C3 [128s]
+ALLDONE 13:14:19

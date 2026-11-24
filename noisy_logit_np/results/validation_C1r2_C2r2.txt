@@ -1,0 +1,6 @@
+C1r2: NP test R2(y) 0.798 (ceiling 0.8), R2(true logit) 0.993 | Z->T test R2 [0.993 0.996 0.996 0.996] | supervised-rotation MCC 0.998 (min 0.997) leak 0.005/0.007 | unrotated MCC 0.788
+C1r2 ceiling [0.998 0.997 0.005 0.007]
+i11_smooth03  rowsp.a0.75.q0.1+UXcol.a0.hoy        f(R*)= -9.917 found(default)= -9.928 found(10x)= -9.928 -> metric prefers wrong | default MCC 0.998 leak 0.005/0.01 | 10x MCC 0.998 leak 0.005/0.01
+C2r2: NP test R2(y) 0.797 (ceiling 0.8), R2(true logit) 0.992 | Z->T test R2 [0.99  0.994 0.996 0.995] | supervised-rotation MCC 0.996 (min 0.994) leak 0.013/0.047 | unrotated MCC 0.775
+C2r2 ceiling [0.996 0.994 0.013 0.047]
+i11_smooth03  rowsp.a0.75.q0.1+UXcol.a0.hoy        f(R*)= -7.767 found(default)= -7.832 found(10x)= -7.832 -> metric prefers wrong | default MCC 0.995 leak 0.024/0.10 | 10x MCC 0.995 leak 0.024/0.10

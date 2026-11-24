@@ -1,0 +1,13 @@
+
+## C3 d=6 p=4 per-point H (4096, 10, 10)
+  ceiling (supervised R*)        : MCC 0.970 (min 0.961) | leak mean 0.007 max 0.017 | err 0.0deg
+  A rowsp (reference)            : MCC 0.821 (min 0.700) | leak mean 0.122 max 0.619 | err 53.0deg
+  A+F1: old NM search           f=116.9998  MCC 0.797 (min 0.609) | leak mean 0.168 max 0.642 | err 55.4deg
+  A+F1: local min from R* basin f=115.9676  MCC 0.969 (min 0.958) | leak mean 0.020 max 0.067 | err 4.7deg
+  A+F1: Jacobi + hops           f=115.5918  MCC 0.789 (min 0.688) | leak mean 0.108 max 0.684 | err 45.1deg   [57s]
+      per-start Jacobi results (f, MCC): [(np.float64(115.592), 0.789), (np.float64(115.592), 0.789), (np.float64(115.593), 0.789), (np.float64(115.676), 0.831), (np.float64(115.676), 0.833), (np.float64(115.677), 0.821), (np.float64(115.68), 0.841), (np.float64(115.709), 0.787), (np.float64(115.709), 0.788), (np.float64(115.793), 0.822), (np.float64(115.956), 0.724), (np.float64(115.957), 0.721), (np.float64(115.957), 0.721), (np.float64(116.028), 0.749), (np.float64(116.032), 0.73), (np.float64(116.04), 0.725)]
+  A+F2: old NM search           f=139.2964  MCC 0.811 (min 0.655) | leak mean 0.155 max 0.633 | err 49.3deg
+  A+F2: local min from R* basin f=135.6841  MCC 0.960 (min 0.950) | leak mean 0.045 max 0.171 | err 12.5deg
+  A+F2: Jacobi + hops           f=134.9231  MCC 0.933 (min 0.908) | leak mean 0.055 max 0.334 | err 20.0deg   [219s]
+      per-start Jacobi results (f, MCC): [(np.float64(134.923), 0.933), (np.float64(134.923), 0.934), (np.float64(134.923), 0.934), (np.float64(134.923), 0.934), (np.float64(134.923), 0.934), (np.float64(134.923), 0.934), (np.float64(134.923), 0.934), (np.float64(134.923), 0.934), (np.float64(134.923), 0.934), (np.float64(134.923), 0.933), (np.float64(134.923), 0.934), (np.float64(134.923), 0.934), (np.float64(134.923), 0.934), (np.float64(134.923), 0.933), (np.float64(134.923), 0.934), (np.float64(134.923), 0.934)]
+HEAT C3  [429s]

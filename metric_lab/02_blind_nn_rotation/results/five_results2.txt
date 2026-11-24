@@ -1,0 +1,46 @@
+
+## C1 d=4 p=3
+  ceiling (supervised R*)      : MCC 0.972 (min 0.972) | leak mean 0.008 max 0.012 | err 0.0deg
+  A rowsp(a=.5) pure           : MCC 0.972 (min 0.972) | leak mean 0.009 max 0.021 | err 0.9deg basins=10
+  B rowsp -> min UUd pick      : MCC 0.970 (min 0.968) | leak mean 0.022 max 0.090 | err 5.0deg
+  C EXP13-form on logit, std X : MCC 0.967 (min 0.965) | leak mean 0.054 max 0.101 | err 8.6deg
+  D C + rowsp (equal weights)  : MCC 0.967 (min 0.963) | leak mean 0.039 max 0.136 | err 8.6deg
+  E EXP13 baseline (p, raw X)  : MCC 0.971 (min 0.971) | leak mean 0.026 max 0.061 | err 4.2deg   [40s]
+HEAT C1
+
+## C2 d=4 p=4
+  ceiling (supervised R*)      : MCC 0.977 (min 0.968) | leak mean 0.014 max 0.033 | err 0.0deg
+  A rowsp(a=.5) pure           : MCC 0.791 (min 0.652) | leak mean 0.206 max 0.645 | err 51.3deg basins=20
+  B rowsp -> min UUd pick      : MCC 0.798 (min 0.651) | leak mean 0.204 max 0.709 | err 50.9deg
+  C EXP13-form on logit, std X : MCC 0.970 (min 0.966) | leak mean 0.045 max 0.154 | err 9.4deg
+  D C + rowsp (equal weights)  : MCC 0.970 (min 0.954) | leak mean 0.042 max 0.180 | err 9.8deg
+  E EXP13 baseline (p, raw X)  : MCC 0.962 (min 0.942) | leak mean 0.067 max 0.224 | err 13.9deg   [37s]
+HEAT C2
+
+## CR4 d=3 p=6
+  ceiling (supervised R*)      : MCC 0.845 (min 0.813) | leak mean 0.046 max 0.071 | err 0.0deg
+  A rowsp(a=.5) pure           : MCC 0.841 (min 0.808) | leak mean 0.068 max 0.126 | err 6.5deg basins=3
+  B rowsp -> min UUd pick      : MCC 0.841 (min 0.808) | leak mean 0.068 max 0.126 | err 6.5deg
+  C EXP13-form on logit, std X : MCC 0.687 (min 0.544) | leak mean 0.301 max 0.476 | err 43.9deg
+  D C + rowsp (equal weights)  : MCC 0.737 (min 0.621) | leak mean 0.209 max 0.519 | err 36.9deg
+  E EXP13 baseline (p, raw X)  : MCC 0.563 (min 0.443) | leak mean 0.412 max 0.549 | err 59.3deg   [11s]
+HEAT CR4
+
+## CR5 d=3 p=6
+  ceiling (supervised R*)      : MCC 0.892 (min 0.860) | leak mean 0.021 max 0.040 | err 0.0deg
+  A rowsp(a=.5) pure           : MCC 0.882 (min 0.852) | leak mean 0.087 max 0.146 | err 10.6deg basins=2
+  B rowsp -> min UUd pick      : MCC 0.882 (min 0.852) | leak mean 0.087 max 0.146 | err 10.6deg
+  C EXP13-form on logit, std X : MCC 0.865 (min 0.858) | leak mean 0.101 max 0.302 | err 17.3deg
+  D C + rowsp (equal weights)  : MCC 0.887 (min 0.857) | leak mean 0.067 max 0.111 | err 7.7deg
+  E EXP13 baseline (p, raw X)  : MCC 0.655 (min 0.619) | leak mean 0.412 max 0.562 | err 52.8deg   [9s]
+HEAT CR5
+
+## C3 d=6 p=4
+  ceiling (supervised R*)      : MCC 0.970 (min 0.961) | leak mean 0.007 max 0.017 | err 0.0deg
+  A rowsp(a=.5) pure           : MCC 0.821 (min 0.700) | leak mean 0.122 max 0.619 | err 53.0deg basins=40
+  B rowsp -> min UUd pick      : MCC 0.867 (min 0.723) | leak mean 0.106 max 0.627 | err 42.0deg
+  C EXP13-form on logit, std X : MCC 0.892 (min 0.811) | leak mean 0.121 max 0.479 | err 37.8deg
+  D C + rowsp (equal weights)  : MCC 0.775 (min 0.500) | leak mean 0.171 max 0.623 | err 63.3deg
+  E EXP13 baseline (p, raw X)  : MCC 0.892 (min 0.769) | leak mean 0.130 max 0.413 | err 39.2deg   [114s]
+HEAT C3
+ALLDONE 07:43:35

@@ -1,0 +1,20 @@
+
+## CR4 d=3 p=6 per-point H (4096, 9, 9)
+  A+F1 (equal wts)
+     small search (300/6)    : f=246.2434  MCC 0.733 (min 0.625) | leak mean 0.193 max 0.554 | err 36.5deg
+     local min from R*       : f=246.3841  MCC 0.588 (min 0.538) | leak mean 0.413 max 0.565 | err 58.0deg
+     big search (1200/16)    : f=246.2434  MCC 0.733 (min 0.625) | leak mean 0.193 max 0.554 | err 36.5deg   [8s]
+  A+F2 (equal wts)
+     small search (300/6)    : f=165.1755  MCC 0.633 (min 0.587) | leak mean 0.352 max 0.601 | err 50.4deg
+     local min from R*       : f=167.5048  MCC 0.840 (min 0.804) | leak mean 0.061 max 0.143 | err 8.0deg
+     big search (1200/16)    : f=165.1755  MCC 0.633 (min 0.587) | leak mean 0.352 max 0.601 | err 50.4deg   [13s]
+
+## C3 d=6 p=4 per-point H (4096, 10, 10)
+  A+F1 (equal wts)
+     small search (300/6)    : f=116.9998  MCC 0.797 (min 0.609) | leak mean 0.168 max 0.642 | err 55.4deg
+     local min from R*       : f=115.9676  MCC 0.969 (min 0.958) | leak mean 0.020 max 0.067 | err 4.7deg
+     big search (1200/16)    : f=117.1412  MCC 0.830 (min 0.637) | leak mean 0.128 max 0.699 | err 50.1deg   [19s]
+  A+F2 (equal wts)
+     small search (300/6)    : f=139.2964  MCC 0.811 (min 0.655) | leak mean 0.155 max 0.633 | err 49.3deg
+     local min from R*       : f=135.6841  MCC 0.960 (min 0.950) | leak mean 0.045 max 0.171 | err 12.5deg
+     big search (1200/16)    : f=138.3977  MCC 0.904 (min 0.870) | leak mean 0.105 max 0.374 | err 28.9deg   [136s]

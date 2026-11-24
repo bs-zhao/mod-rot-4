@@ -1,0 +1,31 @@
+TOP 20 by worst-case MCC gap over the four DBs (C1,C2,C3,CR4):
+  gap 0.048  maxleak 0.41  i08_poly4          Fz.A+C                 [0.968, 0.975, 0.922, 0.833]
+  gap 0.053  maxleak 0.37  i03_logit_gaussZ   rowsp.a0.75.q0.1       [0.972, 0.977, 0.917, 0.838]
+  gap 0.060  maxleak 0.50  i10_smooth01       Fz.A+B+C               [0.97, 0.976, 0.91, 0.836]
+  gap 0.065  maxleak 0.42  i04_logit_FD005    Fz.A+B+C               [0.97, 0.976, 0.905, 0.836]
+  gap 0.069  maxleak 0.42  i15_fisherW        Fz.A+K+C               [0.97, 0.976, 0.924, 0.776]
+  gap 0.073  maxleak 0.49  i07_poly3          Fz.A+K+C               [0.972, 0.959, 0.908, 0.773]
+  gap 0.073  maxleak 0.48  i05_logit_FD02     Fz.A+B+C               [0.97, 0.976, 0.898, 0.836]
+  gap 0.073  maxleak 0.43  i03_logit_gaussZ   Fz.A+B+C               [0.97, 0.973, 0.897, 0.835]
+  gap 0.074  maxleak 0.48  i15_fisherW        Fz.A+B+C               [0.97, 0.976, 0.896, 0.772]
+  gap 0.077  maxleak 0.40  i06_logit_FD05     Fz.A+B+C               [0.97, 0.976, 0.893, 0.837]
+  gap 0.078  maxleak 0.39  i09_krr            Fz.A+K+C               [0.969, 0.973, 0.942, 0.767]
+  gap 0.079  maxleak 0.51  i16_interior       Fz.A+K+C               [0.97, 0.975, 0.892, 0.777]
+  gap 0.079  maxleak 0.47  i12_a1raw          Fz.A+B+C               [0.971, 0.966, 0.891, 0.834]
+  gap 0.082  maxleak 0.56  i10_smooth01       Fz.A+C                 [0.969, 0.933, 0.889, 0.816]
+  gap 0.086  maxleak 0.46  i10_smooth01       Fz.A+K+C               [0.97, 0.976, 0.927, 0.76]
+  gap 0.086  maxleak 0.61  i15_fisherW        Fz.A+C                 [0.969, 0.949, 0.885, 0.839]
+  gap 0.086  maxleak 0.51  i04_logit_FD005    Fz.A+K+C               [0.97, 0.976, 0.885, 0.759]
+  gap 0.089  maxleak 0.47  i09_krr            Fz.A+C                 [0.967, 0.971, 0.882, 0.822]
+  gap 0.089  maxleak 0.48  i08_poly4          Fz.A+K+C               [0.969, 0.976, 0.892, 0.756]
+  gap 0.089  maxleak 0.62  i16_interior       Fz.A+B+C               [0.97, 0.975, 0.881, 0.774]
+
+for cells passing exactly 3 (lenient), the failing DB: {'C3': 12, 'CR4': 99, 'C2': 1}
+
+C3-pass cells 102, CR4-pass cells 36, intersection 1
+metric names passing CR4 (any inference): [('rowsp.a0.5.q0.1', 9), ('Fz.A+B+C', 8), ('Fz.A+C', 4), ('rowsp.a0.q0.5', 3), ('rowsp.a0.75.q0.1', 2), ('UXrow.a0.ent', 2), ('UXrow.a0.log1e-2', 2), ('UXrow.a0.lq.25', 2), ('rowsp.a0.q0.1', 1), ('Fz.A+K+C', 1), ('UXrow.a0.hoy', 1), ('rowsp.a0.25.q0.5', 1)]
+inferences passing CR4: [('i02_prob_AD', 5), ('i14_asin', 5), ('i09_krr', 3), ('i12_a1raw', 3), ('i03_logit_gaussZ', 3), ('i01_logit_AD', 2), ('i11_smooth03', 2), ('i04_logit_FD005', 2), ('i06_logit_FD05', 2), ('i10_smooth01', 2), ('i05_logit_FD02', 2), ('i13_logp', 2), ('i15_fisherW', 1), ('i16_interior', 1), ('i08_poly4', 1)]
+metric names passing C3 (any inference), top: [('UX.lq.25', 8), ('UXcol.a1.log1e-2', 7), ('UXcol.a0.log1e-2', 5), ('UXcol.a1.lq.25', 5), ('POOL.log1e-2', 5), ('UX.log1e-2', 5), ('POOL.lq.25', 5), ('UX.lq.1', 5), ('UXcol.a0.ent', 4), ('UXrms.ent', 3), ('POOLrms.ent', 3), ('POOL.ent', 3), ('Fz.A+B+C+G+K', 3), ('POOL.log1e-3', 3), ('UX.ent', 2), ('Fz.A+B+G', 2), ('UX.gini', 2), ('POOL.gini', 2), ('UXrms.lq.5', 2), ('UXcol.a0.lq.25', 2)]
+inferences passing C3: [('i02_prob_AD', 11), ('i14_asin', 11), ('i08_poly4', 10), ('i16_interior', 10), ('i09_krr', 7), ('i13_logp', 7), ('i03_logit_gaussZ', 6), ('i11_smooth03', 6), ('i05_logit_FD02', 6), ('i12_a1raw', 5), ('i04_logit_FD005', 5), ('i06_logit_FD05', 4), ('i01_logit_AD', 4), ('i07_poly3', 4), ('i15_fisherW', 3), ('i10_smooth01', 3)]
+
+relaxed (all four within 0.07 of ceiling, max leak<=0.35): 0 cells

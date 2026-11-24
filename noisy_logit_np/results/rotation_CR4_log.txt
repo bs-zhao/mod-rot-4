@@ -1,0 +1,5 @@
+CR4: NP test R2(y) 0.795 (ceiling 0.8), R2(true logit) 0.997 | Z->T test R2 [0.873 0.81  0.898] | supervised-rotation MCC 0.929 (min 0.903) leak 0.024/0.044 | unrotated MCC 0.646
+## CR4 done [30s]
+1320 tasks (132 metrics x 10 inferences x 1 models), 6 workers
+ALLDONE 50.48840546607971
+ONE_DONE CR4 22:10:28

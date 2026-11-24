@@ -1,0 +1,9 @@
+
+## CR3 d=4 p=6
+  ceiling (supervised R*)      : MCC 0.872 (min 0.840) | leak mean 0.031 max 0.055 | err 0.0deg
+  A rowsp(a=.5) pure           : MCC 0.864 (min 0.834) | leak mean 0.062 max 0.161 | err 9.5deg basins=3
+  B rowsp -> min UUd pick      : MCC 0.864 (min 0.834) | leak mean 0.062 max 0.161 | err 9.5deg
+  C EXP13-form on logit, std X : MCC 0.698 (min 0.552) | leak mean 0.236 max 0.647 | err 51.4deg
+  D C + rowsp (equal weights)  : MCC 0.856 (min 0.808) | leak mean 0.080 max 0.201 | err 15.2deg
+  E EXP13 baseline (p, raw X)  : MCC 0.736 (min 0.578) | leak mean 0.215 max 0.532 | err 45.6deg   [39s]
+HEAT CR3

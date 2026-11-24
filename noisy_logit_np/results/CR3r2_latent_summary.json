@@ -1,0 +1,21 @@
+{
+  "model": "CR3r2",
+  "latent_dim": 4,
+  "test_R2_per_parameter_Z_to_T": [
+    0.9459413581573087,
+    0.9394190602637764,
+    0.9353092458829596,
+    0.960383381138002
+  ],
+  "supervised_rotation_MCC": 0.9689697660660865,
+  "supervised_min_matched": 0.9611127583143081,
+  "supervised_leak_mean": 0.04149397258894571,
+  "supervised_leak_max": 0.10391701661589968,
+  "unrotated_MCC": 0.7607633196534962,
+  "unrotated_min_matched": 0.6284564522541476,
+  "unrotated_leak_mean": 0.2962739939907799,
+  "unrotated_leak_max": 0.614117610094231,
+  "np_test_R2_vs_y": 0.7990007872777285,
+  "np_test_R2_vs_true_logit": 0.9942491580904325,
+  "noise_ceiling_R2": 0.8
+}

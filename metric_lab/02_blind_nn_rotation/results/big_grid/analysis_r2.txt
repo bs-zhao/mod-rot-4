@@ -1,0 +1,7 @@
+NN1: cells passing per DB {'C1': 1066, 'C2': 904, 'C3': 102, 'CR4': 36}; ALL FOUR (default search): 0; 3-of-4: 112
+NN2 (retrained): cells passing per DB {'C1r2': 1077, 'C2r2': 918, 'C3r2': 83, 'CR4r2': 60}; ALL FOUR (default search): 1; 3-of-4: 106
+     i08_poly4 Fz.A+C [0.972, 0.961, 0.946, 0.84]
+all eight (default search): 0
+cells passing CR4 on both NNs: 34; of those passing C3 (default search) on NN1: 1, on NN2: 1, both: 0
+metric families passing CR4 on both NNs: [('rowsp.a0.5.q0.1', 9), ('Fz.A+B+C', 8), ('Fz.A+C', 4), ('rowsp.a0.q0.5', 3), ('UXrow.a0.ent', 2), ('rowsp.a0.75.q0.1', 2), ('UXrow.a0.log1e-2', 1), ('UXrow.a0.lq.25', 1), ('rowsp.a0.q0.1', 1), ('Fz.A+K+C', 1), ('rowsp.a0.25.q0.5', 1), ('UXrow.a0.hoy', 1)]
+cells passing C3 on both NNs: 13  e.g. [('POOL.log1e-2', 3), ('UX.lq.25', 3), ('UXcol.a0.ent', 1), ('POOL.log1e-3', 1), ('UX.ent', 1), ('UXcol.a0.log1e-2', 1), ('UXcol.a1.ent', 1), ('UX.log1e-2', 1)]

@@ -1,0 +1,65 @@
+
+## [cov] CR4 d=3 p=6 ceiling MCC 0.845 (min 0.813) leak 0.046/0.071 | centred moment; mean-curvature share of total energy 0.099
+  A rowsp               : MCC 0.624 (min 0.477) leak 0.354/0.560
+  B global UX 1-Hoyer   : MCC 0.578 (min 0.551) leak 0.409/0.669
+  F1 = A+B              : MCC 0.613 (min 0.561) leak 0.368/0.679
+  F2 = zA+zB            : MCC 0.623 (min 0.555) leak 0.393/0.507
+  F3 = zA+zB+zC         : MCC 0.670 (min 0.558) leak 0.340/0.516
+HEAT cov CR4 [45s]
+
+## [cov] C2 d=4 p=4 ceiling MCC 0.977 (min 0.968) leak 0.014/0.033 | centred moment; mean-curvature share of total energy 0.149
+  A rowsp               : MCC 0.831 (min 0.647) leak 0.158/0.713
+  B global UX 1-Hoyer   : MCC 0.969 (min 0.948) leak 0.041/0.192
+  F1 = A+B              : MCC 0.976 (min 0.968) leak 0.027/0.064
+  F2 = zA+zB            : MCC 0.880 (min 0.753) leak 0.140/0.591
+  F3 = zA+zB+zC         : MCC 0.902 (min 0.805) leak 0.133/0.526
+HEAT cov C2 [127s]
+
+## [cov] C3 d=6 p=4 ceiling MCC 0.970 (min 0.961) leak 0.007/0.017 | centred moment; mean-curvature share of total energy 0.062
+  A rowsp               : MCC 0.772 (min 0.619) leak 0.153/0.657
+  B global UX 1-Hoyer   : MCC 0.856 (min 0.618) leak 0.086/0.678
+  F1 = A+B              : MCC 0.875 (min 0.708) leak 0.080/0.643
+  F2 = zA+zB            : MCC 0.862 (min 0.664) leak 0.095/0.623
+  F3 = zA+zB+zC         : MCC 0.786 (min 0.623) leak 0.160/0.632
+HEAT cov C3 [479s]
+
+## [cov] C1 d=4 p=3 ceiling MCC 0.972 (min 0.972) leak 0.008/0.012 | centred moment; mean-curvature share of total energy 0.973
+  A rowsp               : MCC 0.855 (min 0.748) leak 0.211/0.515
+  B global UX 1-Hoyer   : MCC 0.789 (min 0.658) leak 0.275/0.627
+  F1 = A+B              : MCC 0.798 (min 0.670) leak 0.268/0.622
+  F2 = zA+zB            : MCC 0.832 (min 0.714) leak 0.232/0.574
+  F3 = zA+zB+zC         : MCC 0.954 (min 0.943) leak 0.094/0.218
+HEAT cov C1 [159s]
+
+## [abs] CR4 d=3 p=6 ceiling MCC 0.845 (min 0.813) leak 0.046/0.071 | mean absolute curvature, 1024 points
+  A rowsp               : MCC 0.770 (min 0.705) leak 0.197/0.435
+  B global UX 1-Hoyer   : MCC 0.653 (min 0.560) leak 0.337/0.628
+  F1 = A+B              : MCC 0.646 (min 0.564) leak 0.338/0.627
+  F2 = zA+zB            : MCC 0.629 (min 0.583) leak 0.355/0.606
+  F3 = zA+zB+zC         : MCC 0.841 (min 0.804) leak 0.071/0.114
+HEAT abs CR4 [42s]
+
+## [abs] C2 d=4 p=4 ceiling MCC 0.977 (min 0.968) leak 0.014/0.033 | mean absolute curvature, 1024 points
+  A rowsp               : MCC 0.838 (min 0.663) leak 0.127/0.720
+  B global UX 1-Hoyer   : MCC 0.976 (min 0.967) leak 0.025/0.057
+  F1 = A+B              : MCC 0.976 (min 0.967) leak 0.023/0.057
+  F2 = zA+zB            : MCC 0.977 (min 0.967) leak 0.019/0.056
+  F3 = zA+zB+zC         : MCC 0.975 (min 0.967) leak 0.029/0.078
+HEAT abs C2 [100s]
+
+## [abs] C3 d=6 p=4 ceiling MCC 0.970 (min 0.961) leak 0.007/0.017 | mean absolute curvature, 1024 points
+  A rowsp               : MCC 0.848 (min 0.676) leak 0.122/0.662
+  B global UX 1-Hoyer   : MCC 0.933 (min 0.908) leak 0.084/0.273
+  F1 = A+B              : MCC 0.918 (min 0.881) leak 0.089/0.336
+  F2 = zA+zB            : MCC 0.840 (min 0.785) leak 0.121/0.567
+  F3 = zA+zB+zC         : MCC 0.920 (min 0.830) leak 0.082/0.432
+HEAT abs C3 [348s]
+
+## [abs] C1 d=4 p=3 ceiling MCC 0.972 (min 0.972) leak 0.008/0.012 | mean absolute curvature, 1024 points
+  A rowsp               : MCC 0.836 (min 0.691) leak 0.119/0.678
+  B global UX 1-Hoyer   : MCC 0.972 (min 0.972) leak 0.008/0.018
+  F1 = A+B              : MCC 0.972 (min 0.972) leak 0.008/0.018
+  F2 = zA+zB            : MCC 0.972 (min 0.972) leak 0.008/0.018
+  F3 = zA+zB+zC         : MCC 0.972 (min 0.971) leak 0.014/0.053
+HEAT abs C1 [107s]
+ALLDONE 12:31:11

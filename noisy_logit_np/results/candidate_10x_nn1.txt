@@ -1,0 +1,10 @@
+C1 ceiling [0.998 0.998 0.009 0.017]
+i11_smooth03  rowsp.a0.75.q0.1+UXcol.a0.hoy        f(R*)=-10.070 found(default)=-10.095 found(10x)=-10.095 -> metric prefers wrong | default MCC 0.998 leak 0.009/0.02 | 10x MCC 0.998 leak 0.009/0.02
+C2 ceiling [0.997 0.994 0.021 0.06 ]
+i11_smooth03  rowsp.a0.75.q0.1+UXcol.a0.hoy        f(R*)= -7.799 found(default)= -7.822 found(10x)= -7.824 -> metric prefers wrong | default MCC 0.996 leak 0.022/0.10 | 10x MCC 0.996 leak 0.025/0.11
+CR3 ceiling [0.973 0.966 0.02  0.057]
+i11_smooth03  rowsp.a0.75.q0.1+UXcol.a0.hoy        f(R*)= -4.146 found(default)= -4.788 found(10x)= -4.788 -> metric prefers wrong | default MCC 0.961 leak 0.073/0.18 | 10x MCC 0.961 leak 0.073/0.18
+CR4 ceiling [0.929 0.903 0.024 0.044]
+i11_smooth03  rowsp.a0.75.q0.1+UXcol.a0.hoy        f(R*)= -1.577 found(default)= -1.883 found(10x)= -1.883 -> metric prefers wrong | default MCC 0.921 leak 0.072/0.15 | 10x MCC 0.921 leak 0.072/0.15
+C3 ceiling [0.995 0.991 0.012 0.032]
+i11_smooth03  rowsp.a0.75.q0.1+UXcol.a0.hoy        f(R*)=-14.612 found(default)=-13.634 found(10x)=-14.599 -> SEARCH MISS | default MCC 0.909 leak 0.103/0.53 | 10x MCC 0.985 leak 0.044/0.17

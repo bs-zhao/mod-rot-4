@@ -1,0 +1,22 @@
+kind,model,np,r2_lin_mean,r2_lin_min,r2_quad_mean,r2_quad_min
+binary-choice NP,C1,beta0p0005_L4_a7|repeat01,0.947,0.944,0.948,0.945
+binary-choice NP,C1,beta0p0005_L4_a7|repeat02,0.947,0.946,0.948,0.946
+binary-choice NP,C2,beta0p0005_L4_a7|repeat01,0.955,0.934,0.957,0.938
+binary-choice NP,C2,beta0p0005_L4_a7|repeat02,0.952,0.933,0.954,0.935
+binary-choice NP,C3,beta0p0005_L6_99|repeat01,0.944,0.92,0.946,0.923
+binary-choice NP,C3,beta0p0005_L6_99|repeat02,0.948,0.928,0.949,0.929
+binary-choice NP,CR3,beta0p0005_L4_a7|repeat01,0.759,0.696,0.773,0.705
+binary-choice NP,CR3,beta5em05_L4_f65|repeat01,0.759,0.703,0.773,0.706
+binary-choice NP,CR4,beta0p0005_L3_09|repeat01,0.724,0.652,0.749,0.687
+binary-choice NP,CR4,beta0p0005_L3_09|repeat02,0.727,0.66,0.748,0.687
+binary-choice NP,CR5,beta0p0005_L3_09|repeat01,0.784,0.719,0.794,0.723
+regression NP,C1,nn1,0.996,0.996,0.997,0.996
+regression NP,C1,r2,0.995,0.993,0.996,0.995
+regression NP,C2,nn1,0.995,0.992,0.996,0.993
+regression NP,C2,r2,0.994,0.99,0.995,0.993
+regression NP,C3,nn1,0.99,0.981,0.993,0.987
+regression NP,C3,r2,0.991,0.98,0.993,0.989
+regression NP,CR3,nn1,0.946,0.936,0.966,0.946
+regression NP,CR3,r2,0.945,0.935,0.968,0.95
+regression NP,CR4,nn1,0.86,0.81,0.89,0.841
+regression NP,CR4,r2,0.881,0.838,0.902,0.852
