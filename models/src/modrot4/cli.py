@@ -1,7 +1,9 @@
 """One set of CLI arguments for six model names."""
 import argparse
 
-MODELS = ("C1", "C2", "C3", "CR3", "CR4", "CR5")
+from modrot4.pipeline import ALL_MODELS
+
+MODELS = ALL_MODELS
 
 
 def parse_args(description, argv=None):

@@ -89,12 +89,14 @@ def _discrete_data(args, generated, *, preprocessing=None):
                           np.repeat(np.arange(n),counts)):
         raise ValueError("Input dataset must have grouped subject trials")
     xx=np.asarray(generated.x,np.float32)
-    y=np.asarray(generated.choice,np.int64).reshape(-1)
+    continuous=not hasattr(generated,"choice")          # <MODEL>L: noisy-logit response
+    y=(np.asarray(generated.y,np.float32).reshape(-1) if continuous
+       else np.asarray(generated.choice,np.int64).reshape(-1))
     if xx.shape[0]!=total or len(y)!=total:
         raise ValueError("X/choice mismatch with subject trial counts")
     maximum=int(counts.max())
     x=torch.zeros((n,maximum,xx.shape[1]),dtype=torch.float32)
-    choice=torch.zeros((n,maximum),dtype=torch.long)
+    choice=torch.zeros((n,maximum),dtype=torch.float32 if continuous else torch.long)   # response channel
     mask=torch.zeros((n,maximum),dtype=torch.bool)
     off=np.r_[0,counts.cumsum()]
     for i in range(n):
@@ -109,6 +111,9 @@ def _discrete_data(args, generated, *, preprocessing=None):
             raise ValueError("Invalid X normalizer in checkpoint")
         x=(x-mu)/sd
         x[~mask]=0
+        if continuous:
+            choice=(choice-float(preprocessing["y_mean"]))/float(preprocessing["y_std"])
+            choice[~mask]=0
     return DiscreteData(x=x,choice=choice,trial_mask=mask)
 
 
@@ -124,3 +129,13 @@ def fit_x_scaler(data, train_ids):
         raise ValueError("Cannot standardize near-constant X dimension")
     return dict(x_mean=mu.tolist(),x_std=sd.tolist(),
                 policy="train_only_dimensionwise_zscore_v1")
+
+
+def fit_y_scaler(data, train_ids):
+    """<MODEL>L only: TRAIN-subject mean/SD of the continuous response (data must hold the raw y)."""
+    ids=torch.as_tensor(train_ids,dtype=torch.long)
+    vals=data.choice[ids].numpy()[data.trial_mask[ids].numpy()]
+    mu=float(vals.mean(dtype=np.float64));sd=float(vals.std(dtype=np.float64))
+    if sd<=1e-8:
+        raise ValueError("Cannot standardize a near-constant response")
+    return dict(y_mean=mu,y_std=sd)

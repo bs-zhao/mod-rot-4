@@ -1,8 +1,9 @@
 """Common run selectors and hyperparameters for five independent NN stages."""
 from __future__ import annotations
 import argparse
+from .specs import LOGIT_MODELS
 
-MODELS = ("C1","C2","C3","CR3","CR4","CR5")
+MODELS = ("C1","C2","C3","CR3","CR4","CR5") + LOGIT_MODELS
 
 
 def parse_args(description, argv=None, *, configure_parser=None):

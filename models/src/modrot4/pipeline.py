@@ -5,6 +5,13 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
 MODELS = ("C1", "C2", "C3", "CR3", "CR4", "CR5")
+# "<MODEL>L": same T, trial counts, X and true logit as <MODEL>; the observation is a noisy logit instead of a choice.
+LOGIT_MODELS = tuple(m + "L" for m in MODELS)
+ALL_MODELS = MODELS + LOGIT_MODELS
+
+
+def base_model(model):
+    return model[:-1] if model in LOGIT_MODELS else model
 
 
 def sha256(path):
@@ -16,7 +23,7 @@ def sha256(path):
 
 
 def out_dir(model):
-    if model not in MODELS:
+    if model not in ALL_MODELS:
         raise ValueError(f"Unknown model: {model}")
     return ROOT / "outputs" / "models" / "generate" / model
 
@@ -26,7 +33,7 @@ def dataset_path(model):
 
 
 def precheck_path(model):
-    if model not in MODELS:
+    if model not in ALL_MODELS:
         raise ValueError(f"Unknown model: {model}")
     return (ROOT / "outputs" / "models" / "precheck" / model /
             "s2_precheck__report.json")

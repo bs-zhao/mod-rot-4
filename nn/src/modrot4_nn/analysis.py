@@ -18,7 +18,7 @@ from sklearn.decomposition import PCA
 from sklearn.linear_model import Ridge
 from sklearn.metrics import r2_score
 
-from modrot4_nn.specs import get_model
+from modrot4_nn.specs import get_model, base_model
 from modrot4_nn.pipeline import stage_folder, latent_path, train_path, dataset_path, condition, sha256
 from modrot4_nn.dataset import load_choice_dataset
 
@@ -26,6 +26,7 @@ RIDGE_GRID = (0.0, .01, .1, 1.0, 10.0, 100.0, 1000.0)
 
 
 def param_names(model: str) -> list[str]:
+    model = base_model(model)
     if model == 'CR3':
         return ['alpha','lambda_loss','gamma','tau']
     if model in ('CR4','CR5'):

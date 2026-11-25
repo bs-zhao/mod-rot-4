@@ -215,6 +215,33 @@ python nn/s8_2_supervised_rotation.py --model CR5 --latent-dim 3 --beta 0.0005 -
 python nn/s9_2_rotation_sweep.py --model CR5 --latent-dim 3 --beta 0.0005 --batch-size 128 --repeat 1
 ```
 
+## Noisy-logit models: C1L, C2L, C3L, CR3L, CR4L, CR5L
+
+Every model also exists as `<MODEL>L`, run through the **same S1–S9 / S8_2 / S9_2 entry points**. `C1`–`CR5` behave exactly as before (their regenerated datasets are bit-identical to the existing ones).
+
+| | `<MODEL>` | `<MODEL>L` |
+|---|---|---|
+| T, trial counts, X, true logit | same | same (same seeds and streams; CR3L / CR5L use the fixed bank of CR3 / CR5) |
+| Observation | `choice ~ Bernoulli(sigmoid(logit))` | `y = logit + N(0, s²)`, `s² = Var(logit)·0.2/0.8`, so a perfect predictor has R² = 0.8; noise stream `default_rng(777 + model index)` |
+| S1 fields | …, `logit`, `p`, `choice` | …, `logit`, `y` |
+| S2 | Bernoulli balance, logistic MLE / Fisher | residual mean and realised R² (0.8 ± 0.01), Gaussian MLE (least squares) / Fisher; same other thresholds |
+| NP | 2 class logits, cross-entropy | 1 output, MSE on y standardized with TRAIN mean/SD (saved in the checkpoint: `y_mean`, `y_std`); decoder logit = output·y_std + y_mean |
+| Encoder, decoder body, latent, context sampling, splits, β·KL, optimizer, early stopping | same | same |
+| S3/S4 metrics | CE, accuracy, Brier | MSE, R² on y |
+| S5–S9_2 | | unchanged |
+
+Outputs go to `outputs/models/{generate,precheck}/<MODEL>L/` and `outputs/nn/<MODEL>L/…`. Use the commands of section 4 with the `L` name, for example:
+
+```cmd
+python models/s1_generate.py --model C1L --subjects 8000
+python models/s2_precheck.py --model C1L
+python nn/s3_train.py --model C1L --latent-dim 4 --beta 0.0005 --batch-size 128 --repeat 1
+```
+
+then `s4`–`s9_2` with the same arguments. The earlier stand-alone experiment `noisy_logit_np/` is unchanged; its C1–CR4 datasets are identical to the new `C1L`–`CR4L` S1 datasets (its networks are not part of this interface).
+
+On a Chinese-locale Windows console set `PYTHONIOENCODING=utf-8` (S7 prints `R²`, which the GBK codec cannot encode).
+
 ## 5. Output directory structure
 
 ```text

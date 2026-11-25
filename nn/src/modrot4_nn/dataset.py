@@ -16,8 +16,23 @@ class ChoiceDataset:
     choice: np.ndarray
 
 
+@dataclass(frozen=True)
+class LogitDataset:
+    """S1 output of a <MODEL>L model: the observed response is the continuous noisy logit y."""
+    parameters: np.ndarray
+    trial_counts: np.ndarray
+    subject_index: np.ndarray
+    trial_index: np.ndarray
+    x: np.ndarray
+    logit: np.ndarray
+    y: np.ndarray
+
+
 def load_choice_dataset(path):
+    """The S1 dataset of any model: ChoiceDataset, or LogitDataset for the <MODEL>L files."""
     with np.load(Path(path),allow_pickle=False) as stored:
+        if set(stored.files)==set(LogitDataset.__dataclass_fields__):
+            return LogitDataset(**{k:stored[k] for k in LogitDataset.__dataclass_fields__})
         fields=set(ChoiceDataset.__dataclass_fields__)
         if not fields.issubset(stored.files):
             raise ValueError(f"NN requires new S1 choice dataset fields {sorted(fields)}")

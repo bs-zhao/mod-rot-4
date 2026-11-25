@@ -51,6 +51,8 @@ Neither needs another model's output directory.
 C1/C2/C3/CR4 share the same per-person X RNG and uniform sampling function.
 The original model formula/priors are preserved.
 
+**`<MODEL>L` variants** (C1L … CR5L): identical T, X and logit; the saved observation is `y = logit + noise` (perfect-predictor R² = 0.8) and there are no `p` / `choice` fields. S2 uses `src/modrot4/noisy_logit_precheck.py`. See the root README.
+
 ## Precheck
 
 `models/s2_precheck.py` imports the saved **T, X and choice**, then uses

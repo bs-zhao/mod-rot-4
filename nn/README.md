@@ -350,3 +350,8 @@ organization are redesigned.
 ```bat
 python -m unittest discover -s nn/tests -v
 ```
+
+## `<MODEL>L` (continuous noisy-logit response)
+
+The same entry points accept C1L … CR5L. The decoder has one output, the loss is MSE on the TRAIN-standardized `y` (plus β·KL), and S3/S4 report R² instead of accuracy (`ContinuousNPTrainer`). The scaler is stored in the checkpoint as `input_standardization.y_mean / y_std`: predicted logit = output·y_std + y_mean. S5–S9_2 are unchanged. See the root README.
+

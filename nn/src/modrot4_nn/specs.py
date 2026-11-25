@@ -14,5 +14,17 @@ class _ModelNames:
         self.parameter_names = NAMES[model_id]
 
 
+# "<MODEL>L": same true parameters as <MODEL>, continuous noisy-logit response instead of a choice.
+LOGIT_MODELS = tuple(m + "L" for m in NAMES)
+
+
+def base_model(model_id):
+    return model_id[:-1] if model_id in LOGIT_MODELS else model_id
+
+
+def is_logit_model(model_id):
+    return model_id in LOGIT_MODELS
+
+
 def get_model(model_id):
-    return _ModelNames(model_id)
+    return _ModelNames(base_model(model_id))

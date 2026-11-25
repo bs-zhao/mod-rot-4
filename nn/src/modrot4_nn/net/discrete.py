@@ -40,8 +40,9 @@ class DiscreteNPConfig:
     def __post_init__(self):
         if self.x_dim <= 0:
             raise ValueError("x_dim must be positive.")
-        if self.num_choices < 2:
-            raise ValueError("num_choices must be at least 2.")
+        # num_choices == 1: one real-valued output head (continuous response of the <MODEL>L models).
+        if self.num_choices < 1:
+            raise ValueError("num_choices must be at least 2 (or 1 for a continuous response).")
         if self.latent_dim <= 0 or self.summary_dim <= 0:
             raise ValueError("latent_dim and summary_dim must be positive.")
 

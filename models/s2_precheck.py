@@ -8,6 +8,7 @@ from modrot4.core import load
 from modrot4.model_specs import get_spec
 from modrot4.pipeline import dataset_path, precheck_path
 from modrot4.unified_precheck import run_precheck
+from modrot4.noisy_logit_precheck import run_noisy_logit_precheck
 
 
 def main(args):
@@ -16,7 +17,8 @@ def main(args):
     if not path.is_file():
         raise FileNotFoundError(f"Run Generate first: {path}")
     print(f"[PRECHECK] model={args.model} phase=start", flush=True)
-    report = run_precheck(model, load(path), seed=args.precheck_seed, data_path=path)
+    check = run_noisy_logit_precheck if model.response == "noisy_logit" else run_precheck
+    report = check(model, load(path), seed=args.precheck_seed, data_path=path)
     if not report["qualified"]:
         raise RuntimeError(f"Precheck failed: see {precheck_path(args.model)}")
     return report

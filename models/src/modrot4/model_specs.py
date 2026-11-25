@@ -8,7 +8,7 @@ import numpy as np
 
 from modlearn_rot.generators.registry import get_model
 from modlearn_rot.generators.uniform_inputs import sample_independent_uniform_x
-from modrot4.pipeline import ROOT
+from modrot4.pipeline import ROOT, LOGIT_MODELS, base_model
 from modrot4.fixed_bank import ensure_local_bank, inspect_local_bank
 
 ref = ROOT / "models" / "reference"
@@ -25,6 +25,9 @@ from s2_oracle_cr4 import (  # noqa: E402
 
 MODELS = ("C1", "C2", "C3", "CR3", "CR4", "CR5")
 CPT3_NAMES = ("lambda_loss", "gamma", "tau")
+# Noisy-logit variants: y = logit + N(0, s^2), s^2 = Var(logit) * (1-R2)/R2, so a perfect predictor has R^2 = R2.
+LOGIT_R2 = 0.8
+LOGIT_NOISE_SEED = 777            # noise stream = default_rng(777 + index of the base model in MODELS)
 CR4_LOW = np.array([5., 5., .05, 5., 5., .05])
 CR4_HIGH = np.array([200., 200., .95, 200., 200., .95])
 
@@ -33,15 +36,18 @@ class ModelSpec:
     """The only model-dependent interface: T, X, logit and MLE/Fisher math."""
 
     def __init__(self, model_id: str):
-        if model_id not in MODELS:
+        if model_id not in MODELS and model_id not in LOGIT_MODELS:
             raise ValueError(f"Unknown model {model_id}")
-        self.model_id = model_id
-        self.is_cpt = model_id.startswith("CR")
-        self.classic = get_model(model_id) if not self.is_cpt else None
+        self.model_id = model_id                 # names the output folders
+        self.base_id = base_model(model_id)      # selects the mathematics (T, X, logit)
+        self.response = "noisy_logit" if model_id in LOGIT_MODELS else "choice"
+        self.noise_seed = LOGIT_NOISE_SEED + MODELS.index(self.base_id)
+        self.is_cpt = self.base_id.startswith("CR")
+        self.classic = get_model(self.base_id) if not self.is_cpt else None
         self.n_parameters = (self.classic.n_factors if self.classic else
-                             4 if model_id == "CR3" else 3)
+                             4 if self.base_id == "CR3" else 3)
         self.parameter_names = (tuple(self.classic.parameter_names) if self.classic else
-                                tuple(NAMES[4]) if model_id == "CR3" else CPT3_NAMES)
+                                tuple(NAMES[4]) if self.base_id == "CR3" else CPT3_NAMES)
         self.x_dim = self.classic.n_input_features if self.classic else 6
         self.trial_min = self.classic.trial_count_min if self.classic else 500
         self.trial_max = self.classic.trial_count_max if self.classic else 500
@@ -49,14 +55,15 @@ class ModelSpec:
         self.bank = None
 
     def prepare(self, design_seed):
-        if self.model_id in ("CR3", "CR5"):
-            ensure_local_bank(self.model_id, design_seed)
-            self.bank = inspect_local_bank(self.model_id)[0]
+        # CR3L / CR5L use exactly the fixed X bank of CR3 / CR5 (built in the base folder if it does not exist yet).
+        if self.base_id in ("CR3", "CR5"):
+            ensure_local_bank(self.base_id, design_seed)
+            self.bank = inspect_local_bank(self.base_id)[0]
 
     def sample_parameters(self, count, rng):
         if self.classic:
             return self.classic.sample_parameters(count, rng)
-        return (sample_prior(count, 4, rng) if self.model_id == "CR3"
+        return (sample_prior(count, 4, rng) if self.base_id == "CR3"
                 else sample_theta(count, rng))
 
     def sample_inputs(self, count, rng):
@@ -72,7 +79,7 @@ class ModelSpec:
     def logit(self, x, theta):
         if self.classic:
             return np.asarray(self.classic.linear_predictor(x, theta))
-        return (cpt_logit(x, theta) if self.model_id == "CR3"
+        return (cpt_logit(x, theta) if self.base_id == "CR3"
                 else cpt3_logit(x, theta))
 
     def draw_choice(self, p, rng):
@@ -92,10 +99,10 @@ class ModelSpec:
             if not np.all((-1 <= x) & (x <= 1)):
                 raise ValueError("X outside uniform(-1,1) range")
             return
-        bounds = BOUNDS[4] if self.model_id == "CR3" else BOUNDS3
+        bounds = BOUNDS[4] if self.base_id == "CR3" else BOUNDS3
         if np.any(theta < bounds[:, 0]) or np.any(theta > bounds[:, 1]):
             raise ValueError("CPT T outside allowed parameter support")
-        if self.model_id == "CR4":
+        if self.base_id == "CR4":
             ok = np.all((x >= CR4_LOW) & (x <= CR4_HIGH))
         else:
             amounts = x[:, [0, 1, 3, 4]]
@@ -108,14 +115,14 @@ class ModelSpec:
     def fit(self, x, choice, rng):
         if self.classic:
             return self.classic.oracle_fit(x, choice)
-        if self.model_id == "CR3":
+        if self.base_id == "CR3":
             return cpt_fit(x, choice, 4, rng, starts=self.starts)
         return cpt3_fit(x, choice, self.starts, rng)
 
     def fisher(self, x, theta, p):
         if self.classic:
             return self.classic.fisher_information(x, theta, average=False)
-        if self.model_id != "CR3":
+        if self.base_id != "CR3":
             jac = cpt3_gradient(x, theta)
         else:
             columns = []

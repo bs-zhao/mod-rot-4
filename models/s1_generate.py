@@ -4,8 +4,8 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
 
 from modrot4.cli import parse_args
-from modrot4.core import generate, save
-from modrot4.model_specs import get_spec
+from modrot4.core import generate, save, noise_sd
+from modrot4.model_specs import get_spec, LOGIT_R2
 from modrot4.pipeline import dataset_path, sha256
 from modlearn_rot.utils.io import save_json
 
@@ -21,7 +21,13 @@ def main(args):
           flush=True)
     data = generate(spec, args.subjects, args.data_seed, args.design_seed)
     save(data, target)
+    extra = {}
+    if spec.response == "noisy_logit":
+        extra = {"response": "noisy_logit", "base_model": spec.base_id,
+                 "r2_target": LOGIT_R2, "noise_seed": spec.noise_seed,
+                 "noise_sd": noise_sd(data.logit, LOGIT_R2)}
     save_json({
+        **extra,
         "model": spec.model_id,
         "subjects": args.subjects,
         "data_seed": args.data_seed,
@@ -31,7 +37,7 @@ def main(args):
         "dataset_sha256": sha256(target),
     }, target.with_name("s1_generate__manifest.json"))
     print(f"[GENERATE] model={spec.model_id} phase=done "
-          f"subjects={len(data.parameters)} trials={len(data.choice)} "
+          f"subjects={len(data.parameters)} trials={len(data.logit)} "
           f"T_dim={spec.n_parameters} X_dim={spec.x_dim}", flush=True)
     print(f"[GENERATE] dataset={target}", flush=True)
 

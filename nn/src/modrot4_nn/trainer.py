@@ -131,7 +131,10 @@ def discrete_beta_vae_loss(
     valid=target_mask.bool()
     if not valid.any():
         raise ValueError("At least one valid target is required.")
-    reconstruction=F.cross_entropy(logits[valid],choice[valid])
+    if logits.shape[-1]==1:       # continuous response: mean squared error on the standardized y
+        reconstruction=F.mse_loss(logits[...,0][valid],choice[valid])
+    else:
+        reconstruction=F.cross_entropy(logits[valid],choice[valid])
     kl=gaussian_kl_loss(mean,log_variance)
     sparse=latent_l1_loss(mean)
     total=reconstruction+float(beta)*kl+float(lambda_sparse)*sparse
@@ -175,6 +178,8 @@ def _normalize_encoder_batch(x,choice,mean,std):
 
 
 class DiscreteNPTrainer:
+    METRIC_NAMES=("loss","reconstruction","kl","sparse","accuracy","brier")
+
     def __init__(
         self,
         model_config:DiscreteNPConfig,
@@ -228,10 +233,7 @@ class DiscreteNPTrainer:
         history={
             f"{prefix}_{name}":[]
             for prefix in ("train","validation")
-            for name in (
-                "loss","reconstruction","kl","sparse",
-                "accuracy","brier",
-            )
+            for name in self.METRIC_NAMES
         }
         best_state=copy.deepcopy(model.state_dict())
         best_val=float("inf")
@@ -413,7 +415,32 @@ class DiscreteNPTrainer:
         return metrics
 
 
+class ContinuousNPTrainer(DiscreteNPTrainer):
+    """<MODEL>L: identical data flow, context sampling, optimizer and early stopping; the response is the standardized
+    noisy logit, the reconstruction loss is MSE and the reported metrics are R^2 instead of accuracy / Brier."""
+    METRIC_NAMES=("loss","reconstruction","kl","sparse","r2")
+
+    def _classification_sums(self,logits,choice,mask):
+        valid=mask.bool()
+        target=choice[valid].double()
+        sse=float(torch.sum((logits[...,0][valid].double()-target)**2).item())
+        sums=getattr(self,"_response_sums",(0.0,0.0))
+        self._response_sums=(sums[0]+float(target.sum().item()),
+                             sums[1]+float((target**2).sum().item()))
+        return 0,int(target.numel()),sse
+
+    def _finish(self,totals,n_batches,correct,n_obs,sse):
+        if n_batches==0 or n_obs==0:
+            raise ValueError("Empty data loader.")
+        first,second=self._response_sums
+        self._response_sums=(0.0,0.0)
+        metrics={k:v/n_batches for k,v in totals.items()}
+        metrics["r2"]=float(1.0-sse/(second-first**2/n_obs))
+        return metrics
+
+
 __all__=[
+    "ContinuousNPTrainer",
     "DiscreteData",
     "DiscreteNPConfig",
     "DiscreteNeuralProcess",

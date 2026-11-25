@@ -39,11 +39,17 @@ def evaluate(args):
             for key,value in state[group+"_metrics"].items():
                 w.writerow([group,key,value])
     fig,ax=plt.subplots(1,2,figsize=(10,4))
+    continuous="train_r2" in history          # <MODEL>L: continuous response
+    second="r2" if continuous else "accuracy"
     for group in ("train","validation"):
         ax[0].plot(history[f"{group}_reconstruction"],label=group)
-        ax[1].plot(history[f"{group}_accuracy"],label=group)
-    ax[0].set(title="Cross-entropy",xlabel="Epoch",ylabel="CE")
-    ax[1].set(title="Choice accuracy",xlabel="Epoch",ylabel="Accuracy")
+        ax[1].plot(history[f"{group}_{second}"],label=group)
+    if continuous:
+        ax[0].set(title="Mean squared error (standardized y)",xlabel="Epoch",ylabel="MSE")
+        ax[1].set(title="R^2 on observed y",xlabel="Epoch",ylabel="R^2")
+    else:
+        ax[0].set(title="Cross-entropy",xlabel="Epoch",ylabel="CE")
+        ax[1].set(title="Choice accuracy",xlabel="Epoch",ylabel="Accuracy")
     for axis in ax: axis.legend()
     fig.tight_layout();fig.savefig(folder/"learning_curves.png",dpi=160);plt.close(fig)
     print(f"[NN EVAL] TEST {state['test_metrics']} | {folder}",flush=True)
