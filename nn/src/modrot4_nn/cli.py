@@ -4,6 +4,10 @@ import argparse
 from .specs import LOGIT_MODELS
 
 MODELS = ("C1","C2","C3","CR3","CR4","CR5") + LOGIT_MODELS
+# Default stopping rule (--max-epochs, --patience) when the option is not given.  The choice models keep the
+# original 500 / 50, so their run folders (fingerprinted on these values) are unchanged; the <MODEL>L models use
+# 5000 / 20 (practically no epoch cap; stop after 20 epochs without a lower validation loss).
+STOPPING_DEFAULTS = {"choice": (500, 50), "logit": (5000, 20)}
 
 
 def parse_args(description, argv=None, *, configure_parser=None):
@@ -19,8 +23,10 @@ def parse_args(description, argv=None, *, configure_parser=None):
     parser.add_argument("--batch-size", type=int, default=128)
     parser.add_argument("--learning-rate", type=float, default=.0005)
     parser.add_argument("--weight-decay", type=float, default=0.)
-    parser.add_argument("--max-epochs", type=int, default=500)
-    parser.add_argument("--patience", type=int, default=50)
+    parser.add_argument("--max-epochs", type=int, default=None,
+                        help="default 500 (choice models) / 5000 (<MODEL>L)")
+    parser.add_argument("--patience", type=int, default=None,
+                        help="default 50 (choice models) / 20 (<MODEL>L)")
     parser.add_argument("--min-delta", type=float, default=0.)
     parser.add_argument("--repeat", type=int, default=1)
     parser.add_argument("--device", default="auto")
@@ -31,6 +37,11 @@ def parse_args(description, argv=None, *, configure_parser=None):
     if configure_parser is not None:
         configure_parser(parser)
     args = parser.parse_args(argv)
+    epochs, patience = STOPPING_DEFAULTS["logit" if args.model in LOGIT_MODELS else "choice"]
+    if args.max_epochs is None:
+        args.max_epochs = epochs
+    if args.patience is None:
+        args.patience = patience
     if (args.latent_dim<1 or args.batch_size<1 or args.max_epochs<1 or
         args.patience<1 or args.repeat<1 or args.inference_batch<1 or
         args.beta<0 or args.lambda_sparse<0 or
