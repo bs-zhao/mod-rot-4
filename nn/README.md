@@ -355,5 +355,5 @@ python -m unittest discover -s nn/tests -v
 
 The same entry points accept C1L … CR5L. The decoder has one output, the loss is MSE on the TRAIN-standardized `y` (plus β·KL), and S3/S4 report R² instead of accuracy (`ContinuousNPTrainer`). The scaler is stored in the checkpoint as `input_standardization.y_mean / y_std`: predicted logit = output·y_std + y_mean. S5–S9_2 are unchanged. See the root README.
 
-Stopping defaults differ by model family: `<MODEL>L` uses `--max-epochs 5000 --patience 20`, the choice models keep `500 / 50`. Both values enter the run-folder fingerprint, so L runs trained before this change (500 / 50) are reached only by passing `--max-epochs 500 --patience 50` explicitly to every stage.
+Stopping defaults differ by model family: `<MODEL>L` uses `--max-epochs 5000 --patience 50`, the choice models keep `500 / 50`. Both values enter the run-folder fingerprint, so L runs trained before this change (500 / 50) are reached only by passing `--max-epochs 500 --patience 50` explicitly to every stage.
 
