@@ -9,7 +9,8 @@ is computed fresh here, with the same recipe as the noisy-logit rotation tests:
   * coordinates [latent raw, X standardised by the S3 train scaler]; output = logit.
   * base tensor C = E[vec(H) vec(H)^T]  (D^2 x D^2), H = full input Hessian
       analytic: autograd of the exact generating logit        (oracle.py)
-      NN      : autograd of the frozen decoder (class1 - class0 logit)
+      NN      : autograd of the frozen decoder: class1 - class0 logit (choice models); for the <MODEL>L models the single
+                continuous output in logit units, out * y_std + y_mean (S3 train y scaler; the Y-C channel)
   * for each saved R:  Jz = diag(sd) Q^T (oracle: sd = T train std, Q = G = R R*^T;  NN: sd = Z std of the variant, Q = R)
         UX[a,b] = E[(d2f/dU_a dX_b)^2],  UU[a,b] = E[(d2f/dU_a dU_b)^2],   then the 152 simplicity metrics (+ candidate).
   * z-fusion metrics use a null of 200 Haar rotations computed from the SAME source's base tensor.
@@ -72,7 +73,7 @@ def main():
     else:
         sub = rng.choice(len(src.z), a.n); x = np.asarray(spec.sample_inputs(a.n, rng), float)
     pts = types.SimpleNamespace(x=x, latent=src.parameters[sub])
-    keep = validity(a.model, pts).all(axis=(1, 2)) if a.model.startswith("CR") else np.ones(len(x), bool)   # classical-derivative (interior) points only
+    keep = validity(src.base, pts).all(axis=(1, 2)) if src.base.startswith("CR") else np.ones(len(x), bool)   # classical-derivative (interior) points only
     sub, x = sub[keep], x[keep]; xs_ = (x - src.x_mean) / src.x_std
     Pz = np.column_stack((src.z[sub], xs_)); Pt = np.column_stack((src.parameters[sub], xs_))
     print(f"[{a.model}] {src.run_dir.name}: {len(x)}/{a.n} interior points d={d} p={p}", flush=True)
@@ -82,8 +83,14 @@ def main():
     for q in net.parameters(): q.requires_grad_(False)
     xm_t = torch.as_tensor(src.x_mean, dtype=torch.float64); xsd_t = torch.as_tensor(src.x_std, dtype=torch.float64)
 
-    def f_nn(v):
-        out = net.decoder(torch.cat((v[d:], v[:d]))); return out[1] - out[0]
+    if cfg["num_choices"] == 1:                                # <MODEL>L: continuous output -> logit units
+        ym, ys = float(src.y_mean), float(src.y_std)
+
+        def f_nn(v):
+            return net.decoder(torch.cat((v[d:], v[:d])))[0] * ys + ym
+    else:
+        def f_nn(v):
+            out = net.decoder(torch.cat((v[d:], v[:d]))); return out[1] - out[0]
 
     def f_or(v):
         return oracle_scalar(a.model, torch.cat((v[:d], v[d:] * xsd_t + xm_t)), "logit")
@@ -118,7 +125,8 @@ def main():
             w = csv.writer(fh); w.writerow(["source", "rotation", *names])
             for s, r, v in rows: w.writerow([s, r, *v])
         print(f"  {variant}: {len(rots)} rotations x {len(names)} metrics x 2 sources written [{time.time()-t0:.0f}s]", flush=True)
-    (root / "run_info.json").write_text(json.dumps(dict(model=a.model, run_dir=str(src.run_dir), n_points=int(len(x)), d=d, p=p,
+    (root / "run_info.json").write_text(json.dumps(dict(model=a.model, base_model=src.base, response="noisy_logit" if src.continuous else "choice",
+        nn_output="continuous*y_std+y_mean" if src.continuous else "class1-class0 logit", run_dir=str(src.run_dir), n_points=int(len(x)), d=d, p=p,
         dataset_sha=sha256(src.dataset_file), checkpoint_sha=sha256(src.checkpoint_file), latent_sha=sha256(src.latent_file)), indent=2))
 
 

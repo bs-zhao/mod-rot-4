@@ -1,4 +1,8 @@
-"""Frozen S3 decoder: [X_standardized,Z_original] -> (class1-class0) logit."""
+"""Frozen S3 decoder: [X_standardized,Z_original] -> logit.
+
+Choice models: class1 - class0 logit.  <MODEL>L models: the single continuous output (standardized y) converted back
+to logit units with the S3 train y scaler, out * y_std + y_mean.
+"""
 from functools import lru_cache
 import numpy as np
 import torch
@@ -26,11 +30,18 @@ class Decoder:
         self.x_std = torch.tensor(src.x_std, dtype=torch.float64)
         self.k = src.latent_dim
         self.p = src.x_dim
+        self.continuous = int(cfg["num_choices"]) == 1
+        self.y_mean, self.y_std = float(src.y_mean), float(src.y_std)
+
+    def _eta(self, out):
+        if self.continuous:
+            return out[..., 0] * self.y_std + self.y_mean
+        return out[..., 1] - out[..., 0]
 
     def scalar(self, v, target="logit"):
         z, x = v[:self.k], v[self.k:]
         logits = self.network(torch.cat(((x-self.x_mean)/self.x_std, z)))
-        eta = logits[1]-logits[0]
+        eta = self._eta(logits)
         if target == "logit":
             return eta
         if target == "probability":
@@ -46,7 +57,7 @@ class Decoder:
                 zz = torch.as_tensor(z[start:start+batch_size], dtype=torch.float64)
                 xx = torch.as_tensor(x[start:start+batch_size], dtype=torch.float64)
                 yy = self.network(torch.cat(((xx-self.x_mean)/self.x_std, zz), dim=1))
-                values.append((yy[:,1]-yy[:,0]).numpy())
+                values.append(self._eta(yy).numpy())
         eta = np.concatenate(values)
         return eta, 1/(1+np.exp(-np.clip(eta,-700,700)))
 

@@ -12,6 +12,7 @@ import numpy as np, pandas as pd
 import matplotlib; matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from scipy.stats import spearmanr
+from toys import TOYS, toy_of
 
 HERE = Path(__file__).resolve().parent; ROOT = HERE.parents[1]
 OUT = ROOT / "outputs" / "metric_lab" / "03_s9_metric_curves"; RES = HERE / "results"; FIG = RES / "figures"
@@ -31,7 +32,9 @@ def load():
             rot = pd.read_csv(f.parent / "rotations.csv"); met = pd.read_csv(f)
             key = f"{model}|{short(cond)}|{rep}|{var}"
             o = met[met.source == "oracle"].set_index("rotation").loc[rot.rotation].drop(columns="source"); n = met[met.source == "nn"].set_index("rotation").loc[rot.rotation].drop(columns="source")
-            dbs[key] = dict(rot=rot, oracle=o.reset_index(drop=True), nn=n.reset_index(drop=True), model=model, var=var)
+            toy = toy_of(model, cond, rep)                          # None for the extra (non-designated) runs
+            dbs[key] = dict(rot=rot, oracle=o.reset_index(drop=True), nn=n.reset_index(drop=True), model=model, var=var, toy=toy,
+                            cls=("C" if model.endswith("L") else "B"))
     return dbs
 
 
@@ -50,7 +53,7 @@ def analyse(dbs):
             cs = []
             for ax, g in rot[rot.candidate_type == "sweep"].groupby("axes_1based"):
                 g = g.sort_values("angle_deg"); cs.append(pr(o[g.index], n[g.index]))
-            rows.append(dict(db=key, model=d["model"], variant=d["var"], metric=m, n=int(uniq.sum()), pearson=pr(o[uniq], n[uniq]), spearman=sp,
+            rows.append(dict(db=key, model=d["model"], toy=d["toy"], cls=d["cls"], variant=d["var"], metric=m, n=int(uniq.sum()), pearson=pr(o[uniq], n[uniq]), spearman=sp,
                              curve_pearson_mean=float(np.nanmean(cs)) if np.isfinite(cs).any() else np.nan, curve_pearson_min=float(np.nanmin(cs)) if np.isfinite(cs).any() else np.nan))
     return pd.DataFrame(rows)
 
@@ -91,6 +94,11 @@ if __name__ == "__main__":
     summ = df.groupby("metric").agg(pearson_median=("pearson", "median"), pearson_min=("pearson", "min"), pearson_mean=("pearson", "mean"), spearman_median=("spearman", "median"),
                                      curve_median=("curve_pearson_mean", "median"), n_db=("pearson", "count"), n_nan=("pearson", lambda s: int(s.isna().sum()))).sort_values("pearson_median", ascending=False)
     summ.to_csv(RES / "correlation_summary.csv")
+    # the 12 toys x 2 variants (designated runs only), per class
+    prim = df[df.toy.notna()]
+    cls_summ = prim.groupby(["metric", "cls"]).agg(pearson_median=("pearson", "median"), pearson_min=("pearson", "min"), n_db=("pearson", "count")).unstack("cls")
+    cls_summ.columns = [f"{a}_{b}" for a, b in cls_summ.columns]; cls_summ.sort_values("pearson_median_C", ascending=False).to_csv(RES / "correlation_summary_toys_by_class.csv")
+    prim[prim.metric.isin(KEY)].pivot_table(index="metric", columns=["toy", "variant"], values="pearson").reindex(columns=[(t, v) for t in TOYS for v in ("s9", "s9_2")]).round(3).to_csv(RES / "key_metrics_pearson_toys.csv")
     for key, d in dbs.items():
         sub = df[df.db == key].set_index("metric"); d["_corr"] = {m: (sub.loc[m, "pearson"], sub.loc[m, "curve_pearson_mean"]) for m in sub.index}
         safe = key.replace("|", "__"); curves_fig(key, d, [m for m in KEY if m in d["oracle"].columns], FIG / f"curves__{safe}.png")

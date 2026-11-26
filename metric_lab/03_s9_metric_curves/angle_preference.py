@@ -20,7 +20,7 @@ for key, d in dbs.items():
                 best = {int(a) for a, xx in zip(g.angle_deg, x) if xx <= x.min() + tol}
                 okP += bool(best & PERF); okM += bool(best & MARG)
                 if not (best & MARG): bad.append(sorted(best)[0])
-            rows.append(dict(db=key, model=d["model"], variant=d["var"], source=src, metric=m, n_sweeps=len(groups), n_perfect=okP, n_marginal=okM,
+            rows.append(dict(db=key, model=d["model"], toy=d["toy"], cls=d["cls"], variant=d["var"], source=src, metric=m, n_sweeps=len(groups), n_perfect=okP, n_marginal=okM,
                              perfect=okP == len(groups), marginal=okM == len(groups)))
 L = pd.DataFrame(rows); L.to_csv(RES / "angle_pref_long.csv", index=False)
 S = L.groupby(["db", "source"]).agg(metrics=("metric", "count"), n_perfect=("perfect", "sum"), n_marginal=("marginal", "sum")).reset_index()
@@ -30,5 +30,17 @@ M.to_csv(RES / "angle_pref_metric_summary.csv", index=False)
 pd.set_option("display.width", 250); pd.set_option("display.max_rows", 500)
 S.to_csv(RES / 'angle_pref_db_summary.csv', index=False)
 print(S.pivot(index="db", columns="source", values=["n_perfect", "n_marginal"]).to_string())
+nall = L.db.nunique()
 for src in ("nn", "oracle"):
-    q = M[M.source == src]; print(src, "perfect in all 17:", int((q.dbs_perfect == 17).sum()), " marginal in all 17:", int((q.dbs_marginal == 17).sum()))
+    q = M[M.source == src]; print(src, f"perfect in all {nall}:", int((q.dbs_perfect == nall).sum()), f" marginal in all {nall}:", int((q.dbs_marginal == nall).sum()))
+# the 12 toys x 2 variants (designated runs only): per toy and per class
+P = L[L.toy.notna()]
+T = P.groupby(["cls", "toy", "variant", "source"]).agg(n_perfect=("perfect", "sum"), n_marginal=("marginal", "sum")).reset_index()
+T.to_csv(RES / "angle_pref_toys.csv", index=False)
+C = P.groupby(["metric", "source", "cls"]).agg(dbs_perfect=("perfect", "sum"), dbs_marginal=("marginal", "sum"), n_db=("db", "count")).reset_index()
+C.to_csv(RES / "angle_pref_metric_by_class.csv", index=False)
+print(T.pivot_table(index=["cls", "toy", "variant"], columns="source", values=["n_perfect", "n_marginal"]).to_string())
+for cls in ("B", "C"):
+    for src in ("nn", "oracle"):
+        q = C[(C.cls == cls) & (C.source == src)]; n = int(q.n_db.max()) if len(q) else 0
+        print(f"class {cls} {src}: perfect in all {n} databases: {int((q.dbs_perfect == n).sum())}, marginal in all {n}: {int((q.dbs_marginal == n).sum())}")

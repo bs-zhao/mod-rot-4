@@ -13,6 +13,7 @@ for p in (ROOT / "models" / "src", ROOT / "nn" / "src"):
     if str(p) not in sys.path:
         sys.path.insert(0, str(p))
 from modrot4.model_specs import get_spec  # noqa: E402
+from modrot4.pipeline import base_model, LOGIT_MODELS  # noqa: E402
 
 
 def sha256(path):
@@ -40,6 +41,16 @@ class Sources:
     x_mean: np.ndarray
     x_std: np.ndarray
     splits: dict
+    y_mean: float = 0.0          # <MODEL>L only: S3 train scaler of the continuous y (decoder output -> logit units)
+    y_std: float = 1.0
+
+    @property
+    def base(self):
+        return base_model(self.model)
+
+    @property
+    def continuous(self):
+        return self.model in LOGIT_MODELS
 
     @property
     def x_dim(self):
@@ -51,7 +62,7 @@ class Sources:
 
     @property
     def fixed_x(self):
-        if self.model not in ("CR3", "CR5"):
+        if self.base not in ("CR3", "CR5"):
             return None
         bank = self.x[:500]
         if not np.array_equal(self.trial_ids[:500], np.arange(500)):
@@ -79,7 +90,8 @@ def load_sources(model, run_dir):
         sid = np.asarray(arr["subject_index"], dtype=np.int64)
         tid = np.asarray(arr["trial_index"], dtype=np.int64)
         counts = np.asarray(arr["trial_counts"], dtype=np.int64)
-        y = np.asarray(arr["choice"], dtype=np.int8)
+        # choice models store the binary choice, <MODEL>L models the continuous noisy logit y
+        y = np.asarray(arr["y"] if "y" in arr.files else arr["choice"], dtype=np.float64)
     with np.load(latent, allow_pickle=False) as arr:
         z = np.asarray(arr["z"], dtype=np.float64)
         if str(arr["dataset_sha256"]) != sha256(dataset):
@@ -103,8 +115,15 @@ def load_sources(model, run_dir):
         raise ValueError("Subject dimensions do not match")
     if not np.array_equal(sid, np.repeat(np.arange(len(counts)), counts)):
         raise ValueError("S1 subject IDs are not grouped")
+    ym, ys = 0.0, 1.0
+    if model in LOGIT_MODELS:
+        if "y_mean" not in standardization or "y_std" not in standardization:
+            raise ValueError("S3 checkpoint of a <MODEL>L run missing the y scaler")
+        ym, ys = float(standardization["y_mean"]), float(standardization["y_std"])
+        if not ys > 0:
+            raise ValueError("Invalid S3 y scaler")
     return Sources(model, run_dir, dataset, ckpt, latent,
-                   t, x, sid, tid, counts, y, z, xm, xs, splits)
+                   t, x, sid, tid, counts, y, z, xm, xs, splits, ym, ys)
 
 
 def _load_rotation_normalizer(s8_data, source, variant):

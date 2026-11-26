@@ -38,6 +38,7 @@ def _value(lottery, alpha, lam, gamma):
 
 
 def oracle_scalar(model, flat, target="logit"):
+    model = model[:-1] if model.endswith("L") else model   # <MODEL>L: same true logit as <MODEL>
     k = {"C1":4, "C2":4, "C3":6, "CR3":4, "CR4":3, "CR5":3}[model]
     t, x = flat[:k], flat[k:]
     if model in ("C1", "C2", "C3"):

@@ -1,53 +1,106 @@
 # 02 — Test beds
 
-This note lists the simulated test beds (toy models) used at the current stage. There are **two classes of toys, six models each: 12 independent toy models in total.**
+This note lists the simulated test beds (toy models) used at the current stage. There are **two classes of toys, six models each: 12 independent toy models in total.** The toy names are the model IDs of the code.
 
-- **Class B — binary-choice toys:** `C1-bin`, `C2-bin`, `C3-bin`, `CR3-bin`, `CR4-bin`, `CR5-bin`. The generating model produces a binary choice `Y ∈ {0, 1}`.
-- **Class C — continuous-output toys:** `C1-cont`, `C2-cont`, `C3-cont`, `CR3-cont`, `CR4-cont`, `CR5-cont`. The generating model produces a continuous noisy logit `Y = η + ε`.
+- **Class B — binary-choice toys:** `C1`, `C2`, `C3`, `CR3`, `CR4`, `CR5`. The generating model produces a binary choice `Y ∈ {0, 1}`.
+- **Class C — continuous-output toys:** `C1L`, `C2L`, `C3L`, `CR3L`, `CR4L`, `CR5L` (`<MODEL>L`, "noisy logit"). The generating model produces a continuous noisy logit `Y = η + ε`.
 
 Each of the 12 toys is a separate test bed: its own observed data, its own trained Neural Process (NP), its own rotation sweeps and its own results. A conclusion is stated per toy and per class. Results of the binary class must not be read as results of the continuous class, or the other way round.
 
-**What is shared and what is specific.** The two classes share the same underlying cognitive/choice structure for each model name `C1, C2, C3, CR3, CR4, CR5`: the prior of the parameters `T`, the stimulus design `X` and the true-logit function `η(X, T)` (sections 3–6). Everything related to the observation is specific to the class (section 1): the observed `Y`, the noise, the NP likelihood and loss, the decoder output, the output channels of the screening experiments, and the achievable supervised ceiling. The experimental framework (04.1–04.3: supervised reference, rotation sweeps, metric × inference screening, evaluations 1 and 2) is the same for all 12 toys.
+**What is shared and what is specific.** The two classes share the same underlying cognitive/choice structure for each model family `C1, C2, C3, CR3, CR4, CR5`: the prior of the parameters `T`, the stimulus design `X` and the true-logit function `η(X, T)` (sections 3–6). Everything related to the observation is specific to the class (section 1): the observed `Y`, the noise, the NP likelihood and loss, the decoder output, the output channels of the screening experiments, the β of the NP and the achievable supervised ceiling. The experimental framework (04.1–04.3: supervised reference, rotation sweeps, metric × inference screening, evaluations 1 and 2) is the same for all 12 toys.
 
 Notation. Each toy defines a scalar `η(X, T)` for every trial, which we call the **true logit** of its model family. For C1–C3 `η` is linear in `T`. For CR3–CR5 `η` is a cumulative-prospect-theory (CPT) value difference scaled by `τ`.
 
 ## 1. The two classes of toys: what is specific to each
 
-| | Class B — binary choice (`*-bin`) | Class C — continuous output (`*-cont`) |
+| | Class B — binary choice (`C1` … `CR5`) | Class C — continuous output (`C1L` … `CR5L`) |
 |---|---|---|
 | Observed `Y` | `Y ~ Bernoulli(p)`, `p = sigmoid(η(X, T))` | `Y = η(X, T) + ε`, `ε ~ N(0, s²)` independent across trials |
 | Noise | Bernoulli sampling | `s² = Var(η) · (1 − R²) / R²`, `R² = 0.8` (the **signal ratio**) |
 | What a perfect predictor knows | `η`, hence `p` | `η`; it explains 80% of the variance of `Y`, the other 20% is irreducible |
-| NP reconstruction loss | cross-entropy (two-class decoder) | mean squared error (one-output decoder, `β·KL` as in class B) |
-| Decoder output used as the response surface | class-1 minus class-0 logit (Y-L) or its sigmoid (Y-P) | continuous output, converted back to logit units with the training `Y` mean and SD (Y-C) |
+| S2 precheck | binary-choice MLE recovery and Fisher information | Gaussian MLE recovery, Fisher information and the realised signal ratio |
+| NP reconstruction loss | cross-entropy (two-class decoder) | mean squared error on `Y` standardised with the TRAIN mean and SD (one-output decoder); `+ β·KL` as in class B |
+| NP training (S3) | β = 5·10⁻⁴, at most 500 epochs, patience 50 | β chosen per toy without `T` (section 1.2), at most 5000 epochs (C1L, C2L: 500), patience 50 |
+| Decoder output used as the response surface | class-1 minus class-0 logit (Y-L) or its sigmoid (Y-P) | continuous output converted back to logit units with the TRAIN `Y` scaler, `out · SD + mean` (Y-C) |
 | Output channels of the 04.3 screening | Y-L, Y-P | Y-C |
-| Data and trained NPs | `models/s1_generate.py` datasets, NPs in `nn/` (`outputs/nn/`) | `noisy_logit_np/gen_data.py` datasets, NPs in `noisy_logit_np/` (`train.py`) |
+
+Both classes go through the same stages: data generation `models/s1_generate.py` and precheck `models/s2_precheck.py` (outputs in `outputs/models/`), NP training and S4–S9_2 in `nn/` (outputs in `outputs/nn/<MODEL>/`).
 
 For the continuous toys `Var(η)` is the variance of the true logit over all trials of all subjects in the dataset. With `R² = 0.8` this gives `s² = Var(η) / 4`.
 
-**Independence of the two classes.** Each toy has its own dataset file, its own NP and its own downstream outputs. The two classes are generated by the same model code (`T` prior, `X` sampler, `η`) and, in the datasets that exist now, from the same random streams for `T`, trial counts and `X` (a subject has the same `T` and `X` in `C1-bin` and `C1-cont`). That reuse is a convenience of the current implementation and not a property of the test beds: any toy can be regenerated with new seeds, and replicate datasets and NPs (new subjects, new noise, newly trained NP) are separate runs of the same toy.
+**Independence of the two classes.** Each toy has its own dataset file, its own NP and its own downstream outputs. The two classes are generated by the same model code (`T` prior, `X` sampler, `η`) and from the same random streams for `T`, trial counts and `X` (a subject has the same `T` and `X` in `C1` and `C1L`); the noise of a class C toy has its own stream (seed `777 +` index of the model family). That reuse is a convenience of the current implementation and not a property of the test beds: any toy can be regenerated with new seeds, and replicate datasets and NPs (new subjects, new noise, newly trained NP) are separate runs of the same toy.
 
-### Status of the 12 toys
+The earlier stand-alone experiment `noisy_logit_np/` (its own NP code, C1–CR4 only) used datasets identical to `C1L`–`CR4L`. Its networks are not the class C test beds of this note.
 
-| Model | Class B dataset / NP / S8–S9 sweeps | Class C dataset / NP / sweeps |
-|---|---|---|
-| C1 | yes / yes (2 repeats) / yes (S9; S9_2 for repeat 1) | yes / yes (+ replicate) / yes (S9, S9_2, own code in `noisy_logit_np/s9_curves/`) |
-| C2 | yes / yes (2 repeats) / yes (S9) | yes / yes (+ replicate) / yes (S9, S9_2, `noisy_logit_np/s9_curves/`) |
-| C3 | yes / yes (2 repeats) / yes (S9; S9_2 for repeat 1) | yes / yes (+ replicate) / yes (S9, S9_2, `noisy_logit_np/s9_curves/`) |
-| CR3 | yes / yes (two β settings) / yes (S9, S9_2) | yes / yes (+ replicate) / yes (S9, S9_2, `noisy_logit_np/s9_curves/`) |
-| CR4 | yes / yes (2 repeats) / yes (S9; S9_2 for repeat 1) | yes / yes (+ replicate) / yes (S9, S9_2, `noisy_logit_np/s9_curves/`) |
-| CR5 | yes / yes / yes (S9, S9_2) | **not generated** (no NP, no sweeps) |
+### 1.1 Status of the 12 toys
 
-Continuous datasets that have been generated so far (8000 subjects each):
+All 12 toys have a dataset, a qualified S2 precheck, a trained NP and the stages S5–S9_2. The NP run used for each toy (one per toy, repeat 1) is listed in `metric_lab/03_s9_metric_curves/toys.py`.
 
-| Toy | Trials | `dim(T)` | `dim(X)` | `Var(η)` | noise SD `s` | realised R² (perfect predictor) |
-|---|---:|---:|---:|---:|---:|---:|
-| C1-cont | 3,206,036 | 4 | 3 | 0.993 | 0.498 | 0.7998 |
-| C2-cont | 3,206,036 | 4 | 4 | 1.739 | 0.659 | 0.8002 |
-| C3-cont | 3,206,036 | 6 | 4 | 2.721 | 0.825 | 0.8001 |
-| CR3-cont | 4,000,000 | 4 | 6 | 1.949 | 0.698 | 0.8002 |
-| CR4-cont | 4,000,000 | 3 | 6 | 9.105 | 1.509 | 0.7999 |
-| CR5-cont | — | 3 | 6 | — | — | not generated (same procedure as the other models) |
+| Toy | `dim Z` | NP β | Supervised ceiling S8: MCC; leak mean / max | Further saved runs |
+|---|---:|---:|---|---|
+| C1 | 4 | 5·10⁻⁴ | 0.973; 0.013 / 0.040 | repeat 2 (S9) |
+| C2 | 4 | 5·10⁻⁴ | 0.977; 0.014 / 0.030 | repeat 2 (S9) |
+| C3 | 6 | 5·10⁻⁴ | 0.971; 0.021 / 0.051 | repeat 2 (S9) |
+| CR3 | 4 | 5·10⁻⁴ | 0.871; 0.074 / 0.124 | β = 5·10⁻⁵ (S9, S9_2) |
+| CR4 | 3 | 5·10⁻⁴ | 0.850; 0.096 / 0.153 | repeat 2 (S9) |
+| CR5 | 3 | 5·10⁻⁴ | 0.885; 0.064 / 0.080 | — |
+| C1L | 4 | 0.018 | 0.998; 0.017 / 0.029 | — |
+| C2L | 4 | 0.018 | 0.997; 0.013 / 0.033 | — |
+| C3L | 6 | 0.006 | 0.995; 0.023 / 0.052 | — |
+| CR3L | 4 | 0.003 | 0.964; 0.050 / 0.086 | — |
+| CR4L | 3 | 0.001 | 0.917; 0.101 / 0.145 | — |
+| CR5L | 3 | 0.006 | 0.955; 0.073 / 0.099 | — |
+
+MCC and leakage are computed on the TEST subjects from the S8 rotation (Hungarian matching on `|r|`; leak = the `|r|` that are not matched). For every toy the unrotated `Z` fails the pass criterion.
+
+### 1.2 Choice of β for the class C toys
+
+β was chosen without `T`. For each toy an NP with a small reference β (3·10⁻⁴ for CR3L–CR5L) and NPs with several larger β were trained. The selected β is the largest one whose validation R² of `Y` is at most 0.005 below the reference **and** whose `Z` has no collapsed dimension (between-subject variance and KL ≈ 0). The recovery of `T` from `Z` was checked only afterwards. CR3L–CR5L need a much smaller β than C1L–C3L because some directions of `T` change `η` very little, and at a larger β the NP drops them first.
+
+All scanned β (validation R² of `Y`, validation KL; **bold** = selected; "collapsed" = a `Z` dimension with KL ≈ 0):
+
+| Toy | Reference β (val R²) | Pass line | Scanned β: val R², KL |
+|---|---|---:|---|
+| C1L | 0.0045 (0.7984) | 0.7934 | **0.018: 0.7966, 6.15**; 0.036: 0.7873, 4.71 |
+| C2L | 0.003 (0.7972) | 0.7922 | 0.012: 0.7925, 6.77; **0.018: 0.7932, 5.95** |
+| C3L | 0.0025 (0.7947) | 0.7897 | **0.006: 0.7918, 11.13**; 0.012: 0.7882, 9.16; 0.018: 0.7851, 7.79 |
+| CR3L | 0.0003 (0.8005) | 0.7955 | **0.003: 0.7993, 5.45**; 0.006: 0.7923, 3.73 (collapsed); 0.01: 0.7909, 3.06 (collapsed); 0.018: 0.7844, 2.16 (collapsed) |
+| CR4L | 0.0003 (0.7987) | 0.7937 | **0.001: 0.7985, 4.34**; 0.003: 0.7906, 2.00 (2 collapsed); 0.006: 0.7905, 1.68 (2 collapsed) |
+| CR5L | 0.0003 (0.7998) | 0.7948 | 0.001: 0.7992, 5.90; 0.003: 0.7987, 4.25; **0.006: 0.7974, 3.21**; 0.01: 0.7939, 2.42; 0.018: 0.7861, 1.68 (collapsed) |
+
+The perfect predictor has R² = 0.8. The 0.005 tolerance is a fixed choice made before the scans. The C3L reference is the run without an epoch cap (the run capped at 500 epochs reached 0.7931).
+
+### 1.2a Training command and saved run of each toy
+
+Run from the repository root (`conda activate py11`). Every NP output is under `outputs/nn/<toy>/<run folder>/repeat01/`: `s3_train/` (checkpoint, history, summary), `s4_evaluate/`, `s5_extract_z/latent.npz`, `s6_z_diagnostics/`, `s7_regression/`, `s8_supervised_rotation/`, `s8_2_supervised_rotation/`, `s9_rotation_sweep/`, `s9_2_rotation_sweep/`. The run folder name holds β, λ, the context range, `dim Z` and a hash of the full training configuration, so the later stages (`nn/s4_evaluate.py` … `nn/s9_2_rotation_sweep.py`) must be called with **the same arguments** as `s3_train.py`.
+
+| Toy | β | S3 training command | Run folder (`outputs/nn/…`) |
+|---|---:|---|---|
+| C1 | 5·10⁻⁴ | `python nn/s3_train.py --model C1 --latent-dim 4 --beta 0.0005 --batch-size 128 --repeat 1` | `C1/beta0p0005_lambda0_ctx0p25to0p8_L4_a73b15c147/repeat01` |
+| C2 | 5·10⁻⁴ | `python nn/s3_train.py --model C2 --latent-dim 4 --beta 0.0005 --batch-size 128 --repeat 1` | `C2/beta0p0005_lambda0_ctx0p25to0p8_L4_a73b15c147/repeat01` |
+| C3 | 5·10⁻⁴ | `python nn/s3_train.py --model C3 --latent-dim 6 --beta 0.0005 --batch-size 128 --repeat 1` | `C3/beta0p0005_lambda0_ctx0p25to0p8_L6_99df1d7a92/repeat01` |
+| CR3 | 5·10⁻⁴ | `python nn/s3_train.py --model CR3 --latent-dim 4 --beta 0.0005 --batch-size 128 --repeat 1` | `CR3/beta0p0005_lambda0_ctx0p25to0p8_L4_a73b15c147/repeat01` |
+| CR4 | 5·10⁻⁴ | `python nn/s3_train.py --model CR4 --latent-dim 3 --beta 0.0005 --batch-size 128 --repeat 1` | `CR4/beta0p0005_lambda0_ctx0p25to0p8_L3_09fe72d2fe/repeat01` |
+| CR5 | 5·10⁻⁴ | `python nn/s3_train.py --model CR5 --latent-dim 3 --beta 0.0005 --batch-size 128 --repeat 1` | `CR5/beta0p0005_lambda0_ctx0p25to0p8_L3_09fe72d2fe/repeat01` |
+| C1L | 0.018 | `python nn/s3_train.py --model C1L --latent-dim 4 --beta 0.018 --batch-size 128 --max-epochs 500 --patience 50 --repeat 1` | `C1L/beta0p018_lambda0_ctx0p25to0p8_L4_694ebc0d12/repeat01` |
+| C2L | 0.018 | `python nn/s3_train.py --model C2L --latent-dim 4 --beta 0.018 --batch-size 128 --max-epochs 500 --patience 50 --repeat 1` | `C2L/beta0p018_lambda0_ctx0p25to0p8_L4_694ebc0d12/repeat01` |
+| C3L | 0.006 | `python nn/s3_train.py --model C3L --latent-dim 6 --beta 0.006 --batch-size 128 --repeat 1` | `C3L/beta0p006_lambda0_ctx0p25to0p8_L6_4ade5ca369/repeat01` |
+| CR3L | 0.003 | `python nn/s3_train.py --model CR3L --latent-dim 4 --beta 0.003 --batch-size 128 --repeat 1` | `CR3L/beta0p003_lambda0_ctx0p25to0p8_L4_f7b516956e/repeat01` |
+| CR4L | 0.001 | `python nn/s3_train.py --model CR4L --latent-dim 3 --beta 0.001 --batch-size 128 --repeat 1` | `CR4L/beta0p001_lambda0_ctx0p25to0p8_L3_d0bd42a54e/repeat01` |
+| CR5L | 0.006 | `python nn/s3_train.py --model CR5L --latent-dim 3 --beta 0.006 --batch-size 128 --repeat 1` | `CR5L/beta0p006_lambda0_ctx0p25to0p8_L3_db03bec16e/repeat01` |
+
+Stopping rule: the choice models default to at most 500 epochs with patience 50, the `<MODEL>L` models to 5000 / 50. C1L and C2L were trained before that default changed, so their commands (and every later stage for them) carry `--max-epochs 500 --patience 50` explicitly; both stopped early, well before 500 epochs. The dataset of each toy is `outputs/models/generate/<toy>/s1_generate__dataset.npz` and its precheck `outputs/models/precheck/<toy>/s2_precheck__report.json`.
+
+### 1.3 Continuous datasets (8000 subjects each)
+
+| Toy | Trials | `dim(T)` | `dim(X)` | `Var(η)` | noise SD `s` | realised R² (perfect predictor) | S2 recovery `r` per parameter |
+|---|---:|---:|---:|---:|---:|---:|---|
+| C1L | 3,206,036 | 4 | 3 | 0.993 | 0.498 | 0.7998 | 0.999 (all four) |
+| C2L | 3,206,036 | 4 | 4 | 1.739 | 0.659 | 0.8002 | 0.997–0.999 |
+| C3L | 3,206,036 | 6 | 4 | 2.721 | 0.825 | 0.8001 | 0.996–0.999 |
+| CR3L | 4,000,000 | 4 | 6 | 1.949 | 0.698 | 0.8002 | α 0.984, λ 0.994, γ 0.970, τ 0.990 |
+| CR4L | 4,000,000 | 3 | 6 | 9.105 | 1.509 | 0.7999 | λ 0.965, γ 0.860, τ 0.962 |
+| CR5L | 4,000,000 | 3 | 6 | 2.612 | 0.808 | 0.7999 | λ 0.994, γ 0.969, τ 0.990 |
 
 ## 2. Common design
 
@@ -176,7 +229,7 @@ The four parameters are drawn independently. CR4 and CR5 use the same draw as CR
 
 ## 7. Summary of the model families
 
-Each row defines two toys, `<model>-bin` and `<model>-cont`.
+Each row defines two toys, `<model>` (class B) and `<model>L` (class C).
 
 | Model | `dim(T)` | `dim(X)` | `X` | trials / subject | `η` is linear in `T`? |
 |---|---:|---:|---|---:|---|
@@ -191,6 +244,6 @@ C1–C3 are the "classic" controls: `η` is linear in `T`, with the nonlinearity
 
 ## 8. Code locations
 
-- Model definitions (T prior, X sampler, true logit): `models/src/modrot4/model_specs.py`, `models/src/modlearn_rot/generators/choice/` (C1–C3), `models/reference/` (CR models).
-- Class B (binary) data generation: `models/s1_generate.py`; NP training and S3–S9 stages: `nn/`.
-- Class C (continuous) data generation: `noisy_logit_np/gen_data.py`; NP training: `noisy_logit_np/train.py`; first-wave screening code for class B: `metric_lab/06_wave1_screen/` (the first-wave Y-C screening of class C is not run yet; the class C rotation sweeps and the metric curves are in `noisy_logit_np/s9_curves/`).
+- Model definitions (T prior, X sampler, true logit): `models/src/modrot4/model_specs.py`, `models/src/modlearn_rot/generators/choice/` (C1–C3), `models/reference/` (CR models). The `<MODEL>L` toys use the same definitions through `base_model`; the noisy-logit response is in `models/src/modrot4/core.py` and its S2 precheck in `models/src/modrot4/noisy_logit_precheck.py`.
+- Data generation and precheck for both classes: `models/s1_generate.py`, `models/s2_precheck.py`. NP training and the stages S3–S9_2 for both classes: `nn/` (`--model C1` … `--model CR5L`).
+- The rotation-sweep experiment of 04.2 (analytic vs NN metric curves, evaluations 1 and 2) for all 12 toys: `metric_lab/03_s9_metric_curves/`. First-wave screening of 04.3 for class B: `metric_lab/06_wave1_screen/`.
