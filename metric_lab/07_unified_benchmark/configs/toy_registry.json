@@ -1,0 +1,33 @@
+{
+  "version": "W1-2026-11-26",
+  "source": "docs/00_project_flow/02_test_beds.md and metric_lab/03_s9_metric_curves/toys.py (validate.py checks that both agree)",
+  "primary": {
+    "C1":   {"class": "B", "family": "C1",  "run": "C1/beta0p0005_lambda0_ctx0p25to0p8_L4_a73b15c147/repeat01",  "beta": 0.0005, "k": 4, "p": 3},
+    "C2":   {"class": "B", "family": "C2",  "run": "C2/beta0p0005_lambda0_ctx0p25to0p8_L4_a73b15c147/repeat01",  "beta": 0.0005, "k": 4, "p": 4},
+    "C3":   {"class": "B", "family": "C3",  "run": "C3/beta0p0005_lambda0_ctx0p25to0p8_L6_99df1d7a92/repeat01",  "beta": 0.0005, "k": 6, "p": 4},
+    "CR3":  {"class": "B", "family": "CR3", "run": "CR3/beta0p0005_lambda0_ctx0p25to0p8_L4_a73b15c147/repeat01", "beta": 0.0005, "k": 4, "p": 6},
+    "CR4":  {"class": "B", "family": "CR4", "run": "CR4/beta0p0005_lambda0_ctx0p25to0p8_L3_09fe72d2fe/repeat01", "beta": 0.0005, "k": 3, "p": 6},
+    "CR5":  {"class": "B", "family": "CR5", "run": "CR5/beta0p0005_lambda0_ctx0p25to0p8_L3_09fe72d2fe/repeat01", "beta": 0.0005, "k": 3, "p": 6},
+    "C1L":  {"class": "C", "family": "C1",  "run": "C1L/beta0p018_lambda0_ctx0p25to0p8_L4_694ebc0d12/repeat01",  "beta": 0.018,  "k": 4, "p": 3},
+    "C2L":  {"class": "C", "family": "C2",  "run": "C2L/beta0p018_lambda0_ctx0p25to0p8_L4_694ebc0d12/repeat01",  "beta": 0.018,  "k": 4, "p": 4},
+    "C3L":  {"class": "C", "family": "C3",  "run": "C3L/beta0p006_lambda0_ctx0p25to0p8_L6_4ade5ca369/repeat01",  "beta": 0.006,  "k": 6, "p": 4},
+    "CR3L": {"class": "C", "family": "CR3", "run": "CR3L/beta0p003_lambda0_ctx0p25to0p8_L4_f7b516956e/repeat01", "beta": 0.003,  "k": 4, "p": 6},
+    "CR4L": {"class": "C", "family": "CR4", "run": "CR4L/beta0p001_lambda0_ctx0p25to0p8_L3_d0bd42a54e/repeat01", "beta": 0.001,  "k": 3, "p": 6},
+    "CR5L": {"class": "C", "family": "CR5", "run": "CR5L/beta0p006_lambda0_ctx0p25to0p8_L3_db03bec16e/repeat01", "beta": 0.006,  "k": 3, "p": 6}
+  },
+  "secondary": {
+    "C1#r2":     {"class": "B", "family": "C1",  "model": "C1",  "run": "C1/beta0p0005_lambda0_ctx0p25to0p8_L4_a73b15c147/repeat02",  "beta": 0.0005, "k": 4, "p": 3},
+    "C2#r2":     {"class": "B", "family": "C2",  "model": "C2",  "run": "C2/beta0p0005_lambda0_ctx0p25to0p8_L4_a73b15c147/repeat02",  "beta": 0.0005, "k": 4, "p": 4},
+    "C3#r2":     {"class": "B", "family": "C3",  "model": "C3",  "run": "C3/beta0p0005_lambda0_ctx0p25to0p8_L6_99df1d7a92/repeat02",  "beta": 0.0005, "k": 6, "p": 4},
+    "CR3#b5e-5": {"class": "B", "family": "CR3", "model": "CR3", "run": "CR3/beta5em05_lambda0_ctx0p25to0p8_L4_f65af99a5e/repeat01",  "beta": 5e-05,  "k": 4, "p": 6},
+    "CR4#r2":    {"class": "B", "family": "CR4", "model": "CR4", "run": "CR4/beta0p0005_lambda0_ctx0p25to0p8_L3_09fe72d2fe/repeat02", "beta": 0.0005, "k": 3, "p": 6}
+  },
+  "channels": {"B": ["YL", "YP"], "C": ["YC"]},
+  "design_metadata_note": "Observed-design metadata that the blind arm may use: whether X is a fixed bank shared by all subjects (detected from the data), and the declared X domain of each column (used only to define the derivative masks, identically for every arm).",
+  "x_domain": {
+    "C1": "unbounded", "C2": "unbounded", "C3": "unbounded",
+    "CR3": ["amount", "amount", "prob", "amount", "amount", "prob"],
+    "CR4": ["amount", "amount", "prob", "amount", "amount", "prob"],
+    "CR5": ["amount", "amount", "prob", "amount", "amount", "prob"]
+  }
+}

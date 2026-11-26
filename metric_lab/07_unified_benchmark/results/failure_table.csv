@@ -1,0 +1,49 @@
+toy,variant,channel,mask,analytic_passes,frac_kept_D,frac_kept_S,frac_kept_BO,frac_kept_BA,S_better_than_D,pattern,bridge_valid,coverage
+C1,s9,YL,FULL,70,0.9857142857142858,0.5857142857142857,1.0,1.0,False,decoder keeps most analytic passes,True,1.0
+C1,s9,YP,FULL,73,0.9726027397260274,0.9452054794520548,1.0,0.9452054794520548,False,decoder keeps most analytic passes,True,1.0
+C1,s9_2,YL,FULL,70,0.9857142857142858,0.5714285714285714,1.0,1.0,False,decoder keeps most analytic passes,True,1.0
+C1,s9_2,YP,FULL,73,0.9726027397260274,0.9726027397260274,0.9726027397260274,0.9863013698630136,False,decoder keeps most analytic passes,True,1.0
+C1L,s9,YC,FULL,70,0.9714285714285714,0.9285714285714286,1.0,1.0,False,decoder keeps most analytic passes,True,1.0
+C1L,s9_2,YC,FULL,70,0.9714285714285714,0.9285714285714286,1.0,1.0,False,decoder keeps most analytic passes,True,1.0
+C2,s9,YL,FULL,68,0.9264705882352942,0.6323529411764706,1.0,1.0,False,decoder keeps most analytic passes,True,1.0
+C2,s9,YP,FULL,52,1.0,0.9807692307692307,0.9807692307692307,0.9807692307692307,False,decoder keeps most analytic passes,True,1.0
+C2,s9_2,YL,FULL,68,0.9264705882352942,0.6617647058823529,1.0,0.9705882352941176,False,decoder keeps most analytic passes,True,1.0
+C2,s9_2,YP,FULL,52,1.0,0.9807692307692307,0.9807692307692307,0.9807692307692307,False,decoder keeps most analytic passes,True,1.0
+C2L,s9,YC,FULL,68,0.9852941176470589,0.8823529411764706,1.0,0.9117647058823529,False,decoder keeps most analytic passes,True,1.0
+C2L,s9_2,YC,FULL,68,0.9705882352941176,0.9117647058823529,1.0,0.9117647058823529,False,decoder keeps most analytic passes,True,1.0
+C3,s9,YL,FULL,65,1.0,0.49230769230769234,1.0,1.0,False,decoder keeps most analytic passes,True,1.0
+C3,s9,YP,FULL,48,1.0,1.0,0.9791666666666666,0.9791666666666666,False,decoder keeps most analytic passes,True,1.0
+C3,s9_2,YL,FULL,65,1.0,0.49230769230769234,1.0,1.0,False,decoder keeps most analytic passes,True,1.0
+C3,s9_2,YP,FULL,48,1.0,1.0,0.9791666666666666,0.9791666666666666,False,decoder keeps most analytic passes,True,1.0
+C3L,s9,YC,FULL,65,0.9692307692307692,0.9230769230769231,1.0,1.0,False,decoder keeps most analytic passes,True,1.0
+C3L,s9_2,YC,FULL,65,0.9692307692307692,0.9230769230769231,1.0,1.0,False,decoder keeps most analytic passes,True,1.0
+CR3,s9,YL,MASK-ALL,73,0.1506849315068493,0.0,0.9863013698630136,0.9452054794520548,False,"O good, bridges good, D bad -> decoder / conditional surface",True,1.0
+CR3,s9,YL,MASK-COL,79,0.13924050632911392,0.0,0.9746835443037974,0.9620253164556962,False,"O good, bridges good, D bad -> decoder / conditional surface",True,1.0
+CR3,s9,YP,MASK-ALL,0,,,,,False,no analytic passes on this library (nothing to keep),True,1.0
+CR3,s9,YP,MASK-COL,0,,,,,False,no analytic passes on this library (nothing to keep),True,1.0
+CR3,s9_2,YL,MASK-ALL,73,0.136986301369863,0.0,1.0,0.821917808219178,False,"O good, bridges good, D bad -> decoder / conditional surface",True,0.9921875
+CR3,s9_2,YL,MASK-COL,79,0.08860759493670886,0.0,1.0,0.8227848101265823,False,"O good, bridges good, D bad -> decoder / conditional surface",True,0.9921875
+CR3,s9_2,YP,MASK-ALL,0,,,,,False,no analytic passes on this library (nothing to keep),True,0.9921875
+CR3,s9_2,YP,MASK-COL,0,,,,,False,no analytic passes on this library (nothing to keep),True,0.9921875
+CR3L,s9,YC,MASK-ALL,73,0.2191780821917808,0.0,0.9863013698630136,0.8767123287671232,False,"O good, bridges good, D bad -> decoder / conditional surface",True,0.9921875
+CR3L,s9,YC,MASK-COL,79,0.22784810126582278,0.012658227848101266,0.9746835443037974,0.9493670886075949,False,"O good, bridges good, D bad -> decoder / conditional surface",True,0.9921875
+CR3L,s9_2,YC,MASK-ALL,73,0.2054794520547945,0.0,0.9863013698630136,0.9315068493150684,False,"O good, bridges good, D bad -> decoder / conditional surface",True,0.98828125
+CR3L,s9_2,YC,MASK-COL,79,0.22784810126582278,0.012658227848101266,0.9873417721518988,0.9367088607594937,False,"O good, bridges good, D bad -> decoder / conditional surface",True,0.98828125
+CR4,s9,YL,FULL,83,0.060240963855421686,0.0,0.9879518072289156,0.9397590361445783,False,"O good, bridges good, D bad -> decoder / conditional surface",True,0.99609375
+CR4,s9,YP,FULL,3,0.3333333333333333,0.0,0.6666666666666666,1.0,False,"O good, B-orth bad -> alignment / geometry",True,0.99609375
+CR4,s9_2,YL,FULL,83,0.07228915662650602,0.024096385542168676,1.0,0.2891566265060241,False,"O good, B-aff bad -> affine map / residual / support",True,0.99609375
+CR4,s9_2,YP,FULL,3,0.6666666666666666,0.0,1.0,1.0,False,decoder keeps most analytic passes,True,0.99609375
+CR4L,s9,YC,FULL,83,0.14457831325301204,0.0,0.9879518072289156,0.8192771084337349,False,"O good, bridges good, D bad -> decoder / conditional surface",True,1.0
+CR4L,s9_2,YC,FULL,83,0.1686746987951807,0.0,0.9879518072289156,0.6024096385542169,False,"O good, B-aff bad -> affine map / residual / support",True,0.98828125
+CR5,s9,YL,MASK-ALL,82,0.15853658536585366,0.0,0.9878048780487805,0.9634146341463414,False,"O good, bridges good, D bad -> decoder / conditional surface",True,0.99609375
+CR5,s9,YL,MASK-COL,82,0.14634146341463414,0.0,1.0,0.9878048780487805,False,"O good, bridges good, D bad -> decoder / conditional surface",True,0.99609375
+CR5,s9,YP,MASK-ALL,3,0.0,0.0,1.0,1.0,False,"O good, bridges good, D bad -> decoder / conditional surface",True,0.99609375
+CR5,s9,YP,MASK-COL,3,0.0,0.0,1.0,1.0,False,"O good, bridges good, D bad -> decoder / conditional surface",True,0.99609375
+CR5,s9_2,YL,MASK-ALL,82,0.0975609756097561,0.0,1.0,0.9878048780487805,False,"O good, bridges good, D bad -> decoder / conditional surface",True,0.99609375
+CR5,s9_2,YL,MASK-COL,82,0.10975609756097561,0.0,1.0,1.0,False,"O good, bridges good, D bad -> decoder / conditional surface",True,0.99609375
+CR5,s9_2,YP,MASK-ALL,3,0.0,0.0,1.0,1.0,False,"O good, bridges good, D bad -> decoder / conditional surface",True,0.99609375
+CR5,s9_2,YP,MASK-COL,3,0.3333333333333333,0.0,1.0,1.0,False,"O good, bridges good, D bad -> decoder / conditional surface",True,0.99609375
+CR5L,s9,YC,MASK-ALL,82,0.14634146341463414,0.0,0.9878048780487805,0.8292682926829268,False,"O good, bridges good, D bad -> decoder / conditional surface",True,1.0
+CR5L,s9,YC,MASK-COL,82,0.14634146341463414,0.024390243902439025,1.0,0.9512195121951219,False,"O good, bridges good, D bad -> decoder / conditional surface",True,1.0
+CR5L,s9_2,YC,MASK-ALL,82,0.14634146341463414,0.0,1.0,1.0,False,"O good, bridges good, D bad -> decoder / conditional surface",True,1.0
+CR5L,s9_2,YC,MASK-COL,82,0.12195121951219512,0.0,1.0,1.0,False,"O good, bridges good, D bad -> decoder / conditional surface",True,1.0

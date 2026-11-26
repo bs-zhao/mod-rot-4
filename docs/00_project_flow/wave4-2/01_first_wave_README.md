@@ -544,3 +544,5 @@ If the analytic loss itself lacks discrimination, prioritize the conditional agg
 The first wave is complete when the evidence and implementation contract above are satisfied, **not** when some selected metric happens to pass every toy. It is the diagnostic foundation of wave4-2.
 
 **Current status:** proposed experimental specification only. No new experiment has been executed, no new code directory has been created by this document, and no reported historical result has been changed.
+
+**Implementation (2026-11-26):** W1-00 to W1-05 are implemented and run in [metric_lab/07_unified_benchmark](../../../metric_lab/07_unified_benchmark/README.md); results, deviations from this specification and the next-wave hand-off are reported there. This specification itself is unchanged.
