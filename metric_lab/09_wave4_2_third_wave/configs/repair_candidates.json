@@ -1,0 +1,247 @@
+{
+ "version": "W3-2026-11-27",
+ "source": "03_third_wave_README.md sections 6.1-6.4; registered before any W3 scoring",
+ "families": [
+  {
+   "family": "RW-POW",
+   "kind": "POW",
+   "id_format": "RW-POW-a{a}-c{c}",
+   "section": "6.1 power weights",
+   "grid": [
+    {
+     "a": 0.0,
+     "c": 0.01
+    },
+    {
+     "a": 0.0,
+     "c": 0.03
+    },
+    {
+     "a": 0.0,
+     "c": 0.1
+    },
+    {
+     "a": 0.25,
+     "c": 0.01
+    },
+    {
+     "a": 0.25,
+     "c": 0.03
+    },
+    {
+     "a": 0.25,
+     "c": 0.1
+    },
+    {
+     "a": 0.5,
+     "c": 0.01
+    },
+    {
+     "a": 0.5,
+     "c": 0.03
+    },
+    {
+     "a": 0.5,
+     "c": 0.1
+    },
+    {
+     "a": 0.75,
+     "c": 0.01
+    },
+    {
+     "a": 0.75,
+     "c": 0.03
+    },
+    {
+     "a": 0.75,
+     "c": 0.1
+    },
+    {
+     "a": 1.0,
+     "c": 0.01
+    },
+    {
+     "a": 1.0,
+     "c": 0.03
+    },
+    {
+     "a": 1.0,
+     "c": 0.1
+    }
+   ]
+  },
+  {
+   "family": "RW-SM",
+   "kind": "SM",
+   "id_format": "RW-SM-a{a}-t{t}",
+   "section": "6.2 smooth activation, c=.03",
+   "grid": [
+    {
+     "a": 0.0,
+     "t": 0.001,
+     "c": 0.03
+    },
+    {
+     "a": 0.0,
+     "t": 0.01,
+     "c": 0.03
+    },
+    {
+     "a": 0.0,
+     "t": 0.05,
+     "c": 0.03
+    },
+    {
+     "a": 0.5,
+     "t": 0.001,
+     "c": 0.03
+    },
+    {
+     "a": 0.5,
+     "t": 0.01,
+     "c": 0.03
+    },
+    {
+     "a": 0.5,
+     "t": 0.05,
+     "c": 0.03
+    },
+    {
+     "a": 1.0,
+     "t": 0.001,
+     "c": 0.03
+    },
+    {
+     "a": 1.0,
+     "t": 0.01,
+     "c": 0.03
+    },
+    {
+     "a": 1.0,
+     "t": 0.05,
+     "c": 0.03
+    }
+   ]
+  },
+  {
+   "family": "RW-BL",
+   "kind": "BL",
+   "id_format": "RW-BL-r{rho}",
+   "section": "6.2 uniform blend, delta=.01/k, c=.03",
+   "grid": [
+    {
+     "rho": 0.25,
+     "c": 0.03
+    },
+    {
+     "rho": 0.5,
+     "c": 0.03
+    },
+    {
+     "rho": 0.75,
+     "c": 0.03
+    }
+   ]
+  },
+  {
+   "family": "RW-GL",
+   "kind": "GL",
+   "id_format": "RW-GL-l{lam}-a{a}",
+   "section": "6.3 global support coupling, raw bounded scales",
+   "grid": [
+    {
+     "lam": 0.25,
+     "a": 0.0,
+     "c": 0.03
+    },
+    {
+     "lam": 0.25,
+     "a": 0.5,
+     "c": 0.03
+    },
+    {
+     "lam": 0.25,
+     "a": 1.0,
+     "c": 0.03
+    },
+    {
+     "lam": 0.5,
+     "a": 0.0,
+     "c": 0.03
+    },
+    {
+     "lam": 0.5,
+     "a": 0.5,
+     "c": 0.03
+    },
+    {
+     "lam": 0.5,
+     "a": 1.0,
+     "c": 0.03
+    },
+    {
+     "lam": 0.75,
+     "a": 0.0,
+     "c": 0.03
+    },
+    {
+     "lam": 0.75,
+     "a": 0.5,
+     "c": 0.03
+    },
+    {
+     "lam": 0.75,
+     "a": 1.0,
+     "c": 0.03
+    }
+   ]
+  },
+  {
+   "family": "RW-ACT",
+   "kind": "ACT",
+   "id_format": "RW-ACT-b{beta}",
+   "section": "6.4 active-axis penalty on POW(1,.03), delta=.01/k",
+   "grid": [
+    {
+     "beta": 0.1,
+     "a": 1.0,
+     "c": 0.03
+    },
+    {
+     "beta": 0.3,
+     "a": 1.0,
+     "c": 0.03
+    },
+    {
+     "beta": 1.0,
+     "a": 1.0,
+     "c": 0.03
+    }
+   ]
+  }
+ ],
+ "controls": [
+  {
+   "id": "E02",
+   "metric": "L06|B08.M03.c0.03",
+   "note": "historical baseline (== RW-POW-a1.0-c0.03, checked)"
+  },
+  {
+   "id": "E01",
+   "metric": "L06|B08.M03.c0.01",
+   "note": "== RW-POW-a1.0-c0.01"
+  },
+  {
+   "id": "B07c03",
+   "metric": "L06|B07.M03.c0.03",
+   "note": "unweighted active rows (== RW-POW-a0.0-c0.03)"
+  },
+  {
+   "id": "B01c03",
+   "metric": "L06|B01.M03.c0.03",
+   "note": "global UX support (GL endpoint lam=0)"
+  }
+ ],
+ "activity": "POW/GL/ACT: historical hard cutoff r_i > 1e-15 E;  SM/BL: smooth A_d(e) = e/(e+d), truly zero rows weight 0",
+ "no_truth": "no weight, cutoff or grid point is chosen with R*, T or toy identity"
+}

@@ -721,3 +721,5 @@ Priority under limited compute: W3-00 -> RW-A/B/C and MX-A/B -> ST-A/B/C, while 
 The success criterion for the research wave is a reliable answer to the scientific questions, not an obligation to manufacture a universal pass. The algorithmic milestone remains a single fixed blind method meeting the current criterion in every formal test bed, followed by independent validation. Exact analytic identification and faithful inference are separate scientific claims.
 
 **Implementation status:** documentation only. Proposed grids, thresholds for new sensitivity analyses, code paths, experiment budgets and confirmation designs require implementation and verification. No new results or edits to earlier project definitions are implied.
+
+**Implementation (2026-11-27):** W3-00 to W3-05 are implemented and run in [Metric Lab 09](../../../metric_lab/09_wave4_2_third_wave/README.md); W3-06 is locked there (development selection) but independent confirmation (CONF-A/B/C) was not run. Results, deviations and not-run arms are listed there. This specification itself is unchanged.

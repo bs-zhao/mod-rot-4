@@ -1,0 +1,33 @@
+{
+ "version": "W3-CONF-1",
+ "source": "03_third_wave_README.md section 24 (planned; requires a verified algorithm_lock.json)",
+ "CONF_A": {
+  "description": "fresh data + fresh NP trainings, all six formula families x both observation classes (12 toys)",
+  "minimum_first_pass": "1 new data-generation seed x 2 NP training seeds x 12 toys = 24 NP runs",
+  "full": "2 data seeds x 2 training seeds x 12 = 48",
+  "generator": "models/s1_generate.py unchanged (documented prior / noise / fixed-bank design), same subject counts and split protocol",
+  "data_seeds": "new fixed ids, verified unused by every existing outputs/models run before generation (recorded in confirmation_manifest.json)",
+  "training": "frozen architecture and the existing per-model beta (registry) with new training seeds; no seed chosen with T; Stage A reported for every run",
+  "evaluation": "locked algorithm only, E02 locked baseline alongside; all runs reported with exact denominators"
+ },
+ "CONF_B": {
+  "one_factor_at_a_time": [
+   "new generic bank / randomized bank subsampling (fixed banks)",
+   "trials per subject 100 / 250 / 500",
+   "response noise level",
+   "independent NP training seeds"
+  ]
+ },
+ "CONF_C": {
+  "status": "requires a separately reviewed registry of unseen structural families (additive basis with bias, sparse interactions, gated multiplicative, mixed nonlinearity k=6-8) plus rotation-symmetric negative controls; not designed in this wave"
+ },
+ "thresholds": {
+  "MCC_gap": 0.05,
+  "leak_max": {
+   "classic": 0.2,
+   "CR": 0.3
+  }
+ },
+ "aggregation": "by family and data seed; search seeds are not replicates",
+ "compute_note": "one NP training is ~300-500 epochs on 8000 subjects (GPU hours); CONF-A is not run inside wave 3 (see README)"
+}

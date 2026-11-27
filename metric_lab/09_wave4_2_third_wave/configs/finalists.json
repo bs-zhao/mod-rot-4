@@ -1,0 +1,249 @@
+{
+ "version": "W3-FIN-1",
+ "rule": "03_third_wave section 23 (escalate.py)",
+ "source_hash": "8336b25b0ce850ae",
+ "finalists": [
+  {
+   "cid": "E02-FIN",
+   "base": "MX-B08c03@AD",
+   "role": "control (E02)",
+   "family": "CTRL",
+   "iseeds": [
+    31,
+    73,
+    101
+   ],
+   "sseeds": [
+    31,
+    73,
+    101
+   ]
+  },
+  {
+   "cid": "X02-FIN",
+   "base": "MX-SL0UXUU@RBF",
+   "role": "control (X02)",
+   "family": "CTRL",
+   "iseeds": [
+    31,
+    73,
+    101
+   ],
+   "sseeds": [
+    31,
+    73,
+    101
+   ]
+  },
+  {
+   "cid": "RW-GL-l0.75-a1.0-FIN",
+   "base": "RW-GL-l0.75-a1.0",
+   "role": "empirical top-3 S9_2 (10/12 toys)",
+   "family": "RW",
+   "iseeds": [
+    31,
+    73,
+    101
+   ],
+   "sseeds": [
+    31,
+    73,
+    101
+   ]
+  },
+  {
+   "cid": "RW-ACT-b0.1-FIN",
+   "base": "RW-ACT-b0.1",
+   "role": "empirical top-3 S9_2 (9/12 toys)",
+   "family": "RW",
+   "iseeds": [
+    31,
+    73,
+    101
+   ],
+   "sseeds": [
+    31,
+    73,
+    101
+   ]
+  },
+  {
+   "cid": "RW-POW-a0.75-c0.01-FIN",
+   "base": "RW-POW-a0.75-c0.01",
+   "role": "empirical top-3 S9_2 (9/12 toys)",
+   "family": "RW",
+   "iseeds": [
+    31,
+    73,
+    101
+   ],
+   "sseeds": [
+    31,
+    73,
+    101
+   ]
+  },
+  {
+   "cid": "RW-ACT-b0.3-FIN",
+   "base": "RW-ACT-b0.3",
+   "role": "theory (analytic perfect 24/24, joint marginal 23/24)",
+   "family": "RW",
+   "iseeds": [
+    31,
+    73,
+    101
+   ],
+   "sseeds": [
+    31,
+    73,
+    101
+   ]
+  },
+  {
+   "cid": "RW-GL-l0.5-a1.0-FIN",
+   "base": "RW-GL-l0.5-a1.0",
+   "role": "theory (analytic perfect 24/24, joint marginal 21/24)",
+   "family": "RW",
+   "iseeds": [
+    31,
+    73,
+    101
+   ],
+   "sseeds": [
+    31,
+    73,
+    101
+   ]
+  },
+  {
+   "cid": "MX-F-eps0.25-FIN",
+   "base": "MX-F-eps0.25",
+   "role": "empirical top-3 S9_2 (12/12 toys)",
+   "family": "MX",
+   "iseeds": [
+    31,
+    73,
+    101
+   ],
+   "sseeds": [
+    31,
+    73,
+    101
+   ]
+  },
+  {
+   "cid": "MX-F-eps0.1-FIN",
+   "base": "MX-F-eps0.1",
+   "role": "empirical top-3 S9_2 (11/12 toys)",
+   "family": "MX",
+   "iseeds": [
+    31,
+    73,
+    101
+   ],
+   "sseeds": [
+    31,
+    73,
+    101
+   ]
+  },
+  {
+   "cid": "MX-F-w0.5-q9505-FIN",
+   "base": "MX-F-w0.5-q9505",
+   "role": "empirical top-3 S9_2 (11/12 toys)",
+   "family": "MX",
+   "iseeds": [
+    31,
+    73,
+    101
+   ],
+   "sseeds": [
+    31,
+    73,
+    101
+   ]
+  },
+  {
+   "cid": "MX-SEL-FIN",
+   "base": "MX-SEL",
+   "role": "best S9 (11/12 toys)",
+   "family": "MX",
+   "iseeds": [
+    31,
+    73,
+    101
+   ],
+   "sseeds": [
+    31,
+    73,
+    101
+   ]
+  },
+  {
+   "cid": "ST-DA-col+mean-l0.25-FIN",
+   "base": "ST-DA-col+mean-l0.25",
+   "role": "empirical top-3 S9_2 (2/12 toys)",
+   "family": "GD",
+   "iseeds": [
+    31,
+    73,
+    101
+   ],
+   "sseeds": [
+    31,
+    73,
+    101
+   ]
+  },
+  {
+   "cid": "MX-F-w0.25-FIN",
+   "base": "MX-F-w0.25",
+   "role": "support job for MX-SEL (selector pool)",
+   "family": "MX",
+   "iseeds": [
+    31,
+    73,
+    101
+   ],
+   "sseeds": [
+    31,
+    73,
+    101
+   ]
+  },
+  {
+   "cid": "MX-F-w0.5-FIN",
+   "base": "MX-F-w0.5",
+   "role": "support job for MX-SEL (selector pool)",
+   "family": "MX",
+   "iseeds": [
+    31,
+    73,
+    101
+   ],
+   "sseeds": [
+    31,
+    73,
+    101
+   ]
+  },
+  {
+   "cid": "MX-F-w0.75-FIN",
+   "base": "MX-F-w0.75",
+   "role": "support job for MX-SEL (selector pool)",
+   "family": "MX",
+   "iseeds": [
+    31,
+    73,
+    101
+   ],
+   "sseeds": [
+    31,
+    73,
+    101
+   ]
+  }
+ ],
+ "not_escalated_reduced_axis": "ST-E-RA uses the capped RA budget only (declared pilot); 3x3 not run",
+ "note": "development selection using T after locking; a deployed algorithm contains no T and no family-specific tuning"
+}

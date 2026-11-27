@@ -1,0 +1,53 @@
+{
+ "run_id": "W3r1",
+ "created": "2026-11-27 11:17:00",
+ "git_commit": "4b40729a53579acc30173df3aa1b1492534b3e46",
+ "code_hash": "4dad7fba1a8d0abc",
+ "lab08_inputs": {
+  "results/blind_recovery.csv": "0f2371b5974d79729743909532ba634db43ff52ca4a554c543e87363060a7daf",
+  "results/blind_reference_loss.csv": "81c508555469c4614c3cf40d1ee05f65ad358917c1475bf210cce2c38be6afeb",
+  "results/oracle_metric_practical.csv": "04078afbab072d1edbfa32b1f5c33d1cb1281c474b11a44e188c6d39a5ea4f62",
+  "results/inference_estimator_comparison.csv": "0f067700bf6057f3e51e3e4fd5b88caa5391b6271b18fbddd6bb86250e9ae4e0",
+  "results/next_wave_candidates.csv": "7b41e305f5864767d6886403f2b38baf06a0a306576db401d4d5386ca0709ae7",
+  "configs/blind_candidates.json": "cfcb82640a66ed82d7484f36a46e86361a243801c4b6391a4f2bd4df5a5db997",
+  "run_shortlist.py": "c8e37632c45d33079cb2b059612d081ac5f9e99f9303a99df7fc33fd1e3b76f7"
+ },
+ "configs": {
+  "fusion_candidates.json": "6b01385eaa4aec8f6035cfa8fb371862fa49ec5381636801c5be2181067d77da",
+  "repair_candidates.json": "9819638dea5982a3828471a1eae9f420efd062f9adcbeb509525abf58af7c741",
+  "structure_candidates.json": "4624df6acecb577e9f0814f9c90bef6d928669b0fd141a89d934e77375f99a47"
+ },
+ "w2_artifacts": {
+  "payloads": {
+   "C1": "45678616ce275ea3ad2dc2d9ce5acecf8332a1c6f950f68dd06aa5bdec42219f",
+   "C2": "d8070f30c350a2ce4168a4cbd07df0f390d649040bc7fd4102009b9b393c3a8a",
+   "C3": "acd1e40ba6f7eb4b31884236301c76b3f462c094f58c5dba6dea0c91da475d37",
+   "CR3": "2e1069bf921d99b694f00194bbf4ba4780e83cfffcd48ed74004be6994f39d49",
+   "CR4": "252e855014317e4b22d36666352a7f02e80c841c3824d559cfd6d27528a6ea99",
+   "CR5": "89f4f87268e26761f054ea1399526821b87b99237bb4780fafd4339ddd583f6b",
+   "C1L": "c2014b4bcabae8585e13c11dff32883ea3fb2fedd85f9d6071c1ac9a1e5f5b0e",
+   "C2L": "fd735cadedeefc3f20af992408f12f9ac8654bcffacdc050fafe1a5797bcdaa8",
+   "C3L": "a96187fe21bee1af9e50d68ec9e6bc5e7949ed9994624978108cbb7b80ca95cc",
+   "CR3L": "7a54e2bc361cc030a0e15dcc2d25d3b0737948c3ff773ec7b8032fbe6b4003d7",
+   "CR4L": "34bcba55972ad9bbadfd3729bb7028c37d93a19c5bc92c400e25f1ac9cc5d100",
+   "CR5L": "af0616fa9795afd0dfeaa54c5d4f8488f9fa095865823ba6d1cecc9991bd6056"
+  },
+  "rbf_states": {
+   "C1": "a023eef9c60191b4f4c1cd2163a4032211559f88d2346d8a72c7e3629b004a9d",
+   "C2": "1d103a979f7587b5970d1e9f3d802dd361193c6d904228004445f05d8b6d48ed",
+   "C3": "7cbce873b718b664953f44011106d5c28a16416624eb0f1d96204e00b6820531",
+   "CR3": "6a4e8d80bcc778c42fe504bb9efce7c6fa728ce08eb2e9c86deda0f0f87d3e83",
+   "CR4": "67c03b33c673127cf01c99f76b92082cead03cd946d5603df6b310ee75530b14",
+   "CR5": "d344940a2f6dd5ff51a679386de97c8fcbef00f4c94a961a5bd6aa50162f016e",
+   "C1L": "e2416b2c4c5cca0c2fd16240268000927cdb5824234eeddec91f951191919100",
+   "C2L": "c67da71665c6be08671bf12f9d155624d44ea794abbe6eb96ef227655e4a24ab",
+   "C3L": "da0629034f2583d3f86c15106f548bd8cbe2296ebd64d8a6f945ac30bc2380f6",
+   "CR3L": "592f558d013aa3ad9960a506a4f128c86031d03a310fb63ee5eaeaf20d63ea67",
+   "CR4L": "440015a77626bb302372764efa618d92973f10cb4f8972f67023526a0b3fddec",
+   "CR5L": "0ac810689ec6b69f0e891628ce76faad7766bc3f5a6ff93b98c4f362c9746a3f"
+  }
+ },
+ "rng": "search [seed,77,k]; Haar calibration [20261127,9,k]; grid [seed,101/102/103]",
+ "dtype": "float64 CPU",
+ "missing_artifacts": []
+}

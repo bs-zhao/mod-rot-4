@@ -1,0 +1,78 @@
+{
+ "version": "W3-2026-11-27",
+ "source": "03_third_wave_README.md sections 8-9; registered before any W3 scoring",
+ "factorial": [
+  {
+   "id": "B08c03",
+   "spec": {
+    "type": "registry",
+    "metric": "L06|B08.M03.c0.03"
+   },
+   "role": "E02 metric"
+  },
+  {
+   "id": "SL0UXUU",
+   "spec": {
+    "type": "registry",
+    "metric": "L03|SL0.UXUU.e0.01"
+   },
+   "role": "X02 metric"
+  },
+  {
+   "id": "SL0UX",
+   "spec": {
+    "type": "registry",
+    "metric": "L03|SL0.UX.e0.01"
+   },
+   "role": "UU ablation"
+  },
+  {
+   "id": "B01c03",
+   "spec": {
+    "type": "registry",
+    "metric": "L06|B01.M03.c0.03"
+   },
+   "role": "global UX control"
+  }
+ ],
+ "surfaces": [
+  "AD",
+  "RBF"
+ ],
+ "measure": "Q01 primary mask, TRAIN cache seed 31 (RBF surfaces exist for seed 31 only), VALIDATION tie-break, S0, search seeds 31/73/101",
+ "fusion": {
+  "E": "MX-B08c03@AD",
+  "X": "MX-SL0UXUU@RBF",
+  "calibration": {
+   "n_haar": 512,
+   "rng": "[20261127, 9, k]",
+   "normalisation": "median / IQR",
+   "sensitivity": [
+    "sd",
+    "q9505"
+   ],
+   "invariant_tol": "IQR <= 1e-9 (|median| + 1e-12)"
+  },
+  "weights": [
+   0.25,
+   0.5,
+   0.75
+  ],
+  "minimax": true,
+  "eps_delta": [
+   0.1,
+   0.25,
+   0.5
+  ],
+  "eps_penalty": 1000.0,
+  "eps_reference": "blind TRAIN minimum of z_E = lowest selected E-component loss over its 3 search seeds on the same cache",
+  "sensitivity_fusions": "F_0.5 with sd and q95-q05 normalisation",
+  "repaired_E": "if W3-01 advances a repair candidate, the same fusion grid is repeated with E = that candidate on AD (registered as a new version before running)"
+ },
+ "selector": {
+  "pool": "finalists of E, X and the three F_w searches (TRAIN)",
+  "score": "max(z_E, z_X) on VALIDATION caches with TRAIN calibration",
+  "ties": "sum, then lexical key",
+  "abstain_flag": "relative signed-permutation distance between E and X minimisers > .10 (reported, not used)"
+ }
+}

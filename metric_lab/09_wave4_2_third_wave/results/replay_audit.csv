@@ -1,0 +1,41 @@
+item,cid,variant,value,denominator,toy
+BS-B toy pass,E01,s9,6,12,
+BS-B toy pass,E01,s9_2,9,12,
+BS-B toy pass,E02,s9,7,12,
+BS-B toy pass,E02,s9_2,10,12,
+search replay,E02,,True,6,C1
+search replay,X01,,True,6,C1
+search replay,X02,,True,6,C1
+search replay,E02,,True,6,C2
+search replay,X01,,True,6,C2
+search replay,X02,,True,6,C2
+search replay,E02,,True,6,C3
+search replay,X01,,True,6,C3
+search replay,X02,,True,6,C3
+search replay,E02,,True,6,CR3
+search replay,X01,,True,6,CR3
+search replay,X02,,True,6,CR3
+search replay,E02,,True,6,CR4
+search replay,X01,,True,6,CR4
+search replay,X02,,True,6,CR4
+search replay,E02,,True,6,CR5
+search replay,X01,,True,6,CR5
+search replay,X02,,True,6,CR5
+search replay,E02,,True,6,C1L
+search replay,X01,,True,6,C1L
+search replay,X02,,True,6,C1L
+search replay,E02,,True,6,C2L
+search replay,X01,,True,6,C2L
+search replay,X02,,True,6,C2L
+search replay,E02,,True,6,C3L
+search replay,X01,,True,6,C3L
+search replay,X02,,True,6,C3L
+search replay,E02,,True,6,CR3L
+search replay,X01,,True,6,CR3L
+search replay,X02,,True,6,CR3L
+search replay,E02,,True,6,CR4L
+search replay,X01,,True,6,CR4L
+search replay,X02,,True,6,CR4L
+search replay,E02,,True,6,CR5L
+search replay,X01,,True,6,CR5L
+search replay,X02,,True,6,CR5L

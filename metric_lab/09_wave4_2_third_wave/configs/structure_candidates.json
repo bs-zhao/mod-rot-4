@@ -1,0 +1,680 @@
+{
+ "version": "W3-2026-11-27",
+ "source": "03_third_wave_README.md sections 12-13, 16 (ST-B compact grid + ST-C controls); registered before scoring",
+ "design": {
+  "medium": {
+   "random": "256 TRAIN latents x 256 empirical TRAIN rows",
+   "bank": "128 TRAIN latents x 500 bank rows",
+   "pairs": 1024
+  },
+  "pilot": {
+   "random": "128 x 128",
+   "bank": "32 x 500",
+   "pairs": 256
+  },
+  "seed_rng": "grid [seed,101]/[seed,102]; pairs [seed,103,rule]",
+  "pair_rules": {
+   "U": "uniform distinct observed-row pairs",
+   "N": "5-NN graph edges (TRAIN-standardised X)",
+   "F": "pairs with distance >= 75th percentile",
+   "A": "per coordinate: top-decile share of squared distance, n_pairs/p each",
+   "C": "centred a - abar, one column per row"
+  }
+ },
+ "surface": "frozen decoder AD (RBF block D1 is a declared sensitivity, not run unless a structural candidate is advanced)",
+ "candidates": [
+  {
+   "id": "ST-G-M03c0.01",
+   "family": "ST-G",
+   "surface": "GRAD",
+   "spec": {
+    "target": "G",
+    "recipe": "M03",
+    "c": 0.01
+   },
+   "note": "support of normalised total gradient energy diag"
+  },
+  {
+   "id": "ST-G-M03c0.03",
+   "family": "ST-G",
+   "surface": "GRAD",
+   "spec": {
+    "target": "G",
+    "recipe": "M03",
+    "c": 0.03
+   },
+   "note": "support of normalised total gradient energy diag"
+  },
+  {
+   "id": "ST-G-M07r0.1",
+   "family": "ST-G",
+   "surface": "GRAD",
+   "spec": {
+    "target": "G",
+    "recipe": "M07",
+    "r": 0.1
+   },
+   "note": "fractional power of normalised diag"
+  },
+  {
+   "id": "ST-G-M07r0.5",
+   "family": "ST-G",
+   "surface": "GRAD",
+   "spec": {
+    "target": "G",
+    "recipe": "M07",
+    "r": 0.5
+   },
+   "note": "fractional power of normalised diag"
+  },
+  {
+   "id": "ST-G-OFF",
+   "family": "ST-G",
+   "surface": "GRAD",
+   "spec": {
+    "target": "G",
+    "recipe": "OFF"
+   },
+   "note": "off-diagonal gradient covariance (PCA-type baseline)"
+  },
+  {
+   "id": "ST-G0-M03",
+   "family": "ST-G",
+   "surface": "GRAD",
+   "spec": {
+    "target": "G0",
+    "recipe": "M03",
+    "c": 0.03
+   },
+   "note": "stimulus-average gradient support"
+  },
+  {
+   "id": "ST-GD-M03",
+   "family": "ST-G",
+   "surface": "GRAD",
+   "spec": {
+    "target": "GD",
+    "recipe": "M03",
+    "c": 0.03
+   },
+   "note": "stimulus-dependent gradient support"
+  },
+  {
+   "id": "ST-GJ",
+   "family": "ST-G",
+   "surface": "GRAD",
+   "spec": {
+    "target": "GJ"
+   },
+   "note": "joint approximate diagonalisation of C0 and C_Delta (trace-normalised, equal weights)"
+  },
+  {
+   "id": "ST-GX-M03",
+   "family": "ST-G",
+   "surface": "GRAD",
+   "spec": {
+    "target": "GX",
+    "recipe": "M03",
+    "c": 0.03
+   },
+   "note": "mean per-row conditional gradient support"
+  },
+  {
+   "id": "ST-GXJ",
+   "family": "ST-G",
+   "surface": "GRAD",
+   "spec": {
+    "target": "GXJ"
+   },
+   "note": "mean per-row off-diagonal ratio (uniform)"
+  },
+  {
+   "id": "ST-GXJt",
+   "family": "ST-G",
+   "surface": "GRAD",
+   "spec": {
+    "target": "GXJt"
+   },
+   "note": "per-row off-diagonal ratio, trace-energy weighted"
+  },
+  {
+   "id": "ST-DU-glob",
+   "family": "ST-D",
+   "surface": "GRAD",
+   "spec": {
+    "target": "PU",
+    "recipe": "glob",
+    "c": 0.03
+   },
+   "note": "pair rule D-U, glob support"
+  },
+  {
+   "id": "ST-DU-row",
+   "family": "ST-D",
+   "surface": "GRAD",
+   "spec": {
+    "target": "PU",
+    "recipe": "row",
+    "c": 0.03
+   },
+   "note": "pair rule D-U, row support"
+  },
+  {
+   "id": "ST-DU-col",
+   "family": "ST-D",
+   "surface": "GRAD",
+   "spec": {
+    "target": "PU",
+    "recipe": "col",
+    "c": 0.03
+   },
+   "note": "pair rule D-U, col support"
+  },
+  {
+   "id": "ST-DU-col+mean-l0.25",
+   "family": "ST-DM",
+   "surface": "GRAD",
+   "spec": {
+    "target": "MEANFUS",
+    "lam": 0.25,
+    "pair": {
+     "target": "PU",
+     "recipe": "col",
+     "c": 0.03
+    }
+   },
+   "note": "contrast column support + C0 mean support"
+  },
+  {
+   "id": "ST-DU-col+mean-l0.5",
+   "family": "ST-DM",
+   "surface": "GRAD",
+   "spec": {
+    "target": "MEANFUS",
+    "lam": 0.5,
+    "pair": {
+     "target": "PU",
+     "recipe": "col",
+     "c": 0.03
+    }
+   },
+   "note": "contrast column support + C0 mean support"
+  },
+  {
+   "id": "ST-DU-col+mean-l0.75",
+   "family": "ST-DM",
+   "surface": "GRAD",
+   "spec": {
+    "target": "MEANFUS",
+    "lam": 0.75,
+    "pair": {
+     "target": "PU",
+     "recipe": "col",
+     "c": 0.03
+    }
+   },
+   "note": "contrast column support + C0 mean support"
+  },
+  {
+   "id": "ST-DU-glob+mean-l0.5",
+   "family": "ST-DM",
+   "surface": "GRAD",
+   "spec": {
+    "target": "MEANFUS",
+    "lam": 0.5,
+    "pair": {
+     "target": "PU",
+     "recipe": "glob",
+     "c": 0.03
+    }
+   },
+   "note": "contrast global support + C0 mean support"
+  },
+  {
+   "id": "ST-DN-glob",
+   "family": "ST-D",
+   "surface": "GRAD",
+   "spec": {
+    "target": "PN",
+    "recipe": "glob",
+    "c": 0.03
+   },
+   "note": "pair rule D-N, glob support"
+  },
+  {
+   "id": "ST-DN-row",
+   "family": "ST-D",
+   "surface": "GRAD",
+   "spec": {
+    "target": "PN",
+    "recipe": "row",
+    "c": 0.03
+   },
+   "note": "pair rule D-N, row support"
+  },
+  {
+   "id": "ST-DN-col",
+   "family": "ST-D",
+   "surface": "GRAD",
+   "spec": {
+    "target": "PN",
+    "recipe": "col",
+    "c": 0.03
+   },
+   "note": "pair rule D-N, col support"
+  },
+  {
+   "id": "ST-DN-col+mean-l0.25",
+   "family": "ST-DM",
+   "surface": "GRAD",
+   "spec": {
+    "target": "MEANFUS",
+    "lam": 0.25,
+    "pair": {
+     "target": "PN",
+     "recipe": "col",
+     "c": 0.03
+    }
+   },
+   "note": "contrast column support + C0 mean support"
+  },
+  {
+   "id": "ST-DN-col+mean-l0.5",
+   "family": "ST-DM",
+   "surface": "GRAD",
+   "spec": {
+    "target": "MEANFUS",
+    "lam": 0.5,
+    "pair": {
+     "target": "PN",
+     "recipe": "col",
+     "c": 0.03
+    }
+   },
+   "note": "contrast column support + C0 mean support"
+  },
+  {
+   "id": "ST-DN-col+mean-l0.75",
+   "family": "ST-DM",
+   "surface": "GRAD",
+   "spec": {
+    "target": "MEANFUS",
+    "lam": 0.75,
+    "pair": {
+     "target": "PN",
+     "recipe": "col",
+     "c": 0.03
+    }
+   },
+   "note": "contrast column support + C0 mean support"
+  },
+  {
+   "id": "ST-DN-glob+mean-l0.5",
+   "family": "ST-DM",
+   "surface": "GRAD",
+   "spec": {
+    "target": "MEANFUS",
+    "lam": 0.5,
+    "pair": {
+     "target": "PN",
+     "recipe": "glob",
+     "c": 0.03
+    }
+   },
+   "note": "contrast global support + C0 mean support"
+  },
+  {
+   "id": "ST-DF-glob",
+   "family": "ST-D",
+   "surface": "GRAD",
+   "spec": {
+    "target": "PF",
+    "recipe": "glob",
+    "c": 0.03
+   },
+   "note": "pair rule D-F, glob support"
+  },
+  {
+   "id": "ST-DF-row",
+   "family": "ST-D",
+   "surface": "GRAD",
+   "spec": {
+    "target": "PF",
+    "recipe": "row",
+    "c": 0.03
+   },
+   "note": "pair rule D-F, row support"
+  },
+  {
+   "id": "ST-DF-col",
+   "family": "ST-D",
+   "surface": "GRAD",
+   "spec": {
+    "target": "PF",
+    "recipe": "col",
+    "c": 0.03
+   },
+   "note": "pair rule D-F, col support"
+  },
+  {
+   "id": "ST-DF-col+mean-l0.25",
+   "family": "ST-DM",
+   "surface": "GRAD",
+   "spec": {
+    "target": "MEANFUS",
+    "lam": 0.25,
+    "pair": {
+     "target": "PF",
+     "recipe": "col",
+     "c": 0.03
+    }
+   },
+   "note": "contrast column support + C0 mean support"
+  },
+  {
+   "id": "ST-DF-col+mean-l0.5",
+   "family": "ST-DM",
+   "surface": "GRAD",
+   "spec": {
+    "target": "MEANFUS",
+    "lam": 0.5,
+    "pair": {
+     "target": "PF",
+     "recipe": "col",
+     "c": 0.03
+    }
+   },
+   "note": "contrast column support + C0 mean support"
+  },
+  {
+   "id": "ST-DF-col+mean-l0.75",
+   "family": "ST-DM",
+   "surface": "GRAD",
+   "spec": {
+    "target": "MEANFUS",
+    "lam": 0.75,
+    "pair": {
+     "target": "PF",
+     "recipe": "col",
+     "c": 0.03
+    }
+   },
+   "note": "contrast column support + C0 mean support"
+  },
+  {
+   "id": "ST-DF-glob+mean-l0.5",
+   "family": "ST-DM",
+   "surface": "GRAD",
+   "spec": {
+    "target": "MEANFUS",
+    "lam": 0.5,
+    "pair": {
+     "target": "PF",
+     "recipe": "glob",
+     "c": 0.03
+    }
+   },
+   "note": "contrast global support + C0 mean support"
+  },
+  {
+   "id": "ST-DA-glob",
+   "family": "ST-D",
+   "surface": "GRAD",
+   "spec": {
+    "target": "PA",
+    "recipe": "glob",
+    "c": 0.03
+   },
+   "note": "pair rule D-A, glob support"
+  },
+  {
+   "id": "ST-DA-row",
+   "family": "ST-D",
+   "surface": "GRAD",
+   "spec": {
+    "target": "PA",
+    "recipe": "row",
+    "c": 0.03
+   },
+   "note": "pair rule D-A, row support"
+  },
+  {
+   "id": "ST-DA-col",
+   "family": "ST-D",
+   "surface": "GRAD",
+   "spec": {
+    "target": "PA",
+    "recipe": "col",
+    "c": 0.03
+   },
+   "note": "pair rule D-A, col support"
+  },
+  {
+   "id": "ST-DA-col+mean-l0.25",
+   "family": "ST-DM",
+   "surface": "GRAD",
+   "spec": {
+    "target": "MEANFUS",
+    "lam": 0.25,
+    "pair": {
+     "target": "PA",
+     "recipe": "col",
+     "c": 0.03
+    }
+   },
+   "note": "contrast column support + C0 mean support"
+  },
+  {
+   "id": "ST-DA-col+mean-l0.5",
+   "family": "ST-DM",
+   "surface": "GRAD",
+   "spec": {
+    "target": "MEANFUS",
+    "lam": 0.5,
+    "pair": {
+     "target": "PA",
+     "recipe": "col",
+     "c": 0.03
+    }
+   },
+   "note": "contrast column support + C0 mean support"
+  },
+  {
+   "id": "ST-DA-col+mean-l0.75",
+   "family": "ST-DM",
+   "surface": "GRAD",
+   "spec": {
+    "target": "MEANFUS",
+    "lam": 0.75,
+    "pair": {
+     "target": "PA",
+     "recipe": "col",
+     "c": 0.03
+    }
+   },
+   "note": "contrast column support + C0 mean support"
+  },
+  {
+   "id": "ST-DA-glob+mean-l0.5",
+   "family": "ST-DM",
+   "surface": "GRAD",
+   "spec": {
+    "target": "MEANFUS",
+    "lam": 0.5,
+    "pair": {
+     "target": "PA",
+     "recipe": "glob",
+     "c": 0.03
+    }
+   },
+   "note": "contrast global support + C0 mean support"
+  },
+  {
+   "id": "ST-DC-glob",
+   "family": "ST-D",
+   "surface": "GRAD",
+   "spec": {
+    "target": "PC",
+    "recipe": "glob",
+    "c": 0.03
+   },
+   "note": "pair rule D-C, glob support"
+  },
+  {
+   "id": "ST-DC-row",
+   "family": "ST-D",
+   "surface": "GRAD",
+   "spec": {
+    "target": "PC",
+    "recipe": "row",
+    "c": 0.03
+   },
+   "note": "pair rule D-C, row support"
+  },
+  {
+   "id": "ST-DC-col",
+   "family": "ST-D",
+   "surface": "GRAD",
+   "spec": {
+    "target": "PC",
+    "recipe": "col",
+    "c": 0.03
+   },
+   "note": "pair rule D-C, col support"
+  },
+  {
+   "id": "ST-DC-col+mean-l0.25",
+   "family": "ST-DM",
+   "surface": "GRAD",
+   "spec": {
+    "target": "MEANFUS",
+    "lam": 0.25,
+    "pair": {
+     "target": "PC",
+     "recipe": "col",
+     "c": 0.03
+    }
+   },
+   "note": "contrast column support + C0 mean support"
+  },
+  {
+   "id": "ST-DC-col+mean-l0.5",
+   "family": "ST-DM",
+   "surface": "GRAD",
+   "spec": {
+    "target": "MEANFUS",
+    "lam": 0.5,
+    "pair": {
+     "target": "PC",
+     "recipe": "col",
+     "c": 0.03
+    }
+   },
+   "note": "contrast column support + C0 mean support"
+  },
+  {
+   "id": "ST-DC-col+mean-l0.75",
+   "family": "ST-DM",
+   "surface": "GRAD",
+   "spec": {
+    "target": "MEANFUS",
+    "lam": 0.75,
+    "pair": {
+     "target": "PC",
+     "recipe": "col",
+     "c": 0.03
+    }
+   },
+   "note": "contrast column support + C0 mean support"
+  },
+  {
+   "id": "ST-DC-glob+mean-l0.5",
+   "family": "ST-DM",
+   "surface": "GRAD",
+   "spec": {
+    "target": "MEANFUS",
+    "lam": 0.5,
+    "pair": {
+     "target": "PC",
+     "recipe": "glob",
+     "c": 0.03
+    }
+   },
+   "note": "contrast global support + C0 mean support"
+  },
+  {
+   "id": "ST-DU-glob-INT",
+   "family": "ST-C",
+   "surface": "GRAD",
+   "spec": {
+    "target": "PU",
+    "recipe": "glob",
+    "c": 0.03,
+    "rows": "interior"
+   },
+   "note": "bank designs only: interior rows (ST-C coverage control)"
+  },
+  {
+   "id": "ST-DU-col-INT",
+   "family": "ST-C",
+   "surface": "GRAD",
+   "spec": {
+    "target": "PU",
+    "recipe": "col",
+    "c": 0.03,
+    "rows": "interior"
+   },
+   "note": "bank designs only: interior rows (ST-C coverage control)"
+  },
+  {
+   "id": "ST-DA-glob-INT",
+   "family": "ST-C",
+   "surface": "GRAD",
+   "spec": {
+    "target": "PA",
+    "recipe": "glob",
+    "c": 0.03,
+    "rows": "interior"
+   },
+   "note": "bank designs only: interior rows (ST-C coverage control)"
+  },
+  {
+   "id": "ST-DA-col-INT",
+   "family": "ST-C",
+   "surface": "GRAD",
+   "spec": {
+    "target": "PA",
+    "recipe": "col",
+    "c": 0.03,
+    "rows": "interior"
+   },
+   "note": "bank designs only: interior rows (ST-C coverage control)"
+  },
+  {
+   "id": "ST-HE-B08c03",
+   "family": "ST-C",
+   "surface": "GRAD",
+   "spec": {
+    "target": "HECTRL",
+    "metric": "L06|B08.M03.c0.03",
+    "mask": "primary"
+   },
+   "note": "pooled HE B08 on the identical product grid"
+  },
+  {
+   "id": "ST-HE-B01c03",
+   "family": "ST-C",
+   "surface": "GRAD",
+   "spec": {
+    "target": "HECTRL",
+    "metric": "L06|B01.M03.c0.03",
+    "mask": "primary"
+   },
+   "note": "pooled HE B01 on the identical product grid"
+  }
+ ],
+ "not_run": {
+  "STF": "higher-order (UUX / UXX) derivatives are NOT computed: project constraint, no third derivatives",
+  "HEFUS": ".5 contrast + .5 HE on a common Haar scale: run only for an advanced structural candidate"
+ }
+}

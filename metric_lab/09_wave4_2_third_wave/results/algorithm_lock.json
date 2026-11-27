@@ -1,0 +1,149 @@
+{
+ "candidate": "RW-GL-l0.75-a1.0",
+ "channel_rule": {
+  "B": "class1 - class0 logit (Y-L)",
+  "C": "decoder output in original Y units (Y-C)"
+ },
+ "code_and_config_sha256": {
+  "metric_lab\\07_unified_benchmark\\wave4_2\\bridge.py": "57616396189390d47f46e0734b739d76ac7791a4676bc1b2977db636c6e054ea",
+  "metric_lab\\07_unified_benchmark\\wave4_2\\common.py": "c72f72dbb966c194dbad157dc21bd0c8b6611dd276a71d06d2af1791b3403a0c",
+  "metric_lab\\07_unified_benchmark\\wave4_2\\derivatives.py": "0d60a663b462bdc752bf50f53357cbd1453c0a60d6c4732c113399d6f4c42f9f",
+  "metric_lab\\07_unified_benchmark\\wave4_2\\evaluation.py": "0f08b9f86db4a06ecd5b9cf92f1fbe9d272bdf44a86650eff01603a908e74048",
+  "metric_lab\\07_unified_benchmark\\wave4_2\\global_oracle.py": "6684e40093c788042cb1ed40ac3a1384641a9e3ff833d98da209f20f35d5a512",
+  "metric_lab\\07_unified_benchmark\\wave4_2\\inputs.py": "0a6a962baf7c299dc8f6f2171718edb7f0a59dc4c7a486484d1a291fba479310",
+  "metric_lab\\07_unified_benchmark\\wave4_2\\measures.py": "2ae3e7886dd993ea0d426fb820cb72063a5c89c80119075af380b48e68fc45aa",
+  "metric_lab\\07_unified_benchmark\\wave4_2\\metrics.py": "f13e94d3865ddc6330a75730b4f618dcf937b0450860100d12e82ec6b9559401",
+  "metric_lab\\07_unified_benchmark\\wave4_2\\moments.py": "440858544951ab7c284c94b4b6dad82a7802ffe110c10877c163bd4184a07eae",
+  "metric_lab\\07_unified_benchmark\\wave4_2\\surfaces.py": "1d14b74437e4d669aae0b65fe88ad447651a77a76f178eac0ad57ee817579c6b",
+  "metric_lab\\07_unified_benchmark\\wave4_2\\truth.py": "196109103efa1a8654f39df493ec5ecb0baf9d6a4c93fbb5562a610579e8c355",
+  "metric_lab\\08_wave4_2_second_wave\\run_blind.py": "f837d8d16ca4d13024e8cfbd120977c597bf214b65b051072699372d78c5cc24",
+  "metric_lab\\08_wave4_2_second_wave\\wave2\\blind_eval.py": "4889640ad6d0b5189c19f056f910ccf668aea959f7d4c8d82b3d584239051f81",
+  "metric_lab\\08_wave4_2_second_wave\\wave2\\blind_inputs.py": "534f6692c4e5f885d0d55eac49bce52661fe07336b03f9ce7b2f35eb0c17d5cf",
+  "metric_lab\\08_wave4_2_second_wave\\wave2\\common.py": "804bd3e77fc894aaf33ae225c1c082aedf0fed99b9f12bcc400afada964d4ba5",
+  "metric_lab\\08_wave4_2_second_wave\\wave2\\conditional.py": "9edc394dfcd3f383e7b85614f9e78e0615bbeba4404ace5a4f728e71aab913fd",
+  "metric_lab\\08_wave4_2_second_wave\\wave2\\designs.py": "3eba357b72bd55369320f394f67aa6b3c537fa504ece4ef3941f437b5b93e4b4",
+  "metric_lab\\08_wave4_2_second_wave\\wave2\\evaluate_recovery.py": "bc3628118bdea90ce8d9b3a0d0be7a71dc1a789be2f348e1936b70d84e411a08",
+  "metric_lab\\08_wave4_2_second_wave\\wave2\\objectives.py": "e6495e3f9ca2fb29fad2c618bdb6c04d2c3afc19fdfb68282674500a30e752cd",
+  "metric_lab\\08_wave4_2_second_wave\\wave2\\optimizers.py": "075ac6ccf7ab40839a07d04f9f95ec5b67a6e13aa449f0d53759c828cf728a8f",
+  "metric_lab\\08_wave4_2_second_wave\\wave2\\oracle_merge.py": "2db3db313169e7a5caa9bfbe5483248f0aa9a3449294741bc23ebc81e71bad84",
+  "metric_lab\\08_wave4_2_second_wave\\wave2\\surrogates.py": "dc94ab3dc98a270695d737c7b58cb4b28c614c3fd3bc88017114c49ce6494645",
+  "metric_lab\\09_wave4_2_third_wave\\configs\\confirmation_protocol.json": "034db122d3140a04fee66d3132c8073d8aad77f69558317730cfeb4926e45769",
+  "metric_lab\\09_wave4_2_third_wave\\configs\\finalists.json": "9ebb586f3c11c399433c0489ba2568fce49ddebd8668ade10b4c7f2eaa9899ff",
+  "metric_lab\\09_wave4_2_third_wave\\configs\\fusion_candidates.json": "6b01385eaa4aec8f6035cfa8fb371862fa49ec5381636801c5be2181067d77da",
+  "metric_lab\\09_wave4_2_third_wave\\configs\\repair_candidates.json": "9819638dea5982a3828471a1eae9f420efd062f9adcbeb509525abf58af7c741",
+  "metric_lab\\09_wave4_2_third_wave\\configs\\structure_candidates.json": "4624df6acecb577e9f0814f9c90bef6d928669b0fd141a89d934e77375f99a47",
+  "metric_lab\\09_wave4_2_third_wave\\freeze_algorithm.py": "7b1f3410d743dd1ce3eae8500c434156ee59dacf6f40792518e3b008719524b6",
+  "metric_lab\\09_wave4_2_third_wave\\run_search.py": "a82dfd0bbcebd19a79131ffe5fb816be1759857b3ec14a15ad6bfa6545c8a6bd",
+  "metric_lab\\09_wave4_2_third_wave\\wave3\\__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "metric_lab\\09_wave4_2_third_wave\\wave3\\common.py": "b2e9dda7084aaa7882724e849b22539f44e3c053f197858c52e72da1acd7b6aa",
+  "metric_lab\\09_wave4_2_third_wave\\wave3\\context.py": "646c9fa518b07a9b0e9d89d375e5ccb1990190f3969c986d53048e0877a20480",
+  "metric_lab\\09_wave4_2_third_wave\\wave3\\fusion.py": "9b1f34092ee22f379b832b140723fb3ae8bb1d2455c314a25c0c8e36ff95404f",
+  "metric_lab\\09_wave4_2_third_wave\\wave3\\jobs.py": "0223f359e9b1a4b37698a18a3c0864052829baece58e653e5c53be55c914b9fe",
+  "metric_lab\\09_wave4_2_third_wave\\wave3\\objectives.py": "5e8c859dfdfc535d8a387096684b3753577af060706735ec442b00a8a437d49b",
+  "metric_lab\\09_wave4_2_third_wave\\wave3\\reduced_axis.py": "bb0b662c5da66a7ecb167e01f6459bd3bebee5b6ef29db1b697f8a641d3c0a3a",
+  "metric_lab\\09_wave4_2_third_wave\\wave3\\rowmetrics.py": "24299e3ad9d2b0f68b6e654e13c1efae86a9f476aebb31de24987be4ef2d6407",
+  "metric_lab\\09_wave4_2_third_wave\\wave3\\structure.py": "f7bfbffc5f3deaaf7af9e4514077f284d74bd559ce9341535c8c05619b4c5def"
+ },
+ "confirmation_protocol": {
+  "CONF_A": {
+   "data_seeds": "new fixed ids, verified unused by every existing outputs/models run before generation (recorded in confirmation_manifest.json)",
+   "description": "fresh data + fresh NP trainings, all six formula families x both observation classes (12 toys)",
+   "evaluation": "locked algorithm only, E02 locked baseline alongside; all runs reported with exact denominators",
+   "full": "2 data seeds x 2 training seeds x 12 = 48",
+   "generator": "models/s1_generate.py unchanged (documented prior / noise / fixed-bank design), same subject counts and split protocol",
+   "minimum_first_pass": "1 new data-generation seed x 2 NP training seeds x 12 toys = 24 NP runs",
+   "training": "frozen architecture and the existing per-model beta (registry) with new training seeds; no seed chosen with T; Stage A reported for every run"
+  },
+  "CONF_B": {
+   "one_factor_at_a_time": [
+    "new generic bank / randomized bank subsampling (fixed banks)",
+    "trials per subject 100 / 250 / 500",
+    "response noise level",
+    "independent NP training seeds"
+   ]
+  },
+  "CONF_C": {
+   "status": "requires a separately reviewed registry of unseen structural families (additive basis with bias, sparse interactions, gated multiplicative, mixed nonlinearity k=6-8) plus rotation-symmetric negative controls; not designed in this wave"
+  },
+  "aggregation": "by family and data seed; search seeds are not replicates",
+  "compute_note": "one NP training is ~300-500 epochs on 8000 subjects (GPU hours); CONF-A is not run inside wave 3 (see README)",
+  "source": "03_third_wave_README.md section 24 (planned; requires a verified algorithm_lock.json)",
+  "thresholds": {
+   "MCC_gap": 0.05,
+   "leak_max": {
+    "CR": 0.3,
+    "classic": 0.2
+   }
+  },
+  "version": "W3-CONF-1"
+ },
+ "created": "2026-11-27 15:43:47",
+ "dependencies": {
+  "numpy": "2.2.6",
+  "python": "3.11.13",
+  "scipy": "1.16.1",
+  "torch": "2.9.1+cu130"
+ },
+ "estimator": "frozen S3 decoder, autograd Hessian (float64 CPU)",
+ "frame": {
+  "s9": "raw Z",
+  "s9_2": "marginal standardisation; confirmation uses the TRAIN-fit scaler applied unchanged to VALIDATION / TEST"
+ },
+ "git_commit": "4b40729a53579acc30173df3aa1b1492534b3e46",
+ "integration_seed_rule": "three independent designs [seed,1]/[seed,2,subject] with seeds 31 / 73 / 101 (all reported; no selection among them)",
+ "lock_sha256": "cf40744f0d0a675581e0924ba54d2b6517afb271c01d244c299d605c1d8fcf7b",
+ "measure": "Q01: TRAIN subjects x own observed trials, 512 subjects x 64 trials (fixed bank: primary mask MASK-ALL; random X: FULL)",
+ "objective": {
+  "spec": {
+   "a": 1.0,
+   "c": 0.03,
+   "cid": "RW-GL-l0.75-a1.0",
+   "family": "RW-GL",
+   "kind": "GL",
+   "lam": 0.75,
+   "type": "row"
+  },
+  "surface": "AD",
+  "type": "row"
+ },
+ "policies": {
+  "failures": "every run reported; abstention counts as failure in coverage",
+  "per_toy_selection": "forbidden: one fixed rule for every dataset",
+  "truth": "confirmation T / R* opened only after every blind output of the panel is hashed into confirmation_locks.csv"
+ },
+ "search": {
+  "budget": "S0",
+  "identity_start": true,
+  "k3_k4": [
+   400,
+   8
+  ],
+  "k6": [
+   2000,
+   30
+  ],
+  "seeds": [
+   31,
+   73,
+   101
+  ],
+  "selection": "lowest valid TRAIN loss; relative tie 1e-9 broken by the VALIDATION-cache loss; never by truth",
+  "spans": [
+   45,
+   15,
+   5,
+   1.5,
+   0.5
+  ]
+ },
+ "thresholds": {
+  "MCC_gap": 0.05,
+  "leak_max": {
+   "CR": 0.3,
+   "classic": 0.2
+  }
+ },
+ "validity": "non-finite / zero-energy objectives are invalid (NaN), never replaced",
+ "variant": "s9",
+ "version": "W3-LOCK-1"
+}
