@@ -1,0 +1,466 @@
+{
+ "run_id": "W2r1",
+ "created": "2026-11-26 22:50:05",
+ "git_commit": "af9763f50ee2809586b20b19e9a0c8b8f8189d3d",
+ "code_hash": "a6712225e92b4e57",
+ "lab07_inputs": {
+  "results/metric_evidence.csv": "34a4c197cba53c439c39f5aabff8c5058c612c22244342205c9dbced8d35bbc1",
+  "results/next_wave_candidates.csv": "fdf28a8f8f226543d9bdb1b8caf5285930da6487b9988ce544bdce6463510996",
+  "results/lane_rules.json": "c7a7be81d867eac08684368b257e1eed229ba5df2688ceb5fc435fdde433085c",
+  "results/global_oracle_summary.csv": "9d48f8415a49de3dd0bb59abde47bbc688109ffc1efc32f25699f71ed5f4c1b4",
+  "results/report_tables.md": "0cfb6f2d308ef8caa28c7b7c587e8a1d2fbce0c3a66508f76e706fef086369d5",
+  "results/pass_summary.csv.gz": "d05b2ac9cf45c00537a01ede589779ee73173e6fdc787cf34f7f9dc618a01807",
+  "results/global_oracle_search.csv.gz": "07f04bf2d785939efb10549988793530e3b1c78b05be313a44404c033993b955",
+  "configs/priority_panel.json": "1c57f863c51c5f6dc111afcc3b1b0a6a953bbc472f13498e864efd0df17b79e0",
+  "configs/toy_registry.json": "4cbb6e7355133fc58f932564c629d482735ef5af60ef09de48072c7321bc1f1e",
+  "configs/escalation_D.json": "3d669222ebfbe5104d01ebbd24e70e81117939a8f591a76db992ed096577bccb"
+ },
+ "lab07_code": {
+  "bridge.py": "57616396189390d47f46e0734b739d76ac7791a4676bc1b2977db636c6e054ea",
+  "common.py": "c72f72dbb966c194dbad157dc21bd0c8b6611dd276a71d06d2af1791b3403a0c",
+  "derivatives.py": "0d60a663b462bdc752bf50f53357cbd1453c0a60d6c4732c113399d6f4c42f9f",
+  "evaluation.py": "0f08b9f86db4a06ecd5b9cf92f1fbe9d272bdf44a86650eff01603a908e74048",
+  "global_oracle.py": "6684e40093c788042cb1ed40ac3a1384641a9e3ff833d98da209f20f35d5a512",
+  "inputs.py": "0a6a962baf7c299dc8f6f2171718edb7f0a59dc4c7a486484d1a291fba479310",
+  "measures.py": "2ae3e7886dd993ea0d426fb820cb72063a5c89c80119075af380b48e68fc45aa",
+  "metrics.py": "f13e94d3865ddc6330a75730b4f618dcf937b0450860100d12e82ec6b9559401",
+  "moments.py": "440858544951ab7c284c94b4b6dad82a7802ffe110c10877c163bd4184a07eae",
+  "surfaces.py": "1d14b74437e4d669aae0b65fe88ad447651a77a76f178eac0ad57ee817579c6b",
+  "truth.py": "196109103efa1a8654f39df493ec5ecb0baf9d6a4c93fbb5562a610579e8c355"
+ },
+ "configs": {
+  "blind_candidates.json": "cfcb82640a66ed82d7484f36a46e86361a243801c4b6391a4f2bd4df5a5db997",
+  "budgets.json": "883763cdd8ffe27d480b64df0242463c04ab6e87c95cba4eca833ac3a5a6d02c"
+ },
+ "toys": {
+  "C1": {
+   "hashes": {
+    "dataset": "02d01591c94d6defa6cfacc300ab9f1d9c39cc3ae0887428dab175ee5a2cf5e9",
+    "checkpoint": "6283ebc8f4d59bf13ef6dae62b7da7734aa2030c1da52b335645fc88a97bee80",
+    "latent": "4f608dc1301d1931af50ba2083eef4b3b741c95b8a4845fdef99311d38f27e94"
+   },
+   "splits": {
+    "train": 5600,
+    "validation": 1200,
+    "test": 1200
+   },
+   "fixed_bank": null,
+   "masks": [
+    "FULL"
+   ],
+   "x_domain": null,
+   "variants_with_reference": [
+    "s9",
+    "s9_2"
+   ]
+  },
+  "C2": {
+   "hashes": {
+    "dataset": "3c3415caa73883a5ee89b4e7a3001568e53a59211c8c95524d46a580b6ae8710",
+    "checkpoint": "4e6f61375cfc4cd93b09e3c8c8368b541bad290a28d5d97a7435c875907770e7",
+    "latent": "327b523fe8155e78180ef405370d325f2ea460cb4a8919c18591f2c49e9a7835"
+   },
+   "splits": {
+    "train": 5600,
+    "validation": 1200,
+    "test": 1200
+   },
+   "fixed_bank": null,
+   "masks": [
+    "FULL"
+   ],
+   "x_domain": null,
+   "variants_with_reference": [
+    "s9",
+    "s9_2"
+   ]
+  },
+  "C3": {
+   "hashes": {
+    "dataset": "23d593f0818a2f59d26db6ceeafa5e37fcde19c2adeeec4b0dcc91561f3f1479",
+    "checkpoint": "22cec6127a8b077fc5a2ab3eedf519988aae775dcb750062d2077b30d6917b64",
+    "latent": "d2c9a9e21f9b73d87a97f6c8cb109d0abfd975a818a19989eb40acd4b7cd89d7"
+   },
+   "splits": {
+    "train": 5600,
+    "validation": 1200,
+    "test": 1200
+   },
+   "fixed_bank": null,
+   "masks": [
+    "FULL"
+   ],
+   "x_domain": null,
+   "variants_with_reference": [
+    "s9",
+    "s9_2"
+   ]
+  },
+  "CR3": {
+   "hashes": {
+    "dataset": "577e8ed9005eeb948a17be319e8d6e4a6879509ab0a233a91eddb06338fe2c14",
+    "checkpoint": "0c4799668353d61fc7dd0700a9bab739093fd166d0bfccdf8a4ca7591623cc27",
+    "latent": "ddb857fb675dfaf995fa6170d0661376c782f238a79f5cdab5135a249d330518"
+   },
+   "splits": {
+    "train": 5600,
+    "validation": 1200,
+    "test": 1200
+   },
+   "fixed_bank": [
+    500,
+    6
+   ],
+   "masks": [
+    "MASK-ALL",
+    "MASK-COL"
+   ],
+   "x_domain": [
+    "amount",
+    "amount",
+    "prob",
+    "amount",
+    "amount",
+    "prob"
+   ],
+   "variants_with_reference": [
+    "s9",
+    "s9_2"
+   ]
+  },
+  "CR4": {
+   "hashes": {
+    "dataset": "0c1d34f555048ac74884ec2f51ab350e949293e76d68232e20c5e3d0ab3c76ae",
+    "checkpoint": "0cc26a5e7afc1a7520d288971d2c56b684b2f9c7d7c89d547295e5beff3655d0",
+    "latent": "c9510c5d092f72980b29663ef0b11750edced8c3e1a37c9725ebe05aeeb21606"
+   },
+   "splits": {
+    "train": 5600,
+    "validation": 1200,
+    "test": 1200
+   },
+   "fixed_bank": null,
+   "masks": [
+    "FULL"
+   ],
+   "x_domain": [
+    "amount",
+    "amount",
+    "prob",
+    "amount",
+    "amount",
+    "prob"
+   ],
+   "variants_with_reference": [
+    "s9",
+    "s9_2"
+   ]
+  },
+  "CR5": {
+   "hashes": {
+    "dataset": "d7223642351cf3a30b435539ca42c9efae81c62d7354a68c6a7c0b3064fd717e",
+    "checkpoint": "b1be59d81ef8951ef9bb1a568626c16b51c566bc093ef9377b43e58e3de2aa79",
+    "latent": "e990c1708c8c843b08097f0eb1268b3a205dda07af35a27aa823a598a94f6f84"
+   },
+   "splits": {
+    "train": 5600,
+    "validation": 1200,
+    "test": 1200
+   },
+   "fixed_bank": [
+    500,
+    6
+   ],
+   "masks": [
+    "MASK-ALL",
+    "MASK-COL"
+   ],
+   "x_domain": [
+    "amount",
+    "amount",
+    "prob",
+    "amount",
+    "amount",
+    "prob"
+   ],
+   "variants_with_reference": [
+    "s9",
+    "s9_2"
+   ]
+  },
+  "C1L": {
+   "hashes": {
+    "dataset": "7253f7ec9fad6c7467c2f473976416f86e54fdaa4a1c05f07e51ae1d5304d3df",
+    "checkpoint": "e3437e8ca33f03b847fe4bdadfa5690a8e5b41fa6d3c2cd447f448f44eb0368e",
+    "latent": "974fee1184a1ddf9423b198ef41da7b91bd5988ecda63bb79a4c07d0f1e75db8"
+   },
+   "splits": {
+    "train": 5600,
+    "validation": 1200,
+    "test": 1200
+   },
+   "fixed_bank": null,
+   "masks": [
+    "FULL"
+   ],
+   "x_domain": null,
+   "variants_with_reference": [
+    "s9",
+    "s9_2"
+   ]
+  },
+  "C2L": {
+   "hashes": {
+    "dataset": "1c63be6222b2d095af5d7c691f4bb3556f8902c0d4377d7d59e77039287f2f74",
+    "checkpoint": "e0f9209690ad56d1c9cd09f3232e58c3be248a5a63701d5b2858150e53133eac",
+    "latent": "cb952d88d996e83b6ba9bf548ffb817e64dd648854c0340a8812d1d379b56992"
+   },
+   "splits": {
+    "train": 5600,
+    "validation": 1200,
+    "test": 1200
+   },
+   "fixed_bank": null,
+   "masks": [
+    "FULL"
+   ],
+   "x_domain": null,
+   "variants_with_reference": [
+    "s9",
+    "s9_2"
+   ]
+  },
+  "C3L": {
+   "hashes": {
+    "dataset": "3ea36c9acf6a75b52fe1f99880d43b6f3a0871efd59f1c6f86c372add85615ae",
+    "checkpoint": "ea5b704e999f0fdd90e23db47515eb7f3d8ace3f1180923488fb48353bee7724",
+    "latent": "f5a58cec871482028a7181c3777597a99df18413bfb39466b5d641c7ac65350a"
+   },
+   "splits": {
+    "train": 5600,
+    "validation": 1200,
+    "test": 1200
+   },
+   "fixed_bank": null,
+   "masks": [
+    "FULL"
+   ],
+   "x_domain": null,
+   "variants_with_reference": [
+    "s9",
+    "s9_2"
+   ]
+  },
+  "CR3L": {
+   "hashes": {
+    "dataset": "c0fe599a457a9a5737be4784e241f7ea57375bdb2170a9e1d2c9ad91912a5a39",
+    "checkpoint": "c652fed6684b4021ec833eadfc04bfc60496a39d8db8b905c0fff9216b18176e",
+    "latent": "2996e923155c13bcc3b4bea8d3265d62d528f56b373bac53872206fbe43020d0"
+   },
+   "splits": {
+    "train": 5600,
+    "validation": 1200,
+    "test": 1200
+   },
+   "fixed_bank": [
+    500,
+    6
+   ],
+   "masks": [
+    "MASK-ALL",
+    "MASK-COL"
+   ],
+   "x_domain": [
+    "amount",
+    "amount",
+    "prob",
+    "amount",
+    "amount",
+    "prob"
+   ],
+   "variants_with_reference": [
+    "s9",
+    "s9_2"
+   ]
+  },
+  "CR4L": {
+   "hashes": {
+    "dataset": "3583ad63a496b00351310148c22a57ba1c71165f82cb53f3d708d0caa53199a8",
+    "checkpoint": "85013076acba1741cfe5d51e53ecb9977139796490517387872be9cef621a441",
+    "latent": "b5dfc003342b477c3d295dbeeab751472d8f60b78536fc2c6ff8af1a02e7d30d"
+   },
+   "splits": {
+    "train": 5600,
+    "validation": 1200,
+    "test": 1200
+   },
+   "fixed_bank": null,
+   "masks": [
+    "FULL"
+   ],
+   "x_domain": [
+    "amount",
+    "amount",
+    "prob",
+    "amount",
+    "amount",
+    "prob"
+   ],
+   "variants_with_reference": [
+    "s9",
+    "s9_2"
+   ]
+  },
+  "CR5L": {
+   "hashes": {
+    "dataset": "8e96fa5fb15d23e6f9c177a6df337754a7b859c029971577145bc8d9292bc537",
+    "checkpoint": "93eec41765ba86d058d9303c71c8f3d235387cb87978c07094fa59d7566669f0",
+    "latent": "3e6404f547ccfb21df5551694a1ef44eecc4c52800dcc9bcebadfca7be845d0f"
+   },
+   "splits": {
+    "train": 5600,
+    "validation": 1200,
+    "test": 1200
+   },
+   "fixed_bank": [
+    500,
+    6
+   ],
+   "masks": [
+    "MASK-ALL",
+    "MASK-COL"
+   ],
+   "x_domain": [
+    "amount",
+    "amount",
+    "prob",
+    "amount",
+    "amount",
+    "prob"
+   ],
+   "variants_with_reference": [
+    "s9",
+    "s9_2"
+   ]
+  },
+  "C1#r2": {
+   "hashes": {
+    "dataset": "02d01591c94d6defa6cfacc300ab9f1d9c39cc3ae0887428dab175ee5a2cf5e9",
+    "checkpoint": "b4cc3742e76747361f353c2a1a89bee436f5c340f9ad2b78897d5c1502afe054",
+    "latent": "a474327d6433a4b3ffd0672414e7a685fd06b97cbdab8b68dd38e884d39a61c1"
+   },
+   "splits": {
+    "train": 5600,
+    "validation": 1200,
+    "test": 1200
+   },
+   "fixed_bank": null,
+   "masks": [
+    "FULL"
+   ],
+   "x_domain": null,
+   "variants_with_reference": [
+    "s9"
+   ]
+  },
+  "C2#r2": {
+   "hashes": {
+    "dataset": "3c3415caa73883a5ee89b4e7a3001568e53a59211c8c95524d46a580b6ae8710",
+    "checkpoint": "fc5db881a6f3fde022e80e16a2ba12e946e6b30e2e8312d8d317851e4fd19aad",
+    "latent": "01228801c2c05f4674ab4bc389ab63a0d1a31dbcf8fee661ee2bf8867f1467c4"
+   },
+   "splits": {
+    "train": 5600,
+    "validation": 1200,
+    "test": 1200
+   },
+   "fixed_bank": null,
+   "masks": [
+    "FULL"
+   ],
+   "x_domain": null,
+   "variants_with_reference": [
+    "s9"
+   ]
+  },
+  "C3#r2": {
+   "hashes": {
+    "dataset": "23d593f0818a2f59d26db6ceeafa5e37fcde19c2adeeec4b0dcc91561f3f1479",
+    "checkpoint": "822ad3af15e39d4fbde3bd045a5ff0aec1c2a9ba2246fc9aa16ac069fd023a32",
+    "latent": "d2fccc0d1222222349dab7f004b49546db50bce0a816d80ab0f9852761e8f910"
+   },
+   "splits": {
+    "train": 5600,
+    "validation": 1200,
+    "test": 1200
+   },
+   "fixed_bank": null,
+   "masks": [
+    "FULL"
+   ],
+   "x_domain": null,
+   "variants_with_reference": [
+    "s9"
+   ]
+  },
+  "CR3#b5e-5": {
+   "hashes": {
+    "dataset": "577e8ed9005eeb948a17be319e8d6e4a6879509ab0a233a91eddb06338fe2c14",
+    "checkpoint": "5d203e3735092d6060ca11f6191d4670f92354f81bee3346e547428b5bc25347",
+    "latent": "5cd0f66e0e729b66ba3560bdd33bd4a29c3aa765ff307b75c260fd2eabf88b6d"
+   },
+   "splits": {
+    "train": 5600,
+    "validation": 1200,
+    "test": 1200
+   },
+   "fixed_bank": [
+    500,
+    6
+   ],
+   "masks": [
+    "MASK-ALL",
+    "MASK-COL"
+   ],
+   "x_domain": [
+    "amount",
+    "amount",
+    "prob",
+    "amount",
+    "amount",
+    "prob"
+   ],
+   "variants_with_reference": [
+    "s9",
+    "s9_2"
+   ]
+  },
+  "CR4#r2": {
+   "hashes": {
+    "dataset": "0c1d34f555048ac74884ec2f51ab350e949293e76d68232e20c5e3d0ab3c76ae",
+    "checkpoint": "8180127abd874c1e1f4ea10312beded35ad180b601b62310a291dcc695ffda6a",
+    "latent": "eca4c92a108b9ffe8c670fa88c7ff9c64b8d9a4a702c5a9cef45f998e7058386"
+   },
+   "splits": {
+    "train": 5600,
+    "validation": 1200,
+    "test": 1200
+   },
+   "fixed_bank": null,
+   "masks": [
+    "FULL"
+   ],
+   "x_domain": [
+    "amount",
+    "amount",
+    "prob",
+    "amount",
+    "amount",
+    "prob"
+   ],
+   "variants_with_reference": [
+    "s9"
+   ]
+  }
+ }
+}

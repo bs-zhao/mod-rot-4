@@ -1,0 +1,233 @@
+{
+ "blind_candidates.json": {
+  "version": "W2-2026-11-26",
+  "source": "02_second_wave_README.md section 5 (frozen before any W2 search)",
+  "candidates": [
+   {
+    "id": "E01",
+    "metric": "L06|B08.M03.c0.01",
+    "role": "strongest inferred-only candidate",
+    "search": true
+   },
+   {
+    "id": "E02",
+    "metric": "L06|B08.M03.c0.03",
+    "role": "pre-existing parameter sensitivity",
+    "search": true
+   },
+   {
+    "id": "C01",
+    "metric": "L03|UX.lq.1",
+    "role": "analytic-perfect control, poor CR decoder inference",
+    "search": true
+   },
+   {
+    "id": "C02",
+    "metric": "L06|B01.M03.c0.01",
+    "role": "pooled UX soft-L0 control",
+    "search": true
+   },
+   {
+    "id": "C03",
+    "metric": "L03|Fz.A+B+C",
+    "role": "prior complex-continuous success (historical Haar-null normalisation)",
+    "search": true
+   },
+   {
+    "id": "C04",
+    "metric": "L06|B09.w75.M03.c0.01",
+    "role": "UX+UU fusion control",
+    "search": true
+   },
+   {
+    "id": "N01",
+    "metric": "identity",
+    "role": "unrotated V (no search)",
+    "search": false
+   },
+   {
+    "id": "N02",
+    "metric": "haar",
+    "role": "one fixed Haar rotation per k (seed 20261126), no search",
+    "search": false
+   },
+   {
+    "id": "N03",
+    "metric": "L06|CTRL.EB",
+    "role": "rotation-invariant loss: pipeline diagnostic, its returned R is arbitrary",
+    "search": true
+   },
+   {
+    "id": "X01",
+    "metric": "L03|SL0.UXUU.e0.01",
+    "role": "post-hoc shortlist: AD surface",
+    "search": false
+   },
+   {
+    "id": "X02",
+    "metric": "L03|SL0.UXUU.e0.01",
+    "role": "post-hoc shortlist: E-RBF block D1 surface",
+    "search": false
+   }
+  ],
+  "channel": {
+   "B": "YL",
+   "C": "YC"
+  },
+  "primary_mask": {
+   "bank": "MASK-ALL",
+   "random": "FULL"
+  },
+  "selection": "lowest valid blind optimisation loss; numerical tie (relative 1e-9) broken by the blind VALIDATION-cache loss (split-safe only); never by MCC",
+  "reference_loss_tolerance": "tau = 0.01 x (95th percentile - minimum) of the Haar start losses of the same search (landscape scale), used only after locking to compare L(R_hat) with L(R*)",
+  "post_hoc_shortlist": {
+   "added": "after W2-04 evaluation (development, chosen with truth-referenced sweep flags; not part of the frozen W2-01 registry)",
+   "ids": [
+    {
+     "id": "X01",
+     "metric": "L03|SL0.UXUU.e0.01",
+     "surface": "AD frozen decoder (BS-B caches)"
+    },
+    {
+     "id": "X02",
+     "metric": "L03|SL0.UXUU.e0.01",
+     "surface": "E-RBF block D1 teacher, S-min (validation loss) - refitted deterministically, state saved"
+    }
+   ]
+  }
+ },
+ "budgets.json": {
+  "version": "W2-2026-11-26",
+  "search": {
+   "S0": {
+    "k3_k4": {
+     "haar_starts": 400,
+     "refined": 8
+    },
+    "k6": {
+     "haar_starts": 2000,
+     "refined": 30
+    },
+    "identity_start": true,
+    "refine": "Givens coordinate descent, 13-point grid over [-span, span] + 8-step golden section per plane; spans 45, 15, 5, 1.5, 0.5 degrees (shrink after a sweep with relative improvement < 1e-9); max 30 sweeps / 60000 evaluations per refinement",
+    "distinct_starts": "relative distance modulo signed permutations > 0.05",
+    "search_seeds": [
+     31,
+     73,
+     101
+    ],
+    "search_rng": "[seed, 77, k]"
+   },
+   "S1": {
+    "k3_k4": {
+     "haar_starts": 2000,
+     "refined": 40
+    },
+    "k6": {
+     "haar_starts": 10000,
+     "refined": 150
+    },
+    "trigger (blind diagnostics only)": "an E01/E02 BS-B cell whose selected R is not converged, or has near-minima (within 1e-3 relative loss) separated by > 0.05, or whose selected rotations across the 3 x 3 integration x search seeds of the same toy / variant / metric are not all within 0.05 of each other"
+   },
+   "S2": "not run (optional optimizer comparison)"
+  },
+  "fidelity": {
+   "pilot": [
+    256,
+    32,
+    32
+   ],
+   "C": [
+    512,
+    64,
+    128
+   ],
+   "D": [
+    1024,
+    128,
+    512
+   ]
+  },
+  "integration_seeds": [
+   31,
+   73,
+   101
+  ],
+  "independent_D_cache": {
+   "pool": "TRAIN subjects not used by any of the three medium caches",
+   "seed": 211
+  },
+  "conditional": {
+   "pilot_product": [
+    128,
+    128
+   ],
+   "medium_product": [
+    256,
+    256
+   ],
+   "bank_latents": {
+    "pilot": 32,
+    "medium": 128
+   },
+   "kmeans": {
+    "K": [
+     4,
+     8,
+     16
+    ],
+    "seed": 5,
+    "min_group": 4
+   }
+  },
+  "inference": {
+   "train_cap": [
+    1024,
+    64
+   ],
+   "validation_cap": [
+    256,
+    64
+   ],
+   "smooth_bandwidths": [
+    0.025,
+    0.05,
+    0.1,
+    0.2
+   ],
+   "smooth_draws": {
+    "pilot": 16,
+    "final": 64
+   },
+   "poly_degrees": [
+    2,
+    3,
+    4,
+    5
+   ],
+   "poly_ridge": [
+    1e-07,
+    1e-06,
+    1e-05,
+    0.0001,
+    0.001,
+    0.01,
+    0.1,
+    1.0
+   ],
+   "rbf_landmarks": 1024,
+   "rbf_bandwidth_factors": [
+    0.5,
+    1.0,
+    2.0
+   ],
+   "rbf_ridge": [
+    1e-06,
+    0.0001,
+    0.01,
+    1.0
+   ],
+   "admissible_prediction_tolerance": 0.01
+  }
+ }
+}

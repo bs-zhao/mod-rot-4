@@ -1,0 +1,19 @@
+{
+  "version": "W2-2026-11-26",
+  "search": {
+    "S0": {"k3_k4": {"haar_starts": 400, "refined": 8}, "k6": {"haar_starts": 2000, "refined": 30}, "identity_start": true,
+           "refine": "Givens coordinate descent, 13-point grid over [-span, span] + 8-step golden section per plane; spans 45, 15, 5, 1.5, 0.5 degrees (shrink after a sweep with relative improvement < 1e-9); max 30 sweeps / 60000 evaluations per refinement",
+           "distinct_starts": "relative distance modulo signed permutations > 0.05", "search_seeds": [31, 73, 101], "search_rng": "[seed, 77, k]"},
+    "S1": {"k3_k4": {"haar_starts": 2000, "refined": 40}, "k6": {"haar_starts": 10000, "refined": 150},
+           "trigger (blind diagnostics only)": "an E01/E02 BS-B cell whose selected R is not converged, or has near-minima (within 1e-3 relative loss) separated by > 0.05, or whose selected rotations across the 3 x 3 integration x search seeds of the same toy / variant / metric are not all within 0.05 of each other"},
+    "S2": "not run (optional optimizer comparison)"
+  },
+  "fidelity": {"pilot": [256, 32, 32], "C": [512, 64, 128], "D": [1024, 128, 512]},
+  "integration_seeds": [31, 73, 101],
+  "independent_D_cache": {"pool": "TRAIN subjects not used by any of the three medium caches", "seed": 211},
+  "conditional": {"pilot_product": [128, 128], "medium_product": [256, 256], "bank_latents": {"pilot": 32, "medium": 128}, "kmeans": {"K": [4, 8, 16], "seed": 5, "min_group": 4}},
+  "inference": {"train_cap": [1024, 64], "validation_cap": [256, 64], "smooth_bandwidths": [0.025, 0.05, 0.1, 0.2], "smooth_draws": {"pilot": 16, "final": 64},
+                "poly_degrees": [2, 3, 4, 5], "poly_ridge": [1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1.0],
+                "rbf_landmarks": 1024, "rbf_bandwidth_factors": [0.5, 1.0, 2.0], "rbf_ridge": [1e-6, 1e-4, 1e-2, 1.0],
+                "admissible_prediction_tolerance": 0.01}
+}

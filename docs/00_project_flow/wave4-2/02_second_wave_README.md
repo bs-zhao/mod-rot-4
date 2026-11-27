@@ -679,3 +679,5 @@ The mandatory result is **not** “some metric must pass.” The experiment is s
 **Priority if computing resources are limited:** complete W2-01 and W2-02 first; report CH-A/CH-B and IF-A/IF-B with explicit coverage before expensive convergence/estimator expansions. Parallel work is encouraged, but uncompleted arms must be labeled uncompleted. The third wave will be designed based on the evidence, not by assuming this plan succeeds.
 
 **Implementation status:** documentation only. Folder names, proposed grids, budgets, evaluation sensitivities and CLI are specifications, not existing code or validated settings. No earlier experiment results, formal test beds or project definitions are changed by this note.
+
+**Implementation (2026-11-26):** W2-00 to W2-05 are implemented and run in [Metric Lab 08](../../../metric_lab/08_wave4_2_second_wave/README.md) (results, deviations and not-run arms are listed there).
