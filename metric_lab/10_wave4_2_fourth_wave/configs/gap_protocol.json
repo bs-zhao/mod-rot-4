@@ -1,0 +1,9 @@
+{
+ "version": "W4-GAP-1",
+ "source": "04_fourth_wave sections 12-15",
+ "O_true": "true T of the empirical TRAIN subjects of the M-E design x the SAME X panel / bank and masks as Q05; analytic logit / mean; T_s with the saved TRAIN T scaler",
+ "O_ref": "not run (normal approximation to T would need a declared supported conditional law)",
+ "bridge": "not run (diagnostic only)",
+ "gap1": {"cids": ["RW-GL-l0.75-a1.0", "MX-B08c03@AD", "MX-B01c03@AD"], "targets": "8 analytic targets of Lab 07-09", "search": "S0, search seeds 31/73/101 on O-true C s31", "independent": "O-true D s211 / s613", "categories": "Lab 09"},
+ "gap2": {"pairs": [["Q05@C s31/73/101", "O-true@C same seed"], ["Q05@D s211/613", "O-true@D same seed"]], "flags": "Lab 07 harmonised curve_stats / library_flags / eval1", "baseline": "Lab 09 local_flags Q01 C"}
+}

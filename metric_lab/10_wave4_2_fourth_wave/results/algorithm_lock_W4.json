@@ -1,0 +1,187 @@
+{
+ "channel": {
+  "B": "class-1 minus class-0 logit (YL)",
+  "C": "decoder output * y_std + y_mean (YC, original Y units)"
+ },
+ "code_and_config_sha256_canonical": {
+  "metric_lab/07_unified_benchmark/wave4_2/bridge.py": "57616396189390d47f46e0734b739d76ac7791a4676bc1b2977db636c6e054ea",
+  "metric_lab/07_unified_benchmark/wave4_2/common.py": "c72f72dbb966c194dbad157dc21bd0c8b6611dd276a71d06d2af1791b3403a0c",
+  "metric_lab/07_unified_benchmark/wave4_2/derivatives.py": "0d60a663b462bdc752bf50f53357cbd1453c0a60d6c4732c113399d6f4c42f9f",
+  "metric_lab/07_unified_benchmark/wave4_2/evaluation.py": "c38e1fb3a8d2c842ea442229379b40258b46c2fdc80c726ed199c08e91f9cffb",
+  "metric_lab/07_unified_benchmark/wave4_2/global_oracle.py": "6684e40093c788042cb1ed40ac3a1384641a9e3ff833d98da209f20f35d5a512",
+  "metric_lab/07_unified_benchmark/wave4_2/inputs.py": "0a6a962baf7c299dc8f6f2171718edb7f0a59dc4c7a486484d1a291fba479310",
+  "metric_lab/07_unified_benchmark/wave4_2/measures.py": "2ae3e7886dd993ea0d426fb820cb72063a5c89c80119075af380b48e68fc45aa",
+  "metric_lab/07_unified_benchmark/wave4_2/metrics.py": "f13e94d3865ddc6330a75730b4f618dcf937b0450860100d12e82ec6b9559401",
+  "metric_lab/07_unified_benchmark/wave4_2/moments.py": "440858544951ab7c284c94b4b6dad82a7802ffe110c10877c163bd4184a07eae",
+  "metric_lab/07_unified_benchmark/wave4_2/surfaces.py": "408655ea8b424cd2050f2c50ba4d620692a2bbfcd5d38127f37b3dc7e079a1a1",
+  "metric_lab/07_unified_benchmark/wave4_2/truth.py": "196109103efa1a8654f39df493ec5ecb0baf9d6a4c93fbb5562a610579e8c355",
+  "metric_lab/08_wave4_2_second_wave/run_blind.py": "f837d8d16ca4d13024e8cfbd120977c597bf214b65b051072699372d78c5cc24",
+  "metric_lab/08_wave4_2_second_wave/wave2/blind_eval.py": "2ae812e2e331758a1baee38b4224d57b4b3bdaf8d401589459ca31860f91a4a5",
+  "metric_lab/08_wave4_2_second_wave/wave2/blind_inputs.py": "534f6692c4e5f885d0d55eac49bce52661fe07336b03f9ce7b2f35eb0c17d5cf",
+  "metric_lab/08_wave4_2_second_wave/wave2/common.py": "804bd3e77fc894aaf33ae225c1c082aedf0fed99b9f12bcc400afada964d4ba5",
+  "metric_lab/08_wave4_2_second_wave/wave2/conditional.py": "9edc394dfcd3f383e7b85614f9e78e0615bbeba4404ace5a4f728e71aab913fd",
+  "metric_lab/08_wave4_2_second_wave/wave2/designs.py": "3eba357b72bd55369320f394f67aa6b3c537fa504ece4ef3941f437b5b93e4b4",
+  "metric_lab/08_wave4_2_second_wave/wave2/evaluate_recovery.py": "bc3628118bdea90ce8d9b3a0d0be7a71dc1a789be2f348e1936b70d84e411a08",
+  "metric_lab/08_wave4_2_second_wave/wave2/objectives.py": "e6495e3f9ca2fb29fad2c618bdb6c04d2c3afc19fdfb68282674500a30e752cd",
+  "metric_lab/08_wave4_2_second_wave/wave2/optimizers.py": "075ac6ccf7ab40839a07d04f9f95ec5b67a6e13aa449f0d53759c828cf728a8f",
+  "metric_lab/08_wave4_2_second_wave/wave2/oracle_merge.py": "a8256ae383235d0897b69219e5461063a4cc6325a2e3c86c357a16f6075c7834",
+  "metric_lab/08_wave4_2_second_wave/wave2/surrogates.py": "dc94ab3dc98a270695d737c7b58cb4b28c614c3fd3bc88017114c49ce6494645",
+  "metric_lab/09_wave4_2_third_wave/wave3/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "metric_lab/09_wave4_2_third_wave/wave3/common.py": "b2e9dda7084aaa7882724e849b22539f44e3c053f197858c52e72da1acd7b6aa",
+  "metric_lab/09_wave4_2_third_wave/wave3/context.py": "5787048be4423ca977e63dd62936f21470628e6c600002a15732d655efda06ef",
+  "metric_lab/09_wave4_2_third_wave/wave3/fusion.py": "9b1f34092ee22f379b832b140723fb3ae8bb1d2455c314a25c0c8e36ff95404f",
+  "metric_lab/09_wave4_2_third_wave/wave3/jobs.py": "0223f359e9b1a4b37698a18a3c0864052829baece58e653e5c53be55c914b9fe",
+  "metric_lab/09_wave4_2_third_wave/wave3/objectives.py": "5e8c859dfdfc535d8a387096684b3753577af060706735ec442b00a8a437d49b",
+  "metric_lab/09_wave4_2_third_wave/wave3/reduced_axis.py": "bb0b662c5da66a7ecb167e01f6459bd3bebee5b6ef29db1b697f8a641d3c0a3a",
+  "metric_lab/09_wave4_2_third_wave/wave3/rowmetrics.py": "24299e3ad9d2b0f68b6e654e13c1efae86a9f476aebb31de24987be4ef2d6407",
+  "metric_lab/09_wave4_2_third_wave/wave3/structure.py": "f7bfbffc5f3deaaf7af9e4514077f284d74bd559ce9341535c8c05619b4c5def",
+  "metric_lab/10_wave4_2_fourth_wave/configs/confirmation_protocol.json": "42f7314b3a1ca45725d9be4c56d5a0e4b1b31c0488911eaeb24017bf7164cf1b",
+  "metric_lab/10_wave4_2_fourth_wave/configs/primary_candidate.json": "e953f4329a29246355dbd9443d2e15d560a74261483ad3fb869d903746999750",
+  "metric_lab/10_wave4_2_fourth_wave/configs/replication_protocol.json": "cc0a77cf868ca2e49d6eed0dbdf13b85d97cbeb1ae44a0390c6fd95d9bf3342b",
+  "metric_lab/10_wave4_2_fourth_wave/run_replication.py": "0421976d185142fe6fc072170e53be8bb702ad0699c580bef63a6931591f442b",
+  "metric_lab/10_wave4_2_fourth_wave/wave4/common.py": "5d855959839b9886923535df2238dad505ecd615032dcad7f45b4d5d369a26e0",
+  "metric_lab/10_wave4_2_fourth_wave/wave4/designs.py": "c389db89054dea3d9521fc44c878c26d233fdc8ed4ca4929973b5e5aade7a878",
+  "metric_lab/10_wave4_2_fourth_wave/wave4/moments.py": "cc14f647cd2ffcedb49beaced5e38e076f505e546bf2434ddacef374f11f6215",
+  "metric_lab/10_wave4_2_fourth_wave/wave4/search.py": "a5cceaeb1e35939ad5e7ac1af970880aa97a1fdbeb30f1664099415fc2a441dc"
+ },
+ "confirmation_manifest": {
+  "path": "outputs/metric_lab/10_wave4_2_fourth_wave/W4r1/confirmation/confirmation_manifest.json",
+  "sha256": "09cf6b1b7271840d39bdc23ffa087297ce30a01fb32d9bb4bad285c00fdf5939"
+ },
+ "controls": {
+  "E02": {
+   "cid": "MX-B08c03@AD",
+   "measure": "Q01",
+   "variant": "s9_2"
+  },
+  "W3_Q01": {
+   "cid": "RW-GL-l0.75-a1.0",
+   "measure": "Q01"
+  }
+ },
+ "created": "2026-11-27 23:15:10",
+ "data": {
+  "primary_payloads": "outputs/metric_lab/08_wave4_2_second_wave/W2r1/blind_payload (development)",
+  "toy_registry": "metric_lab/07_unified_benchmark/configs/toy_registry.json"
+ },
+ "dependencies": {
+  "numpy": "2.2.6",
+  "python": "3.11.13",
+  "scipy": "1.16.1",
+  "torch": "2.9.1+cu130"
+ },
+ "deployment": {
+  "d_seed": 211,
+  "fixed_pair": [
+   31,
+   31
+  ],
+  "note": "both rules declared before confirmation; the primary is the one named in `primary`; the all-run 3 x 3 assessment is reported in addition",
+  "primary": "D-ranked",
+  "rules": {
+   "D-ranked": "among the 9 selected S0 rotations of the variant, the one with the lowest loss on an independent Q05 D cache (1024 x 128 / 512 x full bank, TRAIN pool, iseed 211); ties -> lexical key",
+   "fixed-pair": "the S0 selection of integration seed 31 x search seed 31"
+  }
+ },
+ "development_selection": "Q05 was chosen after inspecting the W3 FIN-SENS recovery (post-hoc, integration seed 31) and the W4 development replications REP-1/2/3 on the same 12 toys; this lock is a DEVELOPMENT selection, not a confirmed result",
+ "evaluation": {
+  "criterion": "MCC >= supervised MCC - .05 and leak_max < .2 (classic) / .3 (CR); Hungarian on |corr| on TEST",
+  "sensitivity": [
+   "gap .02",
+   "common leak .2 / .3",
+   "absolute MCC >= .9"
+  ],
+  "stage_A": "linear R2 of T on Z (TRAIN OLS, TEST), descriptive only",
+  "supervised": "S8 / S8_2 TRAIN-fit Procrustes R* (TRAIN-centred Z, TRAIN-standardised T), evaluated on TEST"
+ },
+ "frame": {
+  "primary": "s9 raw Z (V = Z)",
+  "secondary": "s9_2 marginal standardisation (all-subject mean / SD, ddof 0) - reported separately, not the primary rule"
+ },
+ "git_commit": "7a00d2fe360f7e71d1309a6e8d0acd5ec99ec288",
+ "integration": {
+  "iseeds": [
+   31,
+   73,
+   101
+  ],
+  "note": "all-run assessment = 3 integration x 3 search seeds, every run reported"
+ },
+ "lock_sha256": "d487357cc6726f024e42c3a0d50e076d6ac7a80bc41427765e8d4cf118be62e8",
+ "measure": {
+  "fidelity": "C: 512 draws x 64 rows (random) / 128 draws x full bank",
+  "id": "Q05",
+  "mask": "FULL for random X; MASK-ALL (every X column interior: amount > 0, 0 < prob < 1) for declared-domain fixed banks",
+  "rule": "independent marginal Gaussian fitted to the TRAIN pool Z of the dataset itself (mean, population SD ddof 0; recomputed for every dataset - not the historical numbers), standard normals RNG [iseed,3,5] (MAXDRAW 4096), X: complete observed TRAIN rows, permutation RNG [iseed,4,5] (random designs) or the full fixed bank for every draw; the SAME base points for every R",
+  "validation": "same law on the VALIDATION pool (numerical tie-break only)"
+ },
+ "objective": {
+  "active_rule": "A = rows with r_i > 1e-15 E (TOL 1e-12 x ACT_CUT 1e-3); E <= 1e-12 or non-finite -> NaN (invalid, never replaced)",
+  "block": "UX only: B_ij(R) = e_i' R S J^(j) S R' e_i, J^(j) = E[h_j h_j'], h_j = d2 g / dv dx_j (frozen S3 decoder, torch.func AD)",
+  "cid": "RW-GL-l0.75-a1.0",
+  "dtype": "float64",
+  "formula": "L = .75 sum_{i in A} (r_i / sum_A r) s_i + .25 (1/kp) sum_ij v_ij / (v_ij + c/(kp)); s_i = (1/p) sum_j q_ij / (q_ij + c/p); c = .03, a = 1",
+  "spec": {
+   "a": 1.0,
+   "c": 0.03,
+   "cid": "RW-GL-l0.75-a1.0",
+   "family": "RW-GL",
+   "kind": "GL",
+   "lam": 0.75,
+   "type": "row"
+  }
+ },
+ "orchestration_sha256_canonical": {
+  "metric_lab/10_wave4_2_fourth_wave/freeze_algorithm.py": "12d53c4f5eeb61c6bcff4c0b74df3c2f52c259fe4cdd4eec3016280da343fc13",
+  "metric_lab/10_wave4_2_fourth_wave/run_confirmation.py": "1118d767e865dcc1eb40a1a251db3f847d453f5fe41ea60ef97380977f8b8d12",
+  "metric_lab/10_wave4_2_fourth_wave/run_evaluation.py": "9f3e079391b828babff201d4839c169ad819eb3efd5daa3a0b2a22459b2b6dac",
+  "metric_lab/10_wave4_2_fourth_wave/wave4/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "metric_lab/10_wave4_2_fourth_wave/wave4/conf_pipeline.py": "d116d9f3d1d36e11e1543cda1a3ccf873fb843c916a5761460efa95a69eb96f6",
+  "metric_lab/10_wave4_2_fourth_wave/wave4/confirmation.py": "aa03d2f26152c94328851e6f5d0ac03a6bea5015c71c22a04bd629e3828bca54",
+  "metric_lab/10_wave4_2_fourth_wave/wave4/eval_only/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "metric_lab/10_wave4_2_fourth_wave/wave4/eval_only/diagnostics.py": "10faf1aff1d06dc55deb832b0e3346dab2d9d36488eddc62d3b39aeb8477257d",
+  "metric_lab/10_wave4_2_fourth_wave/wave4/eval_only/oracle.py": "873430b5b8f43532fd05bb1ce3daa1a853cbe6e29f676208eee16bc36df5e368",
+  "metric_lab/10_wave4_2_fourth_wave/wave4/eval_only/recovery.py": "c72bfd5e3e7162626fc7d466672650d9a1a06456c704a5beaf858b5ff8a0cf79",
+  "metric_lab/10_wave4_2_fourth_wave/wave4/reeval.py": "634e80912bf408430e53ca8643215513a31e7f79f3a7ebeff932006aa4fcd597"
+ },
+ "policies": {
+  "failures": "every attempted run in the denominator; missing / failed training = failure; no regeneration",
+  "per_toy_selection": "forbidden",
+  "truth": "confirmation T / R* opened only after every blind CONF-A file is hashed into results/confirmation_locks.csv"
+ },
+ "schema": "W4-LOCK-1",
+ "search": {
+  "S1": "5x budget only as a reported blind escalation; never replaces the S0 selection",
+  "budget": "S0",
+  "identity_start": true,
+  "k3_k4": [
+   400,
+   8
+  ],
+  "k6": [
+   2000,
+   30
+  ],
+  "optimizer": "Lab 08 wave2.optimizers.search",
+  "spans": [
+   45,
+   15,
+   5,
+   1.5,
+   0.5
+  ],
+  "sseeds": [
+   31,
+   73,
+   101
+  ],
+  "tie": "lowest valid TRAIN loss; relative 1e-9 tie broken by the VALIDATION loss; never by truth"
+ },
+ "version": "W4-Q05-v1",
+ "w3_lock": {
+  "byte_sha256": "8cff74d39c1fa01f7913921c3b94ee282fed0d1354a5bc164bceac458945551f",
+  "canonical_sha256": "b893b0b866f77dc3aa55bd50cfbe23938a14c0782db02cd7f9ce8946c961921d",
+  "path": "metric_lab/09_wave4_2_third_wave/results/algorithm_lock.json",
+  "status": "untouched"
+ }
+}

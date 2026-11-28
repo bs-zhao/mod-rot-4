@@ -551,3 +551,5 @@ If W4-Q05 reliably achieves 12/12 on the development panel, move to independent 
 - [ ] Novel family confirmation not claimed until separate registry and runs exist.
 
 **Implementation status:** only the research protocol has been written. Proposed seeds, budgets, Lab 10 paths, controlled measure diagnostics and confirmation design are not yet validated or executed. Q05 12/12 is a verified historical FIN-SENS observation with one integration seed, not the outcome of this fourth wave.
+
+**Implementation (2026-11-27):** W4-00 to W4-05 are implemented in [Metric Lab 10](../../../metric_lab/10_wave4_2_fourth_wave/README.md). The 36/36 FIN-SENS Q05 observation replays exactly, but does not replicate: RW-GL / Q05 / s9 passes 11/12 toys in REP-1/2/3 (CR4 passes only for integration draws 31 and 73, 6/24 Q05 searches), the same coverage as the W3 Q01 lock; the CR4 change is a finite-integration near-tie between two basins, not a covariance or Gaussian-shape effect. W4-Q05-v1 is locked as a limited-scope candidate (development selection); CONF-A status is in the Lab 10 README. W4-06 is not run (no reviewed novel-family registry).

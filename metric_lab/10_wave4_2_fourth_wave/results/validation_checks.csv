@@ -1,0 +1,10 @@
+test,ok,seconds,message
+test_ad_vs_fd,True,9.5,
+test_contraction_vs_direct_and_energy_invariance,True,3.1,
+test_designs,True,9.3,
+test_gl_formula_and_invariances,True,0.2,
+test_mask_denominators,True,1.0,
+test_output_scaling_class_c,True,0.9,
+test_q05_fixed_points_under_rotation,True,1.0,
+test_static_import_split,True,0.0,
+test_blind_isolation,True,5.4,audit hook (last: process keeps the hook)

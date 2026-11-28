@@ -1,0 +1,22 @@
+{
+ "version": "W4-CONF-1",
+ "source": "04_fourth_wave_README.md sections 18-20; registered before any confirmation output exists",
+ "CONF_A": {
+  "panel": "minimum mandatory: 1 data seed x 2 NP training seeds x 12 toys = 24 NPs (the full 48-NP panel with a second data seed is NOT run in this wave)",
+  "data_seeds": [2026112801],
+  "train_seeds": [2026112811, 2026112812],
+  "seed_checks": "historical outputs use data seeds 20261006 (C) / 20261028 (CR) and train/split seed 31 only (all 38 outputs/nn config.json files); numpy SeedSequence accepts the ids",
+  "generator": "models/s1_generate.py + s2_precheck.py UNCHANGED, run through wave4/conf_pipeline.py with the output ROOT redirected to OUT/confirmation/D<seed>/; design seed 20261023, precheck seed 20261006, 8000 subjects, documented trial counts / priors / noise",
+  "bank": "CR3 / CR5 (and CR3L / CR5L) reuse the fixed 500-row bank: byte-identical copy into the isolated root, sha256 recorded",
+  "noise": "the <MODEL>L observation noise stream is the generator's fixed per-model constant (unchanged code); with new T / X the noise attaches to new trials",
+  "pairing": "<MODEL> and <MODEL>L of one data seed share T / trial counts / X / true logit (generator design), they are not independent formula families",
+  "training": "nn/s3_train.py UNCHANGED: per-toy latent dim and beta of the Lab 07 toy registry (classic B .0005, C per registry), default stopping rule (500/50 choice, 5000/50 logit), split seed 31, repeat 1, new train seed; S5 Z from all observed trials; S8 / S8_2 supervised references fitted on TRAIN subjects",
+  "stage_A": "every attempted NP kept in the denominator; Stage A (linear R2 of T on Z, TEST) reported descriptively, never used to drop / regenerate a run",
+  "order": "register -> generate -> train (may run while development continues; no confirmation file is read by any development step) -> algorithm lock -> blind runs of the locked rule + controls (truth-free payloads) -> hash all blind outputs into confirmation_locks.csv -> only then T / R* evaluation",
+  "controls": "W3-Q01 lock (RW-GL Q01 S9) and E02 Q01 S9_2, same seeds",
+  "aggregation": "by toy (family x class) and NP training seed; integration / search seeds are not replicates"
+ },
+ "CONF_B": {"status": "not run in this wave (secondary)"},
+ "CONF_C": {"status": "not run: requires a separately reviewed novel-family registry (section 21)"},
+ "thresholds": {"MCC_gap": 0.05, "leak_max": {"classic": 0.2, "CR": 0.3}}
+}

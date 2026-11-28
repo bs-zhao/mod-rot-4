@@ -1,0 +1,31 @@
+{
+ "version": "W4-REP-1",
+ "source": "04_fourth_wave sections 8-9, 10, 16 (frozen before any Lab 10 search)",
+ "primary_candidate": "W4-Q05 = RW-GL-l0.75-a1.0 / decoder AD / raw Z (s9) / Q05 / FULL (random X) or MASK-ALL (fixed bank) / S0; s9_2 run and reported separately",
+ "search": "Lab 08 wave2.optimizers.search unchanged: identity + Haar starts, S0 = 400/8 (k=3,4) or 2000/30 (k=6), spans 45/15/5/1.5/.5 deg, relative tie 1e-9 broken by the VALIDATION cache of the same measure / fidelity / seed",
+ "search_seeds": [31, 73, 101],
+ "integration_seed_check": "307 / 401 / 503 / 613 do not occur in any Lab 07-09 cache tag (checked by validate.py); 211 is the historical Q01 D independent seed, here a fresh Q05 D draw",
+ "batches": {
+  "REP-1":   {"cids": ["RW-GL-l0.75-a1.0", "MX-B08c03@AD"], "measures": ["Q05"], "fidelity": "C", "iseeds": [31, 73, 101], "variants": ["s9", "s9_2"], "panel": "primary",
+              "note": "iseed 31 x RW-GL = REP-0 exact replay (36 s9 + 36 s9_2 runs); E02 on Q05 is a diagnostic control"},
+  "REP-2":   {"cids": ["RW-GL-l0.75-a1.0"], "measures": ["Q05"], "fidelity": "C", "iseeds": [307, 401, 503], "variants": ["s9", "s9_2"], "panel": "primary"},
+  "REP-2C":  {"cids": ["RW-GL-l0.75-a1.0", "MX-B08c03@AD"], "measures": ["Q01"], "fidelity": "C", "iseeds": [307, 401, 503], "variants": ["s9", "s9_2"], "panel": "primary",
+              "note": "fixed controls (W3-Q01 lock, E02) on the fresh integration seeds; seeds 31/73/101 of the controls are the Lab 09 FIN files (read-only)"},
+  "REP-3":   {"cids": ["RW-GL-l0.75-a1.0"], "measures": ["Q05"], "fidelity": "D", "iseeds": [211, 613], "variants": ["s9", "s9_2"], "panel": "primary"},
+  "MG":      {"cids": ["RW-GL-l0.75-a1.0"], "measures": ["M-E", "M-J", "M-I"], "fidelity": "C", "iseeds": [31, 73, 101], "variants": ["s9", "s9_2"], "panel": "primary",
+              "note": "M-D == Q05 (REP-1 file); M-P == Q01 (Lab 09 FIN)"},
+  "MS":      {"cids": ["RW-GL-l0.75-a1.0"], "measures": ["RHO-0.25", "RHO-0.5", "RHO-0.75", "KAP-0.75", "KAP-1.25", "TRN-2", "TRN-3",
+                                                     "SUB-0.25-1-XF", "SUB-0.25-2-XF", "SUB-0.25-3-XF", "SUB-0.5-1-XF", "SUB-0.5-2-XF", "SUB-0.5-3-XF",
+                                                     "SUB-0.25-1-XC", "SUB-0.25-2-XC", "SUB-0.25-3-XC", "SUB-0.5-1-XC", "SUB-0.5-2-XC", "SUB-0.5-3-XC"],
+              "fidelity": "C", "iseeds": [31], "variants": ["s9"], "panel": "primary"},
+  "MIX":     {"cids": ["RW-GL-l0.75-a1.0"], "measures": ["MIX-0.25", "MIX-0.5", "MIX-0.75"], "fidelity": "C", "iseeds": [31, 73, 101], "variants": ["s9"], "panel": "primary",
+              "note": "J_alpha = (1-alpha) J_{M-E} + alpha J_{M-D}, same X panel and mask"},
+  "RB-Q":    {"cids": ["RW-GL-l0.75-a1.0"], "measures": ["Q02", "Q03", "Q04"], "fidelity": "C", "iseeds": [31, 73, 101], "variants": ["s9", "s9_2"], "panel": "primary"},
+  "RB-MASK": {"cids": ["RW-GL-l0.75-a1.0"], "measures": ["Q05"], "masks": ["MASK-COL", "FULL"], "fidelity": "C", "iseeds": [31, 73, 101], "variants": ["s9", "s9_2"], "panel": "bank",
+              "note": "FULL on a bank = decoder-only full-row extension (separate estimand)"},
+  "RB-SEC":  {"cids": ["RW-GL-l0.75-a1.0"], "measures": ["Q05", "Q01"], "fidelity": "C", "iseeds": [31, 73, 101], "variants": ["s9", "s9_2"], "panel": "secondary",
+              "extra": [{"cid": "MX-B08c03@AD", "measure": "Q01"}]}
+ },
+ "escalation": "REP-4: every finalist of REP-1 / REP-2 RW-GL cells re-scored on both REP-3 D caches; a cell with a non-converged winner, separated near-minima (> .05 within 1e-3), inconsistent seeds (> .05) or a D cache preferring another finalist gets an S1 (5x) search on its own cache, reported separately; the selected R is never replaced",
+ "thresholds": {"MCC_gap": 0.05, "leak_max": {"classic": 0.2, "CR": 0.3}}
+}

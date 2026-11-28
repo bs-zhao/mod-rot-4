@@ -1,0 +1,12 @@
+{
+ "id": "W4-Q05",
+ "source": "04_fourth_wave section 8 (no hyperparameter search in this wave)",
+ "objective": "RW-GL-l0.75-a1.0 (Lab 09 registry; .75 B08-type row-weighted support + .25 B01 global support, c = .03, a = 1)",
+ "surface": "AD of the frozen S3 decoder, UX block only",
+ "frame": "s9 (raw Z) primary; s9_2 reported separately",
+ "measure": "Q05 (TRAIN-fitted independent marginal Gaussian x empirical complete rows / full bank)",
+ "mask": "FULL (random X) / MASK-ALL (declared-domain fixed bank)",
+ "fidelity": "C (512 x 64 / 128 x bank)",
+ "search": "S0 (Lab 08 optimizer), search seeds 31/73/101, VALIDATION tie-break",
+ "controls": {"W3-Q01": "RW-GL-l0.75-a1.0 Q01 s9 (the W3 lock)", "E02": "MX-B08c03@AD Q01 s9_2"}
+}

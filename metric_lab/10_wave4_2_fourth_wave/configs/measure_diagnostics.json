@@ -1,0 +1,13 @@
+{
+ "version": "W4-MD-1",
+ "source": "04_fourth_wave sections 10-11; diagnostic laws, never replacements for Q05",
+ "controlled_grid": {"M-P": "historical Q01 (Lab 09 FIN files)", "M-E": "empirical Z x common X panel", "M-J": "joint Gaussian (symmetric sqrt), matched normals", "M-D": "= Q05 (tested bit-identical)", "M-I": "independent empirical marginals"},
+ "covariance_interpolation": [0.0, 0.25, 0.5, 0.75, 1.0],
+ "scale_kappa": [0.75, 1.0, 1.25],
+ "truncation": [2, 3],
+ "J_mixture_alpha": [0.0, 0.25, 0.5, 0.75, 1.0],
+ "subpool": {"fractions": [0.25, 0.5, 1.0], "subpool_seeds": [1, 2, 3], "x_panel": ["XF fixed full-pool rows", "XC subpool rows"]},
+ "diagnostic_toys_eval": ["CR4", "CR4L", "CR3", "CR3L", "CR5", "CR5L", "C1", "C1L"],
+ "block_bootstrap": {"resamples": 400, "unit": "latent draw (all rows sharing one latent)"},
+ "support_thresholds": "VALIDATION empirical Mahalanobis / nearest-neighbour 99% quantiles; TRAIN marginal quantiles 1-99 / .5-99.5; |z_std| > 2, > 3"
+}

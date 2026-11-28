@@ -7,5 +7,6 @@ Numbered, independent metric experiments. Each `NN/` experiment owns its code, t
 - [07 — Wave 4-2 first wave: unified 12-toy benchmark, bridges, global analytic search](07_unified_benchmark/README.md) (imports the Lab 03 loaders / metric code and the Lab 06 metric library read-only, as the wave 4-2 specification asks: an explicit exception to the no-import rule above)
 - [08 — Wave 4-2 second wave: blind recovery, practical oracle accuracy, conditional HE, improved inference](08_wave4_2_second_wave/README.md) (imports the validated Lab 07 numerical modules read-only, as the second-wave specification asks)
 - [09 — Wave 4-2 third wave: B08 row-weight repair, same-frame fusion, gradient / contrast / reduced-axis structure, disjoint-context diagnostic, 3 × 3 finalists and algorithm lock](09_wave4_2_third_wave/README.md) (imports Lab 08 and Lab 07 read-only, as the third-wave specification asks)
+- [10 — Wave 4-2 fourth wave: exact Q05 replay, 3 × 3 / fresh-seed / D-fidelity replication, controlled integration-measure diagnosis of CR4, O-true three gaps, saved-NP robustness, W4-Q05-v1 lock and CONF-A fresh data / NP confirmation](10_wave4_2_fourth_wave/README.md) (imports Lab 09 / 08 / 07 read-only)
 
 Generated results belong under `outputs/metric_lab/<number>/` (ignored by the repository's existing outputs policy).

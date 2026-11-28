@@ -1,0 +1,47 @@
+{
+ "checks": [
+  {
+   "check": "A keys",
+   "sum": 12,
+   "size": 12
+  },
+  {
+   "check": "B archived recovery",
+   "sum": 72,
+   "size": 72
+  },
+  {
+   "check": "C cache",
+   "sum": 32,
+   "size": 32
+  },
+  {
+   "check": "C design fit",
+   "sum": 12,
+   "size": 12
+  },
+  {
+   "check": "D finalist rescoring",
+   "sum": 72,
+   "size": 72
+  },
+  {
+   "check": "E re-executed S0",
+   "sum": 72,
+   "size": 72
+  },
+  {
+   "check": "F replay recovery",
+   "sum": 72,
+   "size": 72
+  },
+  {
+   "check": "G W3 lock",
+   "sum": 2,
+   "size": 2
+  }
+ ],
+ "archived_s9_pass": "36/36",
+ "archived_s9_2_pass": "30/36",
+ "replay_s9_pass": "36/36"
+}
